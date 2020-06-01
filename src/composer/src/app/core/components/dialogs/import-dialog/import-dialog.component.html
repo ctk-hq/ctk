@@ -1,0 +1,10 @@
+<h1 mat-dialog-title>Paste a link to your raw docker-compose.yml file</h1>
+<mat-dialog-content>
+    <mat-form-field fxFill appearance="fill">
+        <mat-label>URL</mat-label>
+        <input matInput [(ngModel)]="importUrl" />
+    </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions class="dialog-actions">
+    <button mat-raised-button (click)="import()">Import</button>
+</mat-dialog-actions>

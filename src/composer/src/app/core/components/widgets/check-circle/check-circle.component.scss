@@ -1,0 +1,14 @@
+.green-circle {
+  width: 24px;
+  height: 24px;
+  padding: 6px 0 0 0;
+  opacity: 0;
+  transition: linear 1s opacity;
+
+  &_invisible {
+    opacity: 0;
+  }
+  &_visible {
+    opacity: 1;
+  }
+}

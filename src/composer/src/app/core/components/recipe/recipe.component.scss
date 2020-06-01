@@ -1,0 +1,63 @@
+.title {
+    margin: 15px 0 0 10px;
+    padding: 0;
+}
+
+.recipe-nav {
+    max-height: 100%;
+}
+
+.list-recipes {
+    overflow-y: auto;
+}
+
+.recipe {
+    padding: 14px 10px;
+    border-bottom: 1px solid #efefef;
+
+    &:hover {
+        background: #fafafa;
+        cursor: pointer;
+    }
+    .name {
+        margin: 0;
+        font-weight: 500;
+    }
+    .mat-icon-button {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        .mat-icon {
+            font-size: 18px;
+        }
+    }
+    .keyword-container {
+        width: 80%;
+        .keyword {
+            margin: 0 4px 2px 0;
+            background: #428efb;
+            color: #fff;
+            padding: 0px 6px;
+            border-radius: 20px;
+            font-size: 10px;
+            line-height: 18px;
+        }
+    }
+}
+
+.form-wrapper {
+    ::ng-deep.mat-form-field-wrapper {
+        margin: 0;
+        height: 35px;
+        .mat-form-field-flex {
+            height: 35px;
+            .mat-form-field-infix {
+                padding: 0;
+            }
+        }
+    }
+}
+
+.or {
+    margin-bottom: 8px;
+}

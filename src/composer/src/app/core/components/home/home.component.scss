@@ -1,0 +1,69 @@
+:host {
+  height: 100%;
+}
+
+.header-container {
+  min-height: 70px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+// .main-container {
+//   position: absolute;
+//   top: 50px;
+//   bottom: 0;
+//   left: 0;
+//   right: 0;
+//   background: #eee;
+// }
+
+.close-nav-button {
+  position: absolute;
+  top: 10px;
+  z-index: 1;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.recipe {
+  width: 100%;
+  padding: 20px;
+  max-width: 600px;
+}
+
+.example-sidenav-content {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.closed {
+  transform: rotate(360deg);
+}
+
+.searchPanel {
+  width: 320px;
+}
+
+.mat-slider {
+  position: absolute;
+  top: 50px;
+  left: 18px;
+  z-index: 2;
+}
+
+.search-toggle-btn {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .search-toggle-btn {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    z-index: 2;
+    padding: 0;
+    min-width: 32px;
+  }
+}

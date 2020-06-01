@@ -1,0 +1,63 @@
+<h1 mat-dialog-title>Top level volume definitions</h1>
+<mat-dialog-content>
+  <div fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="flex-start center">
+    <mat-form-field>
+      <mat-label>Select existing volumes</mat-label>
+      <mat-select [(value)]="selectedVolume" (selectionChange)="onChange()">
+        <mat-option *ngFor="let volume of volumes" [value]="volume">{{ volume.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-button (click)="onNew()" color="primary">Add new volume</button>
+  </div>
+  <form [formGroup]="formGeneral" >
+    <mat-tab-group animationDuration="0ms">
+      <mat-tab label="General">
+        <div fxLayout="column" fxLayoutGap="5px">
+          <mat-form-field appearance="outline">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" required />
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline">
+            <mat-label>Volume custom name</mat-label>
+            <input matInput formControlName="volume_name" />
+            <mat-hint>Set a custom name for this volume. The name field can be used to reference volumes that contain special characters.</mat-hint>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline">
+            <mat-label>Driver</mat-label>
+            <input matInput formControlName="driver" />
+          </mat-form-field>
+
+          <div fxLayout="row" fxLayoutGap="15px" fxLayoutAlign="flex-start center">
+            <mat-checkbox formControlName="external" [labelPosition]="'before'" class="mg-b-15">External</mat-checkbox>
+            <mat-form-field *ngIf="formGeneral.get('external').value">
+              <mat-label>External name</mat-label>
+              <input matInput formControlName="external_name"/>
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-tab>
+      <mat-tab label="Labels">
+          <h2 mat-dialog-title>Labels</h2>
+          <key-value #labels [keyValueArray]="selectedVolume ? selectedVolume.labels : []"></key-value>
+      </mat-tab>
+    </mat-tab-group>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <check-circle></check-circle>
+  <button mat-button (click)="closeModal()">
+    Cancel
+  </button>
+  <button mat-raised-button color="warn" *ngIf="creatingNew === false" (click)="onDelete()">
+    Delete
+  </button>
+  <button mat-raised-button color="success" *ngIf="creatingNew === false" (click)="onUpdate()" [disabled]="formGeneral.invalid">
+    Update
+  </button>
+  <button mat-raised-button color="success" *ngIf="creatingNew === true" (click)="onCreate()" [disabled]="formGeneral.invalid">
+    Create
+  </button>
+</mat-dialog-actions>

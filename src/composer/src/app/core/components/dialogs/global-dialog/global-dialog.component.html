@@ -1,0 +1,7 @@
+<h1 mat-dialog-title>{{data._type}}</h1>
+<mat-dialog-content>
+  <div [innerHTML]="data.message"></div>
+</mat-dialog-content>
+<mat-dialog-actions class="dialog-actions">
+  <button mat-raised-button color="primary" (click)="onNoClick()">Ok</button>
+</mat-dialog-actions>

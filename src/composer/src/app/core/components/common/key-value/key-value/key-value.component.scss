@@ -1,0 +1,13 @@
+.key-value-container {
+    .mat-form-field {
+      &:nth-child(2) {
+        min-width: calc(100% - 200px - 80px);
+      }
+    }
+}
+
+.ng-star-inserted {
+  .mat-icon-button {
+    margin-top: 7px;
+  }
+}

@@ -1,0 +1,24 @@
+:host {
+  ::ng-deep .mat-tab-body {
+    padding: 16px 0;
+  }
+}
+
+.tag-select__upload-button {
+  width: 100%;
+}
+
+.ports-wrap {
+  .ports-container {
+    .mat-form-field {
+      max-width: calc((100% - 80px) / 4);
+    }
+  }
+  margin-bottom: 20px;
+}
+
+.ng-star-inserted {
+  .mat-icon-button {
+    margin-top: 7px;
+  }
+}

@@ -1,0 +1,35 @@
+<header class="main-header">
+  <div class="container">
+    <div fxLayoutAlign="flex-start center" fxLayout.lt-sm="column" fxLayoutGap="8px" fxFlex class="project-name">
+      <mat-form-field appearance="outline" class="example-full-width input-short">
+        <mat-label>Project name</mat-label>
+        <input matInput [(ngModel)]="name" (blur)="updateName()">
+      </mat-form-field>
+
+      <mat-form-field *ngIf="projects?.length > 0" appearance="outline" class="input-short" fxFlex="63">
+        <mat-label>Select project</mat-label>
+        <mat-select disableRipple [compareWith]="compareObjects" [(ngModel)]="selectedProject" (selectionChange)="selectProject($event)">
+          <mat-option *ngFor="let project of projects" [value]="project">{{ project.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button *ngIf="showDelete()" type="button" mat-icon-button (click)="removeProject()"><span class="material-icons">delete</span></button>
+    </div>
+    <nav class="main-nav">
+      <ul class="main-nav-list" fxFlex fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="center">
+        <li>
+          <check-circle></check-circle>
+        </li>
+        <li>
+          <a mat-raised-button mat-button href="/">New</a>
+        </li>
+        <li>
+          <button *ngIf="mutable; else elseBlock" type="button" mat-raised-button color="success" (click)="projectSave()">Save</button>
+          <ng-template #elseBlock>
+            <button type="button" mat-raised-button color="success" (click)="projectSave()">Clone</button>
+          </ng-template>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>

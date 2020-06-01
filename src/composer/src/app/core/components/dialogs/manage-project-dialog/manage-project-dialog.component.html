@@ -1,0 +1,179 @@
+<h1 mat-dialog-title><span *ngIf="serviceName">{{ serviceName }}</span></h1>
+<mat-dialog-content>
+  <mat-tab-group animationDuration="0ms">
+    <mat-tab label="General">
+      <form [formGroup]="formGeneral">
+        <mat-form-field appearance="fill">
+          <mat-label>Image</mat-label>
+          <input matInput formControlName="image" />
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Tag</mat-label>
+          <input type="text" matInput formControlName="tag" [matAutocomplete]="auto" (onEnter)="getTags()" (change)="getTags()">
+          <mat-autocomplete #auto="matAutocomplete" >
+            <mat-option *ngFor="let tag of tags" [value]="tag">
+              {{ tag }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field fxFill appearance="outline">
+          <mat-label>Service name</mat-label>
+          <input matInput formControlName="name" required />
+          <mat-error *ngIf="formGeneral.get('name').invalid && formGeneral.get('name').errors.nameAlreadyExists">A service with this name already exists</mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFill appearance="outline">
+          <mat-label>Container name</mat-label>
+          <input matInput formControlName="container_name" />
+          <mat-hint>Specify a custom container name, rather than a generated default name.</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Restart</mat-label>
+          <mat-select formControlName="restart">
+            <mat-option *ngFor="let restart of restartOptions" [value]="restart">
+              {{ restart }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field fxFill appearance="outline">
+          <mat-label>Command</mat-label>
+          <textarea 
+            matInput 
+            cdkTextareaAutosize
+            #autosize="cdkTextareaAutosize" 
+            (input)="formatValue($event, 'command')" 
+            formControlName="command"></textarea>
+        </mat-form-field>
+
+        <mat-form-field fxFill appearance="outline">
+          <mat-label>Entrypoint</mat-label>
+          <textarea
+            cdkTextareaAutosize
+            #autosize="cdkTextareaAutosize" 
+            matInput
+            (input)="formatValue($event, 'entrypoint')" 
+            formControlName="entrypoint"></textarea>
+        </mat-form-field>
+
+        <mat-form-field fxFill appearance="outline">
+          <mat-label>Working directory</mat-label>
+          <input matInput formControlName="working_dir" />
+        </mat-form-field>
+
+        <div class="ports-wrap">
+          <h2 mat-dialog-title>Ports</h2>
+          <div class="ports-container" fxLayout="row" fxLayoutGap="6px" *ngFor="let port of currentPortSets; let i = index">
+            <mat-form-field appearance="outline" class="pd-b-0">
+              <mat-label>published</mat-label>
+              <input matInput [formControl]="port.published" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="pd-b-0">
+              <mat-label>target</mat-label>
+              <input matInput [formControl]="port.target" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="pd-b-0">
+              <mat-label>protocol</mat-label>
+              <mat-select [formControl]="port.protocol">
+                <mat-option *ngFor="let protocol of protocols" [value]="protocol">
+                  {{ protocol }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="pd-b-0">
+              <mat-label>mode</mat-label>
+              <mat-select [formControl]="port.mode">
+                <mat-option *ngFor="let mode of modes" [value]="mode">
+                  {{ mode }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <button mat-icon-button (click)="onRemovePort(i)"><mat-icon>remove</mat-icon></button>
+          </div>
+          <button mat-icon-button color="primary" (click)="onAddPort()"><mat-icon>add</mat-icon> add port set</button>
+        </div>
+
+        <div fxLayout="column">
+          <mat-form-field appearance="outline">
+            <mat-label>Depends on</mat-label>
+            <mat-select formControlName="depends_on" multiple>
+              <mat-option *ngFor="let image of otherImagesInCurrentProject" [value]="image.uuid">
+                {{image.name}}
+              </mat-option>
+            </mat-select>
+            <mat-hint>Express dependency between services.</mat-hint>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline">
+            <mat-label>Links</mat-label>
+            <mat-select formControlName="links" multiple>
+              <mat-option *ngFor="let image of otherImagesInCurrentProject" [value]="image.uuid">
+                {{image.name}}
+              </mat-option>
+            </mat-select>
+            <mat-hint>Link to containers in another service.  This is a legacy feature of Docker. It may eventually be removed.</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Networks</mat-label>
+            <mat-select formControlName="networks" multiple>
+              <mat-option *ngFor="let network of networks" [value]="network.uuid">
+                {{network.name}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </form>
+    </mat-tab>
+    <mat-tab label="Environment">
+      <h2 mat-dialog-title>Environment Variables</h2>
+      <key-value #envVars [keyValueArray]="data.environment"></key-value>
+    </mat-tab>
+    
+    <mat-tab label="Volume Mounts">
+      <!--<h2 mat-dialog-title>Volume Mounts</h2>-->
+      <div class="key-value-container" fxLayout="row" fxLayoutGap="12px" *ngFor="let volume of currentVolumeSets; let i = index">
+        <mat-form-field appearance="outline" class="pd-b-0">
+          <mat-label>Select top-level volume</mat-label>
+          <mat-select [(value)]="volume.selected">
+            <mat-option *ngFor="let v of volumes" [value]="v.uuid">{{ v.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pd-b-0">
+          <mat-label>or relative path</mat-label>
+          <input matInput [formControl]="volume.relativePathSource" />
+        </mat-form-field>
+
+        <mat-form-field fxFlex appearance="outline" class="pd-b-0">
+          <mat-label>Destination</mat-label>
+          <input matInput [formControl]="volume.formDestination" required />
+        </mat-form-field>
+        <button mat-icon-button (click)="onRemoveVolume(i)"><mat-icon>remove</mat-icon></button>
+      </div>
+      <button mat-icon-button color="primary" (click)="onAddVolume()"><mat-icon>add</mat-icon> new set</button>
+    </mat-tab>
+
+    <mat-tab label="Labels">
+      <h2 mat-dialog-title>Labels</h2>
+      <key-value #labels [keyValueArray]="data.labels"></key-value>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <check-circle></check-circle>
+  <button mat-button (click)="closeModal()">
+    Cancel
+  </button>
+  <button mat-raised-button color="success" (click)="onSave()" [disabled]="formGeneral.invalid">
+    Save
+  </button>
+</mat-dialog-actions>
