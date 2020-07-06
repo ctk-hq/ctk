@@ -1,0 +1,263 @@
+/* You can add global styles to this file, and also import other style files */
+@import '~highlight.js/styles/vs2015.css';
+
+@import "~codemirror/lib/codemirror";
+@import "~codemirror/theme/material";
+
+@import "./app/core/components/code-view/code-mirror-styles.scss";
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+pre {
+  display: flex;
+  margin-top: 0;
+  margin-bottom: 0;
+  word-wrap: break-word;
+
+  code {
+    flex: 1;
+    line-height: 1.5em;
+    font-size: 12px;
+    min-height: 100%;
+    padding: 1em 1.2em;
+
+    &.hljs-line-numbers {
+      padding: 0;
+    }
+  }
+}
+
+/** Line numbers styles */
+.hljs {
+  padding: 10px;
+  transition: border ease 1s;
+}
+
+.hljs-ln {
+  padding: 8px 0;
+
+  tr {
+    &:first-child td {
+      padding-top: 8px !important;
+    }
+
+    &:last-child td {
+      padding-bottom: 8px !important;
+    }
+  }
+}
+
+/* for block of numbers */
+td.hljs-ln-numbers {
+  user-select: none;
+  text-align: center;
+  vertical-align: top;
+  color: gray;
+  padding-right: 8px !important;
+  padding-left: 8px !important;
+}
+
+/* for block of code */
+td.hljs-ln-code {
+  padding-left: 8px !important;
+}
+
+.dialog-details {
+  .hljs {
+    white-space: break-spaces;
+    background: unset;
+    color: unset;
+    .hljs-section {
+      color: black;
+      font-weight: bold;
+    }
+  }
+}
+
+.mat-raised-button.mat-white,
+.mat-icon-button.mat-white,
+.mat-flat-button.mat-white,
+.mat-fab.mat-white,
+.mat-mini-fab.mat-white {
+  color: #ffffff;
+  background-color: none;
+}
+
+.mat-raised-button.mat-success,
+.mat-flat-button.mat-success,
+.mat-fab.mat-success,
+.mat-mini-fab.mat-success {
+  color: #ffffff;
+  background-color: #58bd28;
+}
+
+.mat-flat-button.mat-primary,
+.mat-raised-button.mat-primary,
+.mat-fab.mat-primary,
+.mat-mini-fab.mat-primary {
+  color: #ffffff;
+  background-color: #657dff;
+}
+
+.mat-flat-button.mat-warn,
+.mat-raised-button.mat-warn,
+.mat-fab.mat-warn,
+.mat-mini-fab.mat-warn {
+  color: #ffffff;
+  background-color: #d44141;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+}
+
+.mat-drawer-container {
+  background-color: #ffffff;
+  color: rgba(0,0,0,.87);
+}
+
+.mat-tab-body.mat-tab-body-active {
+  overflow-y: hidden!important;
+}
+
+.mat-tab-body-content {
+  padding: 16px 0;
+}
+
+mat-tab-header.mat-tab-header {
+  background-color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.dialog-actions {
+  justify-content: flex-end;
+}
+.repo-search {
+  border-right: 1px solid #e8e8e8;
+
+  .mat-drawer-inner-container {
+    overflow-x: hidden;
+  }
+}
+
+.jtk-endpoint {
+  &:hover {
+    z-index: 3;
+    cursor: grab;
+  }
+}
+
+pre {
+  white-space: pre-wrap;       /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+ }
+
+.dialog-details img {
+  display: block;
+  max-width: 100%;
+}
+
+.pd-b-0 {
+  .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+}
+
+.pd-b-5 {
+  .mat-form-field-wrapper {
+    padding-bottom: 5px;
+  }
+}
+
+.pd-b-10 {
+  .mat-form-field-wrapper {
+    padding-bottom: 10px;
+  }
+}
+
+.pd-b-15 {
+  .mat-form-field-wrapper {
+    padding-bottom: 15px;
+  }
+}
+
+.pd-b-20 {
+  .mat-form-field-wrapper {
+    padding-bottom: 20px;
+  }
+}
+
+.mg-b-15 {
+  margin-bottom: 15px!important;
+}
+
+.error-modal-message {
+  margin: 0 0 15px 0;
+}
+
+.error-modal-code-wrap {
+  background: #f3f3f3;
+  padding: 6px 12px;
+  margin: 0 0 15px 0;
+}
+
+as-split > .code-viewer {
+  overflow: hidden!important;
+}
+
+.input-short {
+  .mat-form-field-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+
+.input-short {
+  .mat-form-field-infix {
+    padding: .4em 0 .8em 0;
+  }
+}
+
+.input-short {
+  .mat-select-arrow-wrapper {
+    transform: translateY(0%) !important;
+  }
+}
+
+.project-name {
+	font-weight: 500;
+  font-size: 16px;
+
+  .mat-focused {
+    .mat-form-field-label-wrapper {
+      .mat-form-field-label {
+        padding-top: 10px!important;
+      }
+    }
+  }
+
+  .mat-form-field-label-wrapper {
+    top: -20px;
+    .mat-form-field-empty {
+      padding-top: unset!important;
+    }
+    .mat-form-field-label {
+      padding-top: 10px;
+    }
+  }
+}

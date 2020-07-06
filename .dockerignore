@@ -1,0 +1,5 @@
+.git
+Dockerfile
+.DS_Store
+README.md
+env.*

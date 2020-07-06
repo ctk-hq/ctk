@@ -1,0 +1,35 @@
+<div class="node" id="{{ node.uuid }}" [style.top.px]="node.top || 0" [style.left.px]="node.left || 20" fxLayout="column">
+  <div fxFlex fxLayoutAlign="center center" fxLayout="column">
+    <div class="node-title" [innerHTML]="(currentService ? currentService.name : '') | truncateText:15:false"></div>
+
+    <!--
+    <div *ngIf="currentService !== undefined;then image_tag else build_context"></div>    
+    <ng-template #image_tag>
+      <div class="node-subtitle">
+        <span [innerHTML]="(currentService ? currentService.image : '') | truncateText:50:false" class="image-name"></span>{{ currentService.tag ? ":" : "" }}<span>{{ currentService ? currentService.tag : '' }}</span>
+      </div>
+    </ng-template>
+    <ng-template #build_context>other content here...</ng-template>
+    -->
+
+    <div *ngIf="currentService !== undefined" class="node-subtitle">
+      <div *ngIf="currentService.image !== undefined;then image_tag else build_context"></div>
+
+      <ng-template #image_tag>
+        <span [innerHTML]="(currentService ? currentService.image : '') | truncateText:50:false" class="image-name"></span>{{ currentService.tag ? ":" : "" }}<span>{{ currentService ? currentService.tag : '' }}</span>
+      </ng-template>
+      <ng-template #build_context>
+        <span>custom build</span>
+      </ng-template>
+    </div>
+
+  </div>
+  <div fxLayout="row" fxLayoutAlign="space-between center" class="node-actions">
+    <button mat-icon-button aria-label="Remove" (click)="removeService()">
+      <mat-icon>delete</mat-icon>
+    </button>
+    <button mat-icon-button aria-label="Manage" (click)="manageProjectService()">
+      <mat-icon>create</mat-icon>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,50 @@
+.node {
+  position: absolute;
+  width: 135px;
+  height: 125px;
+  padding: 4px;
+  background: white;
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  z-index: 1;
+  border-radius: 6px;
+
+  :hover {
+    cursor: all-scroll;
+  }
+
+  .node-actions {
+    :hover {
+      cursor: pointer;
+    }
+
+    button {
+      cursor: pointer;
+    }
+  }
+
+  .node-title {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .node-subtitle {
+    color: #656565;
+    word-break: break-all;
+    line-height: 14px;
+    padding: 5px 0 0;
+    font-size: 12px;
+
+    .image-name {
+      font-weight: 600;
+    }
+  }
+
+  ::ng-deep .mat-icon {
+    width: 20px;
+    height: 20px;
+  }
+  ::ng-deep .material-icons {
+    font-size: 20px;
+  }
+}

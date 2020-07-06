@@ -1,0 +1,53 @@
+<div class="side-bar" fxLayout="column" fxFlex="100" [ngClass]="{ opened: sidebarStatus || screenWidth > 600 }">
+  <div class="logo" fxLayoutAlign="center center" (click)="onClickLogo()" >
+    <img src="assets/nuxx-logo-white.svg" alt="" *ngIf="screenWidth > 600"/>
+    <mat-icon aria-hidden="false" aria-label="Example home icon" *ngIf="screenWidth <= 600">close</mat-icon>
+  </div>
+  <div
+    class="side-bar__item search-toggle-item"
+    fxLayoutAlign="center center"
+    [ngClass]="{ opened: currentOpenedSideNavItem === 'searchPanel' }"
+    (click)="toogleSideBarItem.emit({name: 'searchPanel'})"
+    matTooltip="Add Containers"
+    matTooltipPosition="right"
+  >
+    <div class="side-bar__item__wrapper" fxLayoutAlign="center center"><span class="material-icons">add</span></div>
+  </div>
+  <div
+    class="side-bar__item search-toggle-item"
+    fxLayoutAlign="center center"
+    [ngClass]="{ opened: currentOpenedSideNavItem === 'recipe' }"
+    (click)="toogleSideBarItem.emit({name: 'recipe'})"
+    matTooltip="Load Recipes"
+    matTooltipPosition="right"
+  >
+    <div class="side-bar__item__wrapper" fxLayoutAlign="center center"><span class="material-icons">science</span></div>
+  </div>
+  <div fxFlex="100"></div>
+
+  <div class="side-bar__item" fxLayoutAlign="center center">
+    <div class="side-bar__item__wrapper side-bar__item__user-logo" fxLayoutAlign="center center">
+      <a (click)="handelClick()" class="side-bar__item__user-logo__wrapper">
+        <div *ngIf="userInitials; then content else other_content"></div>
+        <ng-template #content><span class="initials-wrap">{{userInitials | uppercase}}</span></ng-template>
+        <ng-template #other_content><img src="assets/user.svg" alt="" /></ng-template>
+      </a>
+    </div>
+  </div>
+
+  <div class="side-bar__item" fxLayoutAlign="center center" matTooltip="Report bugs, issues, feature requests" matTooltipPosition="right">
+    <div class="side-bar__item__wrapper" fxLayoutAlign="center center">
+      <a href="https://github.com/nuxxapp/nuxx/issues" target="_blank">
+        <img src="assets/github-logo.svg" alt="" />
+      </a>
+    </div>
+  </div>
+
+  <div class="side-bar__item" fxLayoutAlign="center center" matTooltip="Twitter" matTooltipPosition="right">
+    <div class="side-bar__item__wrapper" fxLayoutAlign="center center">
+      <a href="https://twitter.com/nuxxapp" target="_blank">
+        <img src="assets/twitter-logo.svg" alt="" />
+      </a>
+    </div>
+  </div>
+</div>

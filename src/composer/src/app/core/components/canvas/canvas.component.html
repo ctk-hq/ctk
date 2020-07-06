@@ -1,0 +1,24 @@
+<div class="canvas-tools" fxLayout="column" fxLayoutGap="10px">
+  <button mat-raised-button (click)="manageProjectVolumes()">
+    Volumes
+  </button>
+
+  <button mat-raised-button (click)="manageProjectNetworks()">
+    Networks
+  </button>
+</div>
+
+<div fxFill class="canvas-boundary">
+  <div
+    id="canvas"
+    class="container"
+    #nodeContainer
+    [ngStyle]="{ width: containerSize + 'px', height: containerSize + 'px' }"
+    (mousedown)="onMouseDown($event)"
+    (mousemove)="onMouseMove($event)"
+    (mouseup)="onMouseUp()"
+    (mousewheel)="onMouseWheel($event)"
+  >
+    <ng-template #nodes></ng-template>
+  </div>
+</div>

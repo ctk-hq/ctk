@@ -1,0 +1,77 @@
+<h1 mat-dialog-title>Top level network definitions</h1>
+<mat-dialog-content>
+  <div fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="flex-start center">
+    <mat-form-field>
+      <mat-label>Select existing networks</mat-label>
+      <mat-select [(value)]="selectedNetwork" (selectionChange)="onChange()">
+        <mat-option *ngFor="let network of networks" [value]="network">{{ network.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-button (click)="_setupDefault()" color="primary">Add new network</button>
+  </div>
+    <form [formGroup]="formGeneral" fxLayout="column" fxLayoutGap="5px">
+      <mat-tab-group animationDuration="0ms">
+        <mat-tab label="General">
+          <div fxLayout="column" fxLayoutGap="5px">
+            <mat-form-field appearance="outline">
+              <mat-label>Name</mat-label>
+              <input matInput formControlName="name" required />
+            </mat-form-field>
+      
+            <mat-form-field appearance="outline">
+              <mat-label>Custom network Name</mat-label>
+              <input matInput formControlName="object_name" />
+              <mat-hint>Set a custom name for this network. The name field can be used to reference networks which contain special characters.</mat-hint>
+            </mat-form-field>
+
+            <div fxLayout="row" fxLayoutGap="15px" fxLayoutAlign="flex-start center">
+              <mat-checkbox formControlName="external" [labelPosition]="'before'" class="mg-b-15">External</mat-checkbox>
+              <mat-form-field *ngIf="formGeneral.get('external').value">
+                <mat-label>External name</mat-label>
+                <input matInput formControlName="external_name"/>
+              </mat-form-field>
+            </div>
+          </div>
+        </mat-tab>
+        <mat-tab label="Driver">
+          <div fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="flex-start center">
+            <mat-form-field appearance="outline" fxFlexAlign="start">
+              <mat-label>Driver</mat-label>
+              <mat-select formControlName="driver">
+                  <mat-option *ngFor="let driver of driverOptions" [disabled]="driver === 'overlay'" [value]="driver">
+                    {{ driver }}
+                  </mat-option>
+              </mat-select>   
+            </mat-form-field>
+            <mat-form-field *ngIf="formGeneral.get('driver').value === 'custom'">
+                <mat-label>Custom driver</mat-label>
+                <input matInput formControlName="custom_driver" />
+            </mat-form-field>
+        </div>
+        <h2 mat-dialog-title>Driver options</h2>
+        <key-value [keyValueArray]="driverOpts"></key-value>
+        </mat-tab>
+
+        <mat-tab label="Labels">
+          <h2 mat-dialog-title>Labels</h2>
+          <key-value #labels [keyValueArray]="selectedNetwork ? selectedNetwork.labels : []"></key-value>
+      </mat-tab>
+      </mat-tab-group>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <check-circle></check-circle>
+  <button mat-button (click)="closeModal()">
+    Cancel
+  </button>
+  <button mat-raised-button color="warn" *ngIf="creatingNew === false" (click)="onDelete()">
+    Delete
+  </button>
+  <button mat-raised-button color="success" *ngIf="creatingNew === false" (click)="onUpdate()" [disabled]="formGeneral.invalid">
+    Update
+  </button>
+  <button mat-raised-button color="success" *ngIf="creatingNew === true" (click)="onCreate()" [disabled]="formGeneral.invalid">
+    Create
+  </button>
+</mat-dialog-actions>

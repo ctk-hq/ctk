@@ -1,0 +1,99 @@
+<!-- search tab-->
+<div class="recipe-nav" *ngIf="activeTab === 'search'" fxLayout="column" fxLayoutGap="10px">
+
+    <div fxLayout="row" fxLayoutAlign="end center" fxLayout.lt-sm="column" fxLayoutGap="15px" fxFlex>
+        <!--<p>Leverage existing docker recipes, or publish your own to share with the community.</p>-->
+        <button mat-stroked-button color="success" (click)="handleYourRecipesClick()">Your recipes</button>
+    </div>
+
+    <!--
+    <div fxLayout="row" fxLayoutAlign="space-between stretch" class="header-block">
+        <div fxLayout="column" fxLayoutAlign="space-between" fxFlex="60">
+            <p>Some text</p>
+            <form [formGroup]="form" class="form-wrapper" fxLayout="row">
+                <mat-form-field appearance="outline" class="pd-b-0" fxFlex="100">
+                    <input matInput placeholder="Search existing recipes" formControlName="searchFor" (keyup.enter)="onEnter()" />
+                </mat-form-field>
+            </form>
+        </div>
+        <div fxLayout="column" fxLayoutAlign="end center">
+            <h4 class="or">or</h4>
+        </div>
+        <div fxLayout="column" fxLayoutAlign="space-between center">
+            <button mat-raised-button (click)="activeTab='yourRecipes'">Your recipes</button>
+            <button mat-raised-button color="success" (click)="openPublishRecipeDialog()">Publish</button>
+        </div>
+    </div>
+    -->
+
+    <div>
+        <form [formGroup]="form" class="form-wrapper" fxLayout="row">
+            <mat-form-field appearance="outline" class="pd-b-0" fxFlex="100">
+                <input matInput placeholder="Search recipes" formControlName="searchFor" (keyup.enter)="onEnter()" />
+            </mat-form-field>
+        </form>
+    </div>
+    <div *ngIf="beforeCustomSearch">
+        <h2 class="title">Latest</h2>
+    </div>
+    <div *ngIf="!beforeCustomSearch">
+        <h2 class="title">Found {{recipes.length}} recipes</h2>
+    </div>
+    <div *ngIf="!showSpinner" class="list-recipes" fxLayout="column">
+        <div class="recipe" fxLayout="row" fxLayoutAlign="space-between center" *ngFor="let recipe of recipes" (click)="viewRecipe($event, recipe.uuid)">
+            <div fxLayout="row" fxLayoutGap="10px">
+                <!--<div>Icon</div>-->
+                <div fxFill fxLayout="column">
+                    <h3 class="name">{{recipe.name}}</h3>
+                    <div fxFill fxLayout="row wrap" class="keyword-container">
+                        <span *ngFor="let keyword of recipe.keywords; let i = index" class="keyword">{{i ? '' : ''}}{{keyword}}</span>
+                    </div>
+                </div>
+            </div>
+            <div fxLayout="row" fxLayoutGap="10px" fxLayoutAlign="space-between center">
+                <button mat-icon-button (click)="viewRecipeDetails($event, recipe)">
+                    <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-raised-button (click)="viewRecipe($event, recipe.uuid)">Load</button>
+            </div>
+        </div>
+    </div>
+    <app-spinner *ngIf="showSpinner"></app-spinner>
+</div>
+<!-- search tab-->
+<!-- your recipes tab-->
+<div class="recipe-nav" *ngIf="activeTab === 'yourRecipes'" fxLayout="column" fxLayoutGap="10px">
+    <div fxLayout="row" fxLayoutAlign="space-between center">
+        <button class="back-button" mat-button (click)="activeTab='search'"><span class="material-icons">
+            keyboard_backspace
+            </span> Back</button>
+        <!--<button mat-raised-button (click)="activeTab='search'">Search recipes</button>-->
+        <button mat-stroked-button color="success" (click)="handlePublishClick()">Publish</button>
+    </div>
+    <div>
+        <h2 class="title">Your recipes {{ userRecipes.length }}</h2>
+    </div>
+    <div *ngIf="!showSpinner" class="list-recipes" fxLayout="column">
+        <div class="recipe" fxLayout="row" fxLayoutAlign="space-between center" *ngFor="let recipe of userRecipes" (click)="editRecipe($event, recipe)">
+            <div fxLayout="row">
+                <!--<div>Icon</div>-->
+                <div fxFill fxLayout="column">
+                    <h3 class="name">{{recipe.name}}</h3>
+                    <div fxFill fxLayout="row wrap" class="keyword-container">
+                        <span *ngFor="let keyword of recipe.keywords; let i = index" class="keyword">{{i ? '' : ''}}{{keyword}}</span>
+                    </div>
+                </div>
+            </div>
+            <div fxLayout="row" fxLayoutGap="2px">
+                <button mat-icon-button (click)="removeRecipe($event, recipe.uuid)">
+                    <mat-icon>delete</mat-icon>
+                </button>
+                <button mat-icon-button (click)="editRecipe($event, recipe)">
+                    <mat-icon>edit</mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+    <app-spinner *ngIf="showSpinner"></app-spinner>
+</div>
+<!-- your recipes tab-->

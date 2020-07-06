@@ -1,0 +1,63 @@
+version: "3.4"
+
+volumes:
+  postgres-data:
+    driver: local
+    name: nuxx_postgres_data
+  django-static:
+    driver: local
+    name: nuxx_django_static
+
+services:
+  postgres:
+    container_name: nuxx-postgres
+    image: postgres:9.6.1
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  backend:
+    container_name: nuxx-api
+    restart: always
+    build: src/backend
+    image: nuxxapp/nuxx-api:1.0.0
+    working_dir: /home
+    depends_on:
+      - postgres
+    links:
+      - postgres
+    volumes:
+      - ./src/backend/server:/home/app/
+      - django-static:/static/
+    ports:
+      - "9001:9001"
+    env_file:
+      - local.env
+
+  nginx:
+    container_name: nuxx-nginx
+    restart: always
+    image: nginx:latest
+    depends_on:
+      - backend
+    links:
+      - backend
+    volumes:
+      # configs
+      - ${PWD}/configs/nginx/uwsgi_params:/home/config/uwsgi/uwsgi_params
+      - ${PWD}/configs/nginx/localhost.conf:/etc/nginx/conf.d/default.conf
+      - ${PWD}/configs/nginx/nginx.conf:/etc/nginx/nginx.conf
+
+      # serve django static stuff
+      - django-static:/home/backend/static/
+
+      # serve composer "built" angular app
+      - ./src/composer/dist/frontend:/usr/share/nginx/html/
+    ports:
+      - "80:80"
