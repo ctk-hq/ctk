@@ -7,7 +7,7 @@ On a Mac/Linux/Windows you need Docker, Docker Compose installed. Optionally GCC
 To get the tool working locally,  just run:
 
 ```shell script
-$ docker-compose local_setup
+$ make local_setup
 ```
 
 ... this command will bring up the backend, the database, sync migrations, and build and serve the Angular app in an Nginx container (for working locally with the tool).  For production, you can build and deploy your own images or use mine as a base.
