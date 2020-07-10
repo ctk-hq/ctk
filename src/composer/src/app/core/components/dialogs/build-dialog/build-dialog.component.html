@@ -1,0 +1,62 @@
+<h1 mat-dialog-title><span>Build Config</span></h1>
+<mat-dialog-content>
+  <mat-tab-group animationDuration="0ms">
+    <mat-tab label="General">
+      <form [formGroup]="formGeneral" fxLayout="column">
+        <mat-form-field appearance="outline">
+          <mat-label>Build</mat-label>
+          <input matInput formControlName="build" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Context</mat-label>
+          <input matInput formControlName="context" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Dockerfile</mat-label>
+          <input matInput formControlName="dockerfile" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Network</mat-label>
+          <input matInput formControlName="network" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>SHM size</mat-label>
+          <input matInput formControlName="shm_size" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline">
+          <mat-label>Target</mat-label>
+          <input matInput formControlName="target" />
+        </mat-form-field>
+      </form>
+    </mat-tab>
+    <mat-tab label="Arguments">
+      <h2 mat-dialog-title>Arguments</h2>
+      <key-value #args [keyValueArray]="currentArgs"></key-value>
+    </mat-tab>
+    
+    <mat-tab label="Cache from">
+      <h2 mat-dialog-title>Cache from</h2>
+      <key-value #cache_from [keyValueArray]="currentCacheFrom"></key-value>
+    </mat-tab>
+
+    <mat-tab label="Labels">
+      <h2 mat-dialog-title>Labels</h2>
+      <key-value #labels [keyValueArray]="currentLabels"></key-value>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <check-circle></check-circle>
+  <button mat-button (click)="dialogRef.close()">
+    Cancel
+  </button>
+  <button mat-raised-button color="success" (click)="onSave()" [disabled]="formGeneral.invalid">
+    Save
+  </button>
+</mat-dialog-actions>
