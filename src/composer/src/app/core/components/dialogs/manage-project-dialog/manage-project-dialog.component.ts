@@ -78,6 +78,11 @@ export class ManageProjectDialogComponent implements OnInit, OnDestroy {
       networks: new FormControl(),
     })
 
+    this.formGeneral.get('image').valueChanges.pipe(takeUntil(this.unSubscribe$)).subscribe((value)=> {
+      if (!value) this.formGeneral.get('tag').disable()
+      else if (value && this.formGeneral.get('tag').disabled) this.formGeneral.get('tag').enable()
+    })
+
     this.project = this.store.select('project')
 
     const sub = this.project.pipe(takeUntil(this.unSubscribe$)).subscribe((v) => {
@@ -152,15 +157,11 @@ export class ManageProjectDialogComponent implements OnInit, OnDestroy {
   getTags(): void {
     this.isLoading = true
     this.rest
-      .getRepoTags(this.formGeneral.get('image').value, this.nextTagPage)
+      .getRepoTags(this.formGeneral.get('image').value, this.nextTagPage, this.formGeneral.get('tag').value)
       .pipe(takeUntil(this.unSubscribe$))
-      .subscribe(({ results, next }) => {
-        next ? this.nextTagPage++ : (this.nextTagPage = null)
+      .subscribe(({ results }) => {
 
-        results.forEach(({ name }) => {
-          const index = this.tags.findIndex((prevName) => name === prevName)
-          index === -1 ? this.tags.push(name) : ''
-        })
+        this.tags = results.map(({name}) => name)
 
         this.isLoading = false
       })
