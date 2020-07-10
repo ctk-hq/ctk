@@ -6,6 +6,7 @@ import { RestService } from 'src/app/core/services/rest.service'
 import { MatDialog } from '@angular/material/dialog'
 import { ManageProjectDialogComponent } from '../../../dialogs/manage-project-dialog/manage-project-dialog.component'
 import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog/confirm-dialog.component'
+import { BuildDialogComponent } from '../../../dialogs/build-dialog/build-dialog.component'
 import * as ProjectActions from './../../../../store/project.actions'
 import { NodeService } from '../node.service'
 import { EventEmitterService } from 'src/app/core/services/event-emitter.service'
@@ -124,6 +125,14 @@ export class NodeComponent implements AfterViewInit, OnDestroy {
           this.eventEmitterService.broadcast('remove:node', this.currentService.uuid)
         }
       })
+  }
+
+  buildDialogOpen() {
+    this.dialog.open(BuildDialogComponent, {
+      width: '50%',
+      minWidth: '740px',
+      data: this.currentService,
+    })
   }
 
   ngOnDestroy() {
