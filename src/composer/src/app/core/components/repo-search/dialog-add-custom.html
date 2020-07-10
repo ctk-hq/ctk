@@ -9,8 +9,13 @@
     <mat-label>Tag</mat-label>
     <input matInput [(ngModel)]="tag" />
   </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Service name</mat-label>
+    <input matInput required [(ngModel)]="serviceName" />
+  </mat-form-field>
 </div>
 
 <div mat-dialog-actions fxLayoutAlign="end">
-  <button mat-raised-button (click)="addProject()" cdkFocusInitial>Add</button>
+  <button mat-raised-button [disabled]="!serviceName" (click)="addProject()" cdkFocusInitial>Add</button>
 </div>

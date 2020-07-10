@@ -25,6 +25,7 @@ import { MatTooltipModule } from '@angular/material/tooltip'
 import { MatCheckboxModule } from '@angular/material/checkbox'
 import { MatMenuModule } from '@angular/material/menu'
 import { MatStepperModule } from '@angular/material/stepper'
+import { MatAutocompleteModule } from '@angular/material/autocomplete'
 
 import { RepoSearchComponent, DialogDetails, DialogAddCustom } from './core/components/repo-search/repo-search.component'
 import { HeaderComponent } from './core/components/header/header.component'
@@ -124,6 +125,7 @@ export function getHighlightLanguages() {
     MatCheckboxModule,
     MatMenuModule,
     MatStepperModule,
+    MatAutocompleteModule,
     DragDropModule,
     HighlightModule,
     FlexLayoutModule,

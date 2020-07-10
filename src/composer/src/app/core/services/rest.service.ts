@@ -38,8 +38,8 @@ export class RestService {
     return this.http.get(`${baseDetailUrl}/?r=${repoName}`, httpOptions).pipe(map(this.extractData))
   }
 
-  getRepoTags(repoName: string, pageNumber: number): Observable<any> {
-    return this.http.get(`${baseTagsUrl}/?r=${repoName}&page=${pageNumber}`, httpOptions).pipe(map(this.extractData))
+  getRepoTags(repoName: string, pageNumber: number, searchSubStr: string): Observable<any> {
+    return this.http.get(`${baseTagsUrl}/?r=${repoName}&s=${searchSubStr}&page=${pageNumber}`, httpOptions).pipe(map(this.extractData))
   }
 
   generateCode(data: object): Observable<any> {
