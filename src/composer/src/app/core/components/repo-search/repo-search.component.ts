@@ -94,7 +94,7 @@ export class RepoSearchComponent implements OnInit, OnDestroy {
           shm_size: null,
           stdin_open: null,
           tty: null,
-          name: `${data['name']}_${postfix}`,
+          name: data['serviceName'] ? `${data['serviceName']}_${postfix}` : `${data['name']}_${postfix}`,
           container_name: null,
           deploy: null,
           image: imageName,
@@ -250,9 +250,10 @@ export class DialogAddCustom {
   @Output() onAddProject = new EventEmitter()
   imageName: string
   tag: string
+  serviceName: string
   constructor(public dialogRef: MatDialogRef<DialogDetails>) {}
 
   addProject() {
-    this.onAddProject.emit({name: this.imageName, tag: this.tag})
+    this.onAddProject.emit({name: this.imageName, tag: this.tag, serviceName: this.serviceName})
   }
 }

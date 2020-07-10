@@ -65,7 +65,7 @@ export class ManageProjectDialogComponent implements OnInit, OnDestroy {
   ) {
     this.serviceName = this.data.name
     this.formGeneral = this.formBuilder.group({
-      image: new FormControl({ value: this.data.image, disabled: true }, Validators.required),
+      image: new FormControl( this.data.image, Validators.required),
       name: new FormControl('', [Validators.required, this.serviceNameAlreadyExistsValidator]),
       tag: new FormControl('', [Validators.required]),
       restart: new FormControl('', [Validators.required]),
