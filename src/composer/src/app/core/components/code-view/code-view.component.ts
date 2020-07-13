@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core'
 import { Router, Params, ActivatedRoute } from '@angular/router'
+import { FormControl, Validators, FormGroup, FormBuilder } from '@angular/forms'
 import { Observable } from 'rxjs/Observable'
 import { Store } from '@ngrx/store'
 import { MatDialog } from '@angular/material/dialog'
@@ -14,6 +15,7 @@ import * as GlobalSpinnerActions from './../../store/actions/global-spinner.acti
 import { Subject } from 'rxjs'
 import { takeUntil, throttleTime } from 'rxjs/operators'
 import { ImportDialogComponent } from '../dialogs/import-dialog/import-dialog.component'
+import { strict } from 'assert'
 
 const THROTTLE_TIMEOUT = 1000
 
@@ -31,6 +33,7 @@ export class CodeViewComponent implements OnInit, OnDestroy {
   globalConfig: Observable<GlobalAppConfiguration>
   mode: string
   project: Observable<Project>
+  versionSelectForm: FormGroup
   code: ''
   codeFormat: string = 'yaml'
   versions: Version[] = [
@@ -44,7 +47,7 @@ export class CodeViewComponent implements OnInit, OnDestroy {
     { value: 3, title: 'version 3' },
   ]
   selectedVersion: Version = { value: 0, title: 'unSelected' }
-  selectedSpecificVersion: Version = { value: 3, title: 'version 3' }
+  selectedSpecificVersion: Version
 
   buttonText: string = 'Copy'
   showSpinner: boolean = false
@@ -60,12 +63,17 @@ export class CodeViewComponent implements OnInit, OnDestroy {
     "Cmd-S": () => this.changeMode() //save current project like "done"
   }
 
-  constructor(private store: Store<AppState>, public rest: RestService, private eventEmitterService: EventEmitterService, public dialog: MatDialog, private router: Router, private activatedRoute: ActivatedRoute) {
+  constructor(private fb: FormBuilder, private store: Store<AppState>, public rest: RestService, private eventEmitterService: EventEmitterService, public dialog: MatDialog, private router: Router, private activatedRoute: ActivatedRoute) {
     this.project = store.select('project')
     this.globalConfig = store.select('globalAppConfiguration')
+    this.selectedSpecificVersion = this.specificVersions[2]
 
     this.globalConfig.pipe(takeUntil(this.unSubscribe$)).subscribe(({mode}) => {
       this.mode = mode
+    })
+
+    this.versionSelectForm = this.fb.group({
+      versionSelectControl: [this.specificVersions]
     })
   }
 
@@ -80,6 +88,24 @@ export class CodeViewComponent implements OnInit, OnDestroy {
         this.store.dispatch(ProjectActions.ImportProject({data: {type: 'url', payload: this.importUrl}}))
         this.eventEmitterService.broadcast('initialize:node', {})
       }
+    }
+  }
+
+  containsVersion(obj, list): boolean {
+    for (let i = 0; i < list.length; i++) {
+        if (list[i].value === obj.value) {
+            return true;
+        }
+    }
+
+    return false
+  }
+
+  getVersion(version_number): Version {
+    for (let i = 0; i < this.specificVersions.length; i++) {
+        if (this.specificVersions[i].value === version_number) {
+            return this.specificVersions[i]
+        }
     }
   }
 
@@ -100,6 +126,10 @@ export class CodeViewComponent implements OnInit, OnDestroy {
 
     this.project.pipe(takeUntil(this.unSubscribe$), throttleTime(THROTTLE_TIMEOUT, undefined, { trailing: true, leading: true})).subscribe((data) => {
       if (this.mode === 'compose') {
+        let baseVersion = Math.floor(data.version)
+        let versionObject = this.getVersion(baseVersion)
+        this.selectedSpecificVersion = versionObject
+
         const sendData = {
           name: data.name,
           data: {
@@ -157,8 +187,9 @@ export class CodeViewComponent implements OnInit, OnDestroy {
   }
 
   changeMode() {
-    if (this.mode === 'compose') this.store.dispatch(GlobalAppConfigurationActions.OnImportMode())
-    else {
+    if (this.mode === 'compose') {
+      this.store.dispatch(GlobalAppConfigurationActions.OnImportMode())
+    } else {
       this.store.dispatch(ProjectActions.ImportCurrentProject({data: {type: 'yaml', payload: this.code}}))
       this.eventEmitterService.broadcast('initialize:node', {})
       this.store.dispatch(GlobalAppConfigurationActions.OnComposeMode())

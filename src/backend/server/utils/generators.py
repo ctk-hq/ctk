@@ -44,6 +44,16 @@ class RevereseGenerator():
             "network_name": "",
             "external_name": None
         }
+        self.build_obj = {
+            "context": "",
+            "dockerfile": "",
+            "args": [],
+            "cache_from": [],
+            "labels": [],
+            "network": "",
+            "shm_size": "",
+            "target": "",
+        }
         self.port_obj = {
             "published": "80",
             "target": "8080",
@@ -121,6 +131,29 @@ class RevereseGenerator():
             self.volume_uuid_lookup[volume_k] = obj_uuid
             self.resp['data']['volumes'].append(volume_obj_cp)
     
+    def to_key_val_pairs(self, objects):
+        ret = []
+        for _key, _val in objects.items():
+            ret.append({'key': _key, 'value': _val})
+        
+        return ret
+    
+    def parse_build_obj(self, build):
+        ret = self.build_obj.copy()
+
+        if isinstance(build, str):
+            ret['build'] = build
+        else:
+            for _key, _val in build.items():
+                if _key in ['args', 'cache_from', 'labels']:
+                    if _val:
+                        ret[_key] = self.to_key_val_pairs(_val)
+                else:
+                    if _val:
+                        ret[_key] = _val
+
+        return ret
+
     def parse_top_level_networks(self, networks):
         if not networks:
             return
@@ -139,22 +172,12 @@ class RevereseGenerator():
                 pass
 
             try:
-                network_obj_cp['labels'] = []
-                for lbl_key, lbl_val in network_v['labels'].items():
-                    network_obj_cp['labels'].append({
-                        'key': lbl_key,
-                        'value': lbl_val
-                    })
+                network_obj_cp['labels'] = self.to_key_val_pairs(network_v['labels'])
             except Exception:
                 pass
 
             try:
-                network_obj_cp['driver_opts'] = []
-                for do_key, do_val in network_v['driver_opts'].items():
-                    network_obj_cp['driver_opts'].append({
-                        'key': do_key,
-                        'value': do_val
-                    })
+                network_obj_cp['driver_opts'] = self.to_key_val_pairs(network_v['driver_opts'])
             except Exception:
                 pass
 
@@ -209,6 +232,10 @@ class RevereseGenerator():
 
             service_obj['name'] = service_k
             service_obj['uuid'] = self.service_uuid_lookup[service_k]
+            build = service_v.get('build', None)
+
+            if build:
+                service_obj['build'] = self.parse_build_obj(build)
 
             try:
                 service_obj['command'] = service_v['command']
