@@ -41,12 +41,13 @@ export interface KeyValuePair {
 export interface ServiceDeploy {
   mode: string
   replicas: number
-  labels: []
+  labels: KeyValuePair[]
   update_config: {
     parallelism: number
     delay: string
     order: string
   }
+  rollback_config: string
   restart_policy: {
     condition: string
     delay: string
@@ -56,7 +57,7 @@ export interface ServiceDeploy {
   endpoint_mode: string
   placement: {
     constraints: []
-    preferences: []
+    preferences: KeyValuePair[]
   }
   max_replicas_per_node: number
   resources: {
@@ -88,7 +89,7 @@ export interface Service {
   init: boolean
   isolation: string
   container_name?: string
-  deploy: object
+  deploy: ServiceDeploy
   build: ServiceBuildObject
   image: string
   restart: string
