@@ -53,7 +53,7 @@
 
 <mat-dialog-actions class="dialog-actions">
   <check-circle></check-circle>
-  <button mat-button (click)="dialogRef.close()">
+  <button mat-button (click)="closeModal()">
     Cancel
   </button>
   <button mat-raised-button color="success" (click)="onSave()" [disabled]="formGeneral.invalid">

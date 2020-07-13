@@ -61,4 +61,7 @@ export class BuildDialogComponent implements OnInit {
     this.eventEmitterService.broadcast('save:project', {})
   }
 
+  closeModal(): void {
+    this.dialogRef.close()
+  }
 }
