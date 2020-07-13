@@ -25,6 +25,7 @@ import { MatTooltipModule } from '@angular/material/tooltip'
 import { MatCheckboxModule } from '@angular/material/checkbox'
 import { MatMenuModule } from '@angular/material/menu'
 import { MatStepperModule } from '@angular/material/stepper'
+import { MatAutocompleteModule } from '@angular/material/autocomplete'
 
 import { RepoSearchComponent, DialogDetails, DialogAddCustom } from './core/components/repo-search/repo-search.component'
 import { HeaderComponent } from './core/components/header/header.component'
@@ -66,6 +67,7 @@ import { GlobalDialogComponent } from './core/components/dialogs/global-dialog/g
 
 import { CodemirrorModule } from '@ctrl/ngx-codemirror';
 import { RecipeComponent, DialogPublishRecipe, DialogRecipeDetails } from './core/components/recipe/recipe.component';
+import { BuildDialogComponent } from './core/components/dialogs/build-dialog/build-dialog.component';
 
 export function getHighlightLanguages() {
   return {
@@ -102,7 +104,8 @@ export function getHighlightLanguages() {
     GlobalDialogComponent,
     RecipeComponent,
     DialogPublishRecipe,
-    DialogRecipeDetails
+    DialogRecipeDetails,
+    BuildDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -124,6 +127,7 @@ export function getHighlightLanguages() {
     MatCheckboxModule,
     MatMenuModule,
     MatStepperModule,
+    MatAutocompleteModule,
     DragDropModule,
     HighlightModule,
     FlexLayoutModule,
