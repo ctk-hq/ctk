@@ -21,7 +21,7 @@ export class AuthenticationService {
         return this.currentUserSubject.value;
     }
 
-    login(data: { username: string, password: string }) {
+    login(data: { email: string, password: string }) {
         return this.http.post<any>(`${environment.apiUrl}/auth/login/`, data)
             .pipe(map(({token, user}) => {
                 user.token = token
