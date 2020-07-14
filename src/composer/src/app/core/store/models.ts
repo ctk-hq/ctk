@@ -56,10 +56,10 @@ export interface ServiceDeploy {
   }
   endpoint_mode: string
   placement: {
+    max_replicas_per_node: number
     constraints: []
     preferences: KeyValuePair[]
   }
-  max_replicas_per_node: number
   resources: {
     limits: {
       cpus: string
