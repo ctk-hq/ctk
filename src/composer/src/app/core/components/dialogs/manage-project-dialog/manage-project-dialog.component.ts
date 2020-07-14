@@ -65,9 +65,9 @@ export class ManageProjectDialogComponent implements OnInit, OnDestroy {
   ) {
     this.serviceName = this.data.name
     this.formGeneral = this.formBuilder.group({
-      image: new FormControl( this.data.image, Validators.required),
       name: new FormControl('', [Validators.required, this.serviceNameAlreadyExistsValidator]),
-      tag: new FormControl('', [Validators.required]),
+      image: new FormControl(''),
+      tag: new FormControl(''),
       restart: new FormControl('', [Validators.required]),
       container_name: new FormControl(''),
       command: new FormControl(''),
@@ -136,7 +136,6 @@ export class ManageProjectDialogComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.formGeneral.patchValue({
       ...this.data,
-      tag: this.tags[0],
       restart: this.restartOptions[0]
     })
     /*
@@ -161,7 +160,9 @@ export class ManageProjectDialogComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unSubscribe$))
       .subscribe(({ results }) => {
 
-        this.tags = results.map(({name}) => name)
+        if (results) {
+          this.tags = results.map(({name}) => name)
+        }
 
         this.isLoading = false
       })
@@ -220,12 +221,16 @@ export class ManageProjectDialogComponent implements OnInit, OnDestroy {
 
     let fields = this.formGeneral.getRawValue()
 
+    console.log(fields)
+
     //fields.command = fields.command.split('').map(char => char == '\n' ? char.replace('\n', '') : char).join('')
     //fields.entrypoint = fields.entrypoint.split('').map(char => char == '\n' ? char.replace('\n', '') : char).join('')
 
-    Object.keys(fields).forEach((key) => {
-      !fields[key] ? delete fields[key] : ''
-    })
+    //Object.keys(fields).forEach((key) => {
+      //!fields[key] ? delete fields[key] : ''
+    //})
+
+    console.log('after', this.data, fields)
 
     this.store.dispatch(
       ProjectActions.UpdateService({

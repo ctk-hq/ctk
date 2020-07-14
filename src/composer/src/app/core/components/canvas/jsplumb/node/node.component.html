@@ -1,4 +1,5 @@
-<div class="node" id="{{ node.uuid }}" [style.top.px]="node.top || 0" [style.left.px]="node.left || 20" fxLayout="column">
+<div class="node" id="{{ node.uuid }}" [style.top.px]="node.top || 0" [style.left.px]="node.left || 20">
+  <div class="node-body" fxLayout="column">
   <div fxFlex fxLayoutAlign="center center" fxLayout="column">
     <div class="node-title" [innerHTML]="(currentService ? currentService.name : '') | truncateText:15:false"></div>
 
@@ -13,11 +14,12 @@
     -->
 
     <div *ngIf="currentService !== undefined" class="node-subtitle">
-      <div *ngIf="currentService.image !== undefined;then image_tag else build_context"></div>
+      <div *ngIf="currentService.image;then image_tag else build_context"></div>
 
       <ng-template #image_tag>
         <span [innerHTML]="(currentService ? currentService.image : '') | truncateText:50:false" class="image-name"></span>{{ currentService.tag ? ":" : "" }}<span>{{ currentService ? currentService.tag : '' }}</span>
       </ng-template>
+
       <ng-template #build_context>
         <span>custom build</span>
       </ng-template>
@@ -36,8 +38,9 @@
     </button>
   </div>
   <div fxLayout="row" fxLayoutAlign="center center" class="node-actions">
-    <button mat-icon-button matTooltip="Remove" aria-label="Remove" (click)="removeService()">
-      <mat-icon>delete</mat-icon>
+    <button class="node-remove-btn" mat-icon-button matTooltip="Remove" aria-label="Remove" (click)="removeService()">
+      <mat-icon>close</mat-icon>
     </button>
+  </div>
   </div>
 </div>

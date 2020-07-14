@@ -131,10 +131,20 @@ class RevereseGenerator():
             self.volume_uuid_lookup[volume_k] = obj_uuid
             self.resp['data']['volumes'].append(volume_obj_cp)
     
-    def to_key_val_pairs(self, objects):
+    def to_key_val_pairs(self, items):
         ret = []
-        for _key, _val in objects.items():
-            ret.append({'key': _key, 'value': _val})
+
+        if isinstance(items, list):
+            for item in items:
+                item_parts = item.split('=')
+                ret.append({'key': item_parts[0], 'value': item_parts[1]})
+
+        if isinstance(items, dict):
+            try:
+                for _key, _val in items.items():
+                    ret.append({'key': _key, 'value': _val})
+            except AttributeError:
+                pass
         
         return ret
     
@@ -372,6 +382,26 @@ class RevereseGenerator():
 
             try:
                 service_obj['restart'] = service_v['restart']
+            except KeyError:
+                pass
+
+            try:
+                deploy = service_v['deploy']
+                service_obj['deploy'] = deploy
+                
+                '''
+                try:
+                    placement_preferences = deploy['placement']['preferences']
+                    service_obj['deploy']['placement']['preferences'] = self.to_key_val_pairs(placement_preferences)
+                except Exception:
+                    pass
+                '''
+
+                try:
+                    labels = deploy['labels']
+                    service_obj['deploy']['labels'] = self.to_key_val_pairs(labels)
+                except Exception:
+                    pass
             except KeyError:
                 pass
 

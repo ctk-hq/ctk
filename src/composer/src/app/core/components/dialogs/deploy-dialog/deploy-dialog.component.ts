@@ -25,7 +25,7 @@ export class DeployDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.formGeneral = this.formBuilder.group({
-      mode: new FormControl(''),
+      mode: new FormControl('replicated'),
       replicas: new FormControl(''),
       update_config: this.formBuilder.group({
           parallelism:  new FormControl('', [Validators.pattern('^[0-9]+$')]),
@@ -42,7 +42,7 @@ export class DeployDialogComponent implements OnInit {
       endpoint_mode: new FormControl(''),
       placement: this.formBuilder.group({
         constraints: new FormControl(''),
-        max_replicas_per_node:  new FormControl('', [Validators.pattern('^[0-9]+$')])
+        max_replicas_per_node:  new FormControl('1', [Validators.pattern('^[0-9]+$')])
       }),
       resources: this.formBuilder.group({
         limits: this.formBuilder.group({
@@ -56,15 +56,31 @@ export class DeployDialogComponent implements OnInit {
       })
     })
     
-    if(this.data.deploy) {
-      this.data.deploy.labels.forEach(val => this.currentLabels.push(val))
-      this.data.deploy.placement.preferences.forEach(val => this.currentPreferences.push(val))
+    if (this.data.deploy) {
+      let max_replicas_per_node = null
+      let constraints = null
+
+      try {
+        max_replicas_per_node = this.data.deploy.placement.max_replicas_per_node
+      } catch (error) {}
+
+      try {
+        constraints = this.data.deploy.placement.constraints.join(',')
+      } catch (error) {}
+
+      try {
+        this.data.deploy.labels.forEach(val => this.currentLabels.push(val))
+      } catch (error) {}
+
+      try {
+        this.data.deploy.placement.preferences.forEach(val => this.currentPreferences.push(val))
+      } catch (error) {}
 
       this.formGeneral.patchValue({
         ...this.data.deploy,
         placement: {
-          max_replicas_per_node: this.data.deploy.placement.max_replicas_per_node,
-          constraints: this.data.deploy.placement.constraints.join(',')
+          max_replicas_per_node: max_replicas_per_node,
+          constraints: constraints
         }
       })
     }

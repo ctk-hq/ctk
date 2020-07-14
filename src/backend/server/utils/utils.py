@@ -210,11 +210,13 @@ def format_volumes(service_volumes, volumes):
 
 def format_networks(service_networks, networks):
     ret = []
-    for service_network_uuid in service_networks:
-        for network in networks:
-            if service_network_uuid == network['uuid']:
-                network_str = f"{network['name']}"
-                ret.append(network_str)
+
+    if service_networks:
+        for service_network_uuid in service_networks:
+            for network in networks:
+                if service_network_uuid == network['uuid']:
+                    network_str = f"{network['name']}"
+                    ret.append(network_str)
 
     return ret
 
@@ -293,6 +295,40 @@ def format_build(specified_version, build):
     return ret
 
 
+def _remove_missing_and_underscored_keys(d):
+    if not d: return d
+    for key in list(d.keys()):
+        if isinstance(d[key], list):
+            d[key] = list(filter(None, d[key]))
+        if not d.get(key):
+            del d[key]
+        elif isinstance(d[key], dict):
+            d[key] = _remove_missing_and_underscored_keys(d[key])
+            if d[key] == None or d[key] == {}:
+                del d[key]
+
+    return d
+
+
+def format_deploy(specified_version, deploy):
+    ret = deploy
+
+    try:
+        placement_preferences = deploy['placement']['preferences']
+        ret['placement']['preferences'] = format_key_val_pairs(placement_preferences)
+    except Exception:
+        pass
+
+    try:
+        labels = deploy['labels']
+        ret['labels'] = format_key_val_pairs(labels)
+    except Exception:
+        pass
+
+    ret = _remove_missing_and_underscored_keys(ret)
+    return ret
+
+
 def get_version(verion):
     try:
         return int(verion)
@@ -318,28 +354,32 @@ def format_services_version_one(specified_version, services, volumes, networks):
                 service_formatted['image'] = f"{image}"
 
         try:
-            service_formatted['container_name'] = service['container_name']
+            if service['container_name']:
+                service_formatted['container_name'] = service['container_name']
         except KeyError:
             pass
 
         try:
-            service_formatted['restart'] = service['restart']
+            if service['restart']:
+                service_formatted['restart'] = service['restart']
         except KeyError:
             pass
 
         try:
-            service_formatted['command'] = format_command_string(service['command'])
+            if service['command']:
+                service_formatted['command'] = format_command_string(service['command'])
         except KeyError:
             pass
 
         try:
-            service_formatted['entrypoint'] = format_command_string(service['entrypoint'])
+            if service['entrypoint']:
+                service_formatted['entrypoint'] = format_command_string(service['entrypoint'])
         except KeyError:
             pass
 
         try:
-            working_dir_str = service['working_dir']
-            service_formatted['working_dir'] = working_dir_str
+            if service['working_dir']:
+                service_formatted['working_dir'] = service['working_dir']
         except KeyError:
             pass
 
@@ -350,12 +390,13 @@ def format_services_version_one(specified_version, services, volumes, networks):
             pass
 
         try:
-            links = service['links']
-            service_formatted['links'] = []
-            for link in links:
-                for service_obj in services:
-                    if link == service_obj['uuid']:
-                        service_formatted['links'].append(f"{service_obj['name']}")
+            links = service.get('links', [])
+            if links:
+                service_formatted['links'] = []
+                for link in links:
+                    for service_obj in services:
+                        if link == service_obj['uuid']:
+                            service_formatted['links'].append(f"{service_obj['name']}")
         except KeyError:
             pass 
 
@@ -407,28 +448,33 @@ def format_services_version_three(specified_version, services, volumes, networks
                 service_formatted['image'] = f"{image}"
 
         try:
-            service_formatted['container_name'] = service['container_name']
+            if service['container_name']:
+                service_formatted['container_name'] = service['container_name']
         except KeyError:
             pass
 
         try:
-            service_formatted['restart'] = service['restart']
+            if service['restart']:
+                service_formatted['restart'] = service['restart']
         except KeyError:
             pass
         
         try:
-            service_formatted['command'] = format_command_string(service['command'])
+            if service['command']:
+                service_formatted['command'] = format_command_string(service['command'])
         except KeyError:
             pass
 
         try:
-            service_formatted['entrypoint'] = format_command_string(service['entrypoint'])
+            if service['entrypoint']:
+                service_formatted['entrypoint'] = format_command_string(service['entrypoint'])
         except KeyError:
             pass
 
         try:
             working_dir_str = service['working_dir']
-            service_formatted['working_dir'] = working_dir_str
+            if working_dir_str:
+                service_formatted['working_dir'] = working_dir_str
         except KeyError:
             pass
 
@@ -478,7 +524,7 @@ def format_services_version_three(specified_version, services, volumes, networks
             pass
 
         try:
-            service_networks = service['networks']
+            service_networks = service.get('networks', [])
             formatted_networks = format_networks(service_networks, networks)
 
             if formatted_networks:
@@ -494,6 +540,14 @@ def format_services_version_three(specified_version, services, volumes, networks
                 service_formatted['build'] = build
         except KeyError:
             pass
+        
+        if int(float(specified_version)) >= 3:
+            try:
+                deploy = format_deploy(specified_version, service['deploy'])
+                if deploy:
+                    service_formatted['deploy'] = deploy
+            except KeyError:
+                pass
 
         services_formatted[service['name']] = service_formatted
 

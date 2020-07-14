@@ -1,51 +1,61 @@
-<h1 mat-dialog-title><span>Build Config</span></h1>
+<h1 mat-dialog-title><span>Build Configuration</span></h1>
 <mat-dialog-content>
+  <p>Configuration options that are applied at build time.</p>
   <mat-tab-group animationDuration="0ms">
     <mat-tab label="General">
       <form [formGroup]="formGeneral" fxLayout="column">
         <mat-form-field appearance="outline">
           <mat-label>Build</mat-label>
           <input matInput formControlName="build" />
+          <mat-hint>build can be specified as a string containing a path to the build context, or, leave blank and fill out the fields below.</mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Context</mat-label>
           <input matInput formControlName="context" />
+          <mat-hint>Either a path to a directory containing a Dockerfile, or a url to a git repository.</mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Dockerfile</mat-label>
           <input matInput formControlName="dockerfile" />
+          <mat-hint>Alternate Dockerfile. Compose uses an alternate file to build with. A build path must also be specified.</mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Network</mat-label>
           <input matInput formControlName="network" />
+          <mat-hint>Set the network containers connect to for the RUN instructions during build.</mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>SHM size</mat-label>
+          <mat-label>SHM size (eg. '2gb', 10000000)</mat-label>
           <input matInput formControlName="shm_size" />
+          <mat-hint>Set the size of the /dev/shm partition for this build’s containers. An integer representing bytes or a string expressing a byte value.</mat-hint>
         </mat-form-field>
   
         <mat-form-field appearance="outline">
           <mat-label>Target</mat-label>
           <input matInput formControlName="target" />
+          <mat-hint>Build the specified stage as defined inside the Dockerfile.</mat-hint>
         </mat-form-field>
       </form>
     </mat-tab>
     <mat-tab label="Arguments">
       <h2 mat-dialog-title>Arguments</h2>
+      <p>Add build arguments, which are environment variables accessible only during the build process.</p>
       <key-value #args [keyValueArray]="currentArgs"></key-value>
     </mat-tab>
     
     <mat-tab label="Cache from">
       <h2 mat-dialog-title>Cache from</h2>
+      <p>A list of images that the engine uses for cache resolution.</p>
       <key-value #cache_from [keyValueArray]="currentCacheFrom"></key-value>
     </mat-tab>
 
     <mat-tab label="Labels">
       <h2 mat-dialog-title>Labels</h2>
+      <p>Add metadata to the resulting image using Docker labels.</p>
       <key-value #labels [keyValueArray]="currentLabels"></key-value>
     </mat-tab>
   </mat-tab-group>
