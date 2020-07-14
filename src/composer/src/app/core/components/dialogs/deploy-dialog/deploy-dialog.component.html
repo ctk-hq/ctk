@@ -1,0 +1,133 @@
+<h1 mat-dialog-title><span>Deploy Config</span></h1>
+<mat-dialog-content>
+  <mat-tab-group animationDuration="0ms">
+    <mat-tab label="General">
+      <form [formGroup]="formGeneral" fxLayout="column">
+        <mat-form-field appearance="outline">
+          <mat-label>Mode</mat-label>
+          <input matInput formControlName="mode" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Replicas</mat-label>
+          <input matInput formControlName="replicas" />
+        </mat-form-field>
+
+        <div [formGroup]="formGeneral['controls']['update_config']" fxLayout="column" fxGrap="10px">
+            <h3><span>Update config</span></h3>
+            <mat-form-field appearance="outline">
+                <mat-label>Parallelism</mat-label>
+                <input matInput formControlName="parallelism" />
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+                <mat-label>Delay</mat-label>
+                <input matInput formControlName="delay" />
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+                <mat-label>Order</mat-label>
+                <input matInput formControlName="order" />
+            </mat-form-field>
+        </div>
+
+        <div class="splitter mg-b-15"></div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Rollback config</mat-label>
+          <input matInput formControlName="rollback_config" />
+        </mat-form-field>
+
+        <div [formGroup]="formGeneral['controls']['restart_policy']" fxLayout="column" fxGrap="10px">
+            <h3><span>Restart policy</span></h3>
+            <mat-form-field appearance="outline">
+                <mat-label>Condition</mat-label>
+                <input matInput formControlName="condition" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Delay</mat-label>
+                <input matInput formControlName="delay" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Parallelism</mat-label>
+                <input matInput formControlName="parallelism" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Window</mat-label>
+              <input matInput formControlName="window" />
+            </mat-form-field>
+        </div>
+
+        <div class="splitter mg-b-15"></div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Endpoint mode</mat-label>
+          <input matInput formControlName="endpoint_mode" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline">
+          <mat-label>Max replicas per node</mat-label>
+          <input matInput formControlName="max_replicas_per_node" />
+        </mat-form-field>
+
+        <div [formGroup]="formGeneral['controls']['resources']['controls']['limits']" fxLayout="column" fxGrap="10px">
+          <h3><span>Limits</span></h3>
+          <mat-form-field appearance="outline">
+            <mat-label>Cpus</mat-label>
+            <input matInput formControlName="cpus" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+              <mat-label>Memory</mat-label>
+              <input matInput formControlName="memory" />
+          </mat-form-field>
+        </div>
+
+        <div [formGroup]="formGeneral['controls']['resources']['controls']['reservations']" fxLayout="column" fxGrap="10px">
+          <h3><span>Limits</span></h3>
+          <mat-form-field appearance="outline">
+            <mat-label>Cpus</mat-label>
+            <input matInput formControlName="cpus" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+              <mat-label>Memory</mat-label>
+              <input matInput formControlName="memory" />
+          </mat-form-field>
+        </div>
+      </form>
+    </mat-tab>
+    <mat-tab label="Placement" [formGroup]="formGeneral">
+      <div fxLayout="column">
+        <mat-form-field fxFill appearance="outline">
+          <mat-label>Command</mat-label>
+          <textarea 
+            matInput 
+            cdkTextareaAutosize
+            #autosize="cdkTextareaAutosize"
+            formControlName="placement"></textarea>
+        </mat-form-field>
+        <h2 mat-dialog-title>Preferences</h2>
+        <key-value #preferences [keyValueArray]="currentPreferences"></key-value>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Labels">
+      <h2 mat-dialog-title>Labels</h2>
+      <key-value #labels [keyValueArray]="currentLabels"></key-value>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <check-circle></check-circle>
+  <button mat-button (click)="closeModal()">
+    Cancel
+  </button>
+  <button mat-raised-button color="success" (click)="onSave()" [disabled]="formGeneral.invalid">
+    Save
+  </button>
+</mat-dialog-actions>

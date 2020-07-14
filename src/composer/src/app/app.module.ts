@@ -68,6 +68,7 @@ import { GlobalDialogComponent } from './core/components/dialogs/global-dialog/g
 import { CodemirrorModule } from '@ctrl/ngx-codemirror';
 import { RecipeComponent, DialogPublishRecipe, DialogRecipeDetails } from './core/components/recipe/recipe.component';
 import { BuildDialogComponent } from './core/components/dialogs/build-dialog/build-dialog.component';
+import { DeployDialogComponent } from './core/components/dialogs/deploy-dialog/deploy-dialog.component';
 
 export function getHighlightLanguages() {
   return {
@@ -105,7 +106,8 @@ export function getHighlightLanguages() {
     RecipeComponent,
     DialogPublishRecipe,
     DialogRecipeDetails,
-    BuildDialogComponent
+    BuildDialogComponent,
+    DeployDialogComponent
   ],
   imports: [
     BrowserModule,
