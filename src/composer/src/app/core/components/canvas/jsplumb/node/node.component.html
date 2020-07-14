@@ -25,14 +25,19 @@
 
   </div>
   <div fxLayout="row" fxLayoutAlign="space-between center" class="node-actions">
-    <button mat-icon-button aria-label="Remove" (click)="removeService()">
-      <mat-icon>delete</mat-icon>
+    <button mat-icon-button matTooltip="Deploy" aria-label="Build" (click)="deployDialogOpen()">
+      <span class="material-icons">cloud_upload</span>
     </button>
-    <button mat-icon-button aria-label="Build" (click)="buildDialogOpen()">
+    <button mat-icon-button matTooltip="Build" aria-label="Build" (click)="buildDialogOpen()">
       <span class="material-icons">build</span>
     </button>
-    <button mat-icon-button aria-label="Manage" (click)="manageProjectService()">
+    <button fxFlexAlign="center" mat-icon-button matTooltip="Manage" aria-label="Manage" (click)="manageProjectService()">
       <mat-icon>create</mat-icon>
+    </button>
+  </div>
+  <div fxLayout="row" fxLayoutAlign="center center" class="node-actions">
+    <button mat-icon-button matTooltip="Remove" aria-label="Remove" (click)="removeService()">
+      <mat-icon>delete</mat-icon>
     </button>
   </div>
 </div>

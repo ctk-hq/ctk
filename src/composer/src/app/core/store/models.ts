@@ -47,6 +47,7 @@ export interface ServiceDeploy {
     delay: string
     order: string
   }
+  rollback_config: string
   restart_policy: {
     condition: string
     delay: string
@@ -88,7 +89,7 @@ export interface Service {
   init: boolean
   isolation: string
   container_name?: string
-  deploy: object
+  deploy: ServiceDeploy
   build: ServiceBuildObject
   image: string
   restart: string

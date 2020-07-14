@@ -7,6 +7,7 @@ import { MatDialog } from '@angular/material/dialog'
 import { ManageProjectDialogComponent } from '../../../dialogs/manage-project-dialog/manage-project-dialog.component'
 import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog/confirm-dialog.component'
 import { BuildDialogComponent } from '../../../dialogs/build-dialog/build-dialog.component'
+import { DeployDialogComponent } from '../../../dialogs/deploy-dialog/deploy-dialog.component'
 import * as ProjectActions from './../../../../store/project.actions'
 import { NodeService } from '../node.service'
 import { EventEmitterService } from 'src/app/core/services/event-emitter.service'
@@ -129,6 +130,14 @@ export class NodeComponent implements AfterViewInit, OnDestroy {
 
   buildDialogOpen() {
     this.dialog.open(BuildDialogComponent, {
+      width: '50%',
+      minWidth: '740px',
+      data: this.currentService,
+    })
+  }
+
+  deployDialogOpen() {
+    this.dialog.open(DeployDialogComponent, {
       width: '50%',
       minWidth: '740px',
       data: this.currentService,
