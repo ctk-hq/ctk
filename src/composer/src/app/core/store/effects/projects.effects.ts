@@ -87,7 +87,7 @@ export class ProjectEffects {
 
       return this.restService.importProject({project_data: currentProject, yaml: action.data.payload}).pipe(
         map((projectData) => {
-          if(projectData.code) {
+          if (projectData.data) {
             const project = {
               name: currentProject.name ? currentProject.name : projectData.name,
               uuid: currentProject.uuid,

@@ -24,3 +24,4 @@ Pygments==2.6.1
 pyaml==20.4.0
 docker==4.2.0
 ruamel.yaml==0.16.10
+better_profanity==0.6.1

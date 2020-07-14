@@ -13,7 +13,7 @@ pull :
 	docker-compose pull
 
 up :
-	docker-compose up -d
+	@ docker-compose up -d
 
 down :
 	docker-compose down
@@ -38,10 +38,10 @@ shell_nginx:
 	docker exec -it ${NGINX_CONTAINER_NAME} bash
 
 local_build:
-	cd ./src/composer && npm install && npm run build_local
+	@ cd ./src/composer && npm install && npm run build_local
 
 local_setup: local_build up
-	echo "Waiting for PostgreSQL..." \
+	@ echo "Waiting for PostgreSQL..." \
 	&& sleep 5 \
 	&& docker exec -it ${BACKEND_CONTAINER_NAME} python /home/app/manage.py makemigrations \
 	&& docker exec -it ${BACKEND_CONTAINER_NAME} python /home/app/manage.py migrate \

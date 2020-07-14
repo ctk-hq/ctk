@@ -16,6 +16,7 @@ import yaml
 import ast
 import uuid
 import ruamel.yaml
+from better_profanity import profanity
 
 from io import StringIO
 from collections import OrderedDict
@@ -167,11 +168,11 @@ def format_networks_top_level(networks, compose_version):
     return ret
 
 
-def format_env_vars(envs):
+def format_key_val_pairs(pairs):
     ret = {}
 
-    for env in envs:
-        ret[env['key']] = env['value']
+    for pair_part in pairs:
+        ret[pair_part['key']] = pair_part['value']
 
     return ret
 
@@ -261,7 +262,45 @@ def format_command_string(command):
     return command_list[0]
 
 
-def format_services_version_one(services, volumes):
+def format_build(specified_version, build):
+    if isinstance(build, str):
+        return build
+
+    build_str = build.get('build', None)
+    context_str = build.get('context', None)
+
+    if specified_version < 2:
+        if build_str:
+            return build_str
+        elif context_str:
+            return context_str
+        else:
+            return None
+
+
+    if build_str:
+        return build_str
+
+    ret = {}
+    for _key, _val in build.items():
+        if _key in ['args', 'cache_from', 'labels']:
+            if _val:
+                ret[_key] = format_key_val_pairs(_val)
+        else:
+            if _val:
+                ret[_key] = _val
+
+    return ret
+
+
+def get_version(verion):
+    try:
+        return int(verion)
+    except ValueError:
+        return float(verion)
+
+
+def format_services_version_one(specified_version, services, volumes, networks):
     services_formatted = {}
 
     for service in services:
@@ -323,7 +362,7 @@ def format_services_version_one(services, volumes):
         try:
             if service['environment']:
                 envs = service['environment']
-                service_formatted['environment'] = format_env_vars(envs)
+                service_formatted['environment'] = format_key_val_pairs(envs)
         except KeyError:
             pass
 
@@ -338,12 +377,19 @@ def format_services_version_one(services, volumes):
         except KeyError:
             pass
 
+        try:
+            build = format_build(specified_version, service['build'])
+            if build:
+                service_formatted['build'] = build
+        except KeyError:
+            pass
+
         services_formatted[service['name']] = service_formatted
 
     return services_formatted
 
 
-def format_services_version_three(services, volumes, networks):
+def format_services_version_three(specified_version, services, volumes, networks):
     services_formatted = {}
 
     for service in services:
@@ -406,7 +452,7 @@ def format_services_version_three(services, volumes, networks):
         try:
             if service['environment']:
                 envs = service['environment']
-                service_formatted['environment'] = format_env_vars(envs)
+                service_formatted['environment'] = format_key_val_pairs(envs)
         except KeyError:
             pass
 
@@ -442,6 +488,13 @@ def format_services_version_three(services, volumes, networks):
         except KeyError:
             pass
 
+        try:
+            build = format_build(specified_version, service['build'])
+            if build:
+                service_formatted['build'] = build
+        except KeyError:
+            pass
+
         services_formatted[service['name']] = service_formatted
 
     return services_formatted
@@ -462,19 +515,22 @@ def generate_dc(services, volumes, networks, secrets, configs, version="3", retu
         ret_yaml = YAML()
         ret_yaml.indent(mapping=2, sequence=4, offset=2)
         ret_yaml.explicit_start = True
-        ret_yaml.dump({'version': DoubleQuotedScalarString(version)}, s)
-        ret_yaml.explicit_start = False
-        s.write('\n')
-
-        base_version = int(float(version))
+        specified_version = get_version(version)
+        base_version = int(specified_version)
 
         if services:
-            if base_version in [3, 2]:
-                services_formatted = format_services_version_three(services, volumes, networks)
+            if base_version in [2, 3]:
+                ret_yaml.dump({'version': DoubleQuotedScalarString(specified_version)}, s)
+                ret_yaml.explicit_start = False
+                s.write('\n')
+                services_formatted = format_services_version_three(specified_version, services, volumes, networks)
                 ret_yaml.dump({'services': services_formatted}, s, transform=sequence_indent_four)
-            
+
             if base_version == 1:
-                services_formatted = format_services_version_one(services, volumes)
+                ret_yaml.dump({'version': DoubleQuotedScalarString(specified_version)}, s)
+                ret_yaml.explicit_start = False
+                s.write('\n')
+                services_formatted = format_services_version_one(specified_version, services, volumes, networks)
                 ret_yaml.dump(services_formatted, s, transform=sequence_indent_one)
             
             s.write('\n')
@@ -614,12 +670,7 @@ def random_string(string_length=10):
         string.ascii_uppercase +
         string.ascii_lowercase +
         string.digits) for _ in range(string_length))
-    string_check = final_string.lower()
-    bad_words = ["nig", "spik", "spic", "gay", "lesb", "fuck", "cock", "dick", "dic", "cunt", "kunt"]
-
-    for word in bad_words:
-        if word in string_check:
-            random_string(string_length)
+    final_string = profanity.censor(final_string, '').lower()
 
     return final_string
 

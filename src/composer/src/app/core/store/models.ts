@@ -41,7 +41,7 @@ export interface KeyValuePair {
 export interface ServiceDeploy {
   mode: string
   replicas: number
-  labels: []
+  labels: KeyValuePair[]
   update_config: {
     parallelism: number
     delay: string
@@ -57,7 +57,7 @@ export interface ServiceDeploy {
   endpoint_mode: string
   placement: {
     constraints: []
-    preferences: []
+    preferences: KeyValuePair[]
   }
   max_replicas_per_node: number
   resources: {
