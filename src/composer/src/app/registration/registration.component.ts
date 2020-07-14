@@ -33,7 +33,16 @@ export class RegistrationComponent implements OnInit {
     .pipe(first())
     .subscribe(
       data => {
-        this.router.navigate(['/auth/login'])
+        const { email, password1: password } = this.registrationForm.value
+        this.authenticationService.login({ email, password })
+          .pipe(first())
+          .subscribe(
+            data => {
+              this.router.navigate(['/'])
+            },
+            (errors) => {
+              this.errors = errors
+            });
       },
       (errors) => {
         this.errors = errors
