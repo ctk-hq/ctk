@@ -67,11 +67,6 @@
           <mat-label>Endpoint mode</mat-label>
           <input matInput formControlName="endpoint_mode" />
         </mat-form-field>
-  
-        <mat-form-field appearance="outline">
-          <mat-label>Max replicas per node</mat-label>
-          <input matInput formControlName="max_replicas_per_node" />
-        </mat-form-field>
 
         <div [formGroup]="formGeneral['controls']['resources']['controls']['limits']" fxLayout="column" fxGrap="10px">
           <h3><span>Limits</span></h3>
@@ -101,15 +96,21 @@
       </form>
     </mat-tab>
     <mat-tab label="Placement" [formGroup]="formGeneral">
-      <div fxLayout="column">
+      <div fxLayout="column" [formGroup]="formGeneral['controls']['placement']">
+        <mat-form-field appearance="outline">
+          <mat-label>Max replicas per node</mat-label>
+          <input matInput formControlName="max_replicas_per_node" />
+        </mat-form-field>
+
         <mat-form-field fxFill appearance="outline">
           <mat-label>Constraints</mat-label>
           <textarea 
-            matInput 
+            matInput
             cdkTextareaAutosize
             #autosize="cdkTextareaAutosize"
-            formControlName="placement"></textarea>
+            formControlName="constraints"></textarea>
         </mat-form-field>
+
         <h2 mat-dialog-title>Preferences</h2>
         <key-value #preferences [keyValueArray]="currentPreferences"></key-value>
       </div>

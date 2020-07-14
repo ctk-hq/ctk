@@ -40,8 +40,10 @@ export class DeployDialogComponent implements OnInit {
         window: new FormControl(''),
       }),
       endpoint_mode: new FormControl(''),
-      placement: new FormControl(''),
-      max_replicas_per_node:  new FormControl('', [Validators.pattern('^[0-9]+$')]),
+      placement: this.formBuilder.group({
+        constraints: new FormControl(''),
+        max_replicas_per_node:  new FormControl('', [Validators.pattern('^[0-9]+$')])
+      }),
       resources: this.formBuilder.group({
         limits: this.formBuilder.group({
           cpus: new FormControl(''),
@@ -60,7 +62,10 @@ export class DeployDialogComponent implements OnInit {
 
       this.formGeneral.patchValue({
         ...this.data.deploy,
-        placement: this.data.deploy.placement.constraints.join(',')
+        placement: {
+          max_replicas_per_node: this.data.deploy.placement.max_replicas_per_node,
+          constraints: this.data.deploy.placement.constraints.join(',')
+        }
       })
     }
   }
@@ -69,7 +74,8 @@ export class DeployDialogComponent implements OnInit {
     const fields: ServiceDeploy = {
       ...this.formGeneral.getRawValue(),
       placement: {
-        constraints: this.formGeneral.get('placement').value.split(','),
+        max_replicas_per_node: this.formGeneral.get('placement').value.max_replicas_per_node,
+        constraints: this.formGeneral.get('placement').value.constraints.split(','),
         preferences: this.preferences.getKeyValuePaies()
       },
       labels: this.labels.getKeyValuePaies(),
