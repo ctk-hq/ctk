@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, Inject } from '@angular/core'
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog'
 import { FormControl, Validators, FormGroup, FormBuilder, AbstractControl } from '@angular/forms'
 import { KeyValueComponent } from '../../common/key-value/key-value/key-value.component'
-import { Service, ServiceDeploy } from '../../../store/models'
+import { Service, ServiceDeploy, KeyValuePair } from '../../../store/models'
 import { CheckCircleComponent } from '../../widgets/check-circle/check-circle.component'
 import { Store } from '@ngrx/store'
 import * as ProjectActions from './../../../store/project.actions'
@@ -19,8 +19,8 @@ export class DeployDialogComponent implements OnInit {
   @ViewChild('labels') labels: KeyValueComponent
 
   formGeneral: FormGroup
-  currentPreferences: [] = []
-  currentLabels: [] = []
+  currentPreferences: KeyValuePair[] = []
+  currentLabels: KeyValuePair[] = []
   constructor(public dialogRef: MatDialogRef<DeployDialogComponent>, private formBuilder: FormBuilder, @Inject(MAT_DIALOG_DATA) public data: Service, private store: Store, private eventEmitterService: EventEmitterService,) { }
 
   ngOnInit(): void {
