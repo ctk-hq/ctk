@@ -9,7 +9,7 @@ django-cors-headers==3.2.1
 django-user-accounts==3.0.0
 django-rest-auth==0.9.5
 django-prettyjson==0.4.1
-djangorestframework==3.11.0
+djangorestframework==3.11.2
 djangorestframework-jwt==1.11.0
 django-allauth==0.42.0
 
