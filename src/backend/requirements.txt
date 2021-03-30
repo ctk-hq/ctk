@@ -20,7 +20,7 @@ django-anymail[mailgun]==7.0.0
 botocore==1.15.34
 boto3==1.12.34
 python-magic==0.4.15
-Pygments==2.6.1
+Pygments==2.7.4
 pyaml==20.4.0
 docker==4.2.0
 ruamel.yaml==0.16.10
