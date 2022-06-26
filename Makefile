@@ -1,7 +1,8 @@
-BACKEND_CONTAINER_NAME = nuxx-api
-NGINX_CONTAINER_NAME = nuxx-nginx
+ORGANIZATION = corpulent
+CONTAINER = ctk-server
+VERSION = 0.1.0
 
-.PHONY : validate build pull up down down_clean reset run backend_dev shell_backend shell_nginx local_setup local_build
+.PHONY : validate build pull up down down_clean reset run backend_dev shell_server shell_nginx local_setup local_build
 
 validate :
 	docker-compose config
@@ -13,36 +14,36 @@ pull :
 	docker-compose pull
 
 up :
-	@ docker-compose up -d
+	docker-compose up -d
+
+up_local :
+	docker-compose up -d --no-build
 
 down :
 	docker-compose down
 
 down_clean : down
-	-docker volume rm nuxx_postgres_data
-	-docker volume rm nuxx_django_static
+	-docker volume rm ctk_postgres_data
+	-docker volume rm ctk_django_static
 
 reset : down
 	make up
 
-run : validate
-	docker-compose run $(BACKEND_CONTAINER_NAME) -c "cd /home/app/ && python manage.py runserver 0.0.0.0:9001"
+run_server : validate
+	docker-compose run $(CONTAINER) -c "cd /home/server/ && python manage.py runserver 0.0.0.0:9001"
 
-dev_backend :
-	docker exec -ti $(BACKEND_CONTAINER_NAME) python /home/app/manage.py runserver 0.0.0.0:9001
+dev_server :
+	docker exec -ti $(CONTAINER) python /home/server/manage.py runserver 0.0.0.0:9001
 
-shell_backend:
-	docker exec -it ${BACKEND_CONTAINER_NAME} bash
+shell_server:
+	docker exec -it ${CONTAINER} bash
 
-shell_nginx:
-	docker exec -it ${NGINX_CONTAINER_NAME} bash
+frontend_build:
+	@ cd ./services/frontend/src && npm install && npm run build
 
-local_build:
-	@ cd ./src/composer && npm install && npm run build_local
-
-local_setup: local_build up
+local_setup: frontend_build up
 	@ echo "Waiting for PostgreSQL..." \
 	&& sleep 5 \
-	&& docker exec -it ${BACKEND_CONTAINER_NAME} python /home/app/manage.py makemigrations \
-	&& docker exec -it ${BACKEND_CONTAINER_NAME} python /home/app/manage.py migrate \
-	&& docker exec -it ${BACKEND_CONTAINER_NAME} python /home/app/manage.py collectstatic --noinput
+	&& docker exec -it ${CONTAINER} python /home/server/manage.py makemigrations \
+	&& docker exec -it ${CONTAINER} python /home/server/manage.py migrate \
+	&& docker exec -it ${BACKEND_CONTAINER_NAME} python /home/server/manage.py collectstatic --noinput
