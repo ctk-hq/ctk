@@ -1,5 +1,7 @@
 # Container ToolKit
 
+![Alt text](/screenshots/ui.png?raw=true "UI")
+
 ## Local setup and development
 
 On a Mac/Linux/Windows you need Docker, Docker Compose installed. Optionally GCC to run make commands for convenience, or just run the commands from the Makefile by hand.

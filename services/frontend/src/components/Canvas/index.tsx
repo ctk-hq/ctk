@@ -14,10 +14,11 @@ import {
   position
 } from "../../reducers";
 import Remove from "../Remove";
+import eventBus from "../../events/eventBus";
+import { Popover } from "./Popover";
+import ModalConfirmDelete from "../Modal/Service/ConfirmDelete";
 import ModalServiceCreate from "../Modal/Service/Create";
 import ModalServiceEdit from "../Modal/Service/Edit";
-import ModalCreate from "../Modal/Node/Create";
-import ModalEdit from "../Modal/Node/Edit";
 import { useClickOutside } from "../../utils/clickOutside";
 import { IClientNodeItem, IGraphData } from "../../types";
 import { nodeLibraries } from "../../utils/data/libraries";
@@ -47,17 +48,21 @@ export const Canvas: FC<ICanvasProps> = (props) => {
   const [instanceConnections, setInstanceConnections] = useState(state.connections);
   const [copyText, setCopyText] = useState("Copy");
   const [selectedNode, setSelectedNode] = useState<IClientNodeItem | null>(null);
-  const [showModalCreateStep, setShowModalCreateStep] = useState(false);
-  const [showModalEditStep, setShowModalEditStep] = useState(false);
-  const [showModalCreate, setShowModalCreate] = useState(false);
-  const [showModalEdit, setShowModalEdit] = useState(false);
+  const [showModalCreateService, setShowModalCreateService] = useState(false);
+  const [showModalEditService, setShowModalEditService] = useState(false);
+  const [showModalConfirmDeleteService, setShowModalConfirmDeleteService] = useState(false);
+  const [showVolumesModal, setShowVolumesModal] = useState(false);
+  const [showNetworksModal, setShowNetworksModal] = useState(false);
 
+  const [nodeDragging, setNodeDragging] = useState<string | null>();
+  const [nodeHovering, setNodeHovering] = useState<string | null>();
   const [dragging, setDragging] = useState(false);
   const [_scale, _setScale] = useState(1);
   const [_left, _setLeft] = useState(0);
   const [_top, _setTop] = useState(0);
   const [_initX, _setInitX] = useState(0);
   const [_initY, _setInitY] = useState(0);
+
   const [containerCallbackRef, setZoom, setStyle, removeEndpoint] = useJsPlumb(
     instanceNodes,
     instanceConnections,
@@ -76,8 +81,7 @@ export const Canvas: FC<ICanvasProps> = (props) => {
   stateRef.current = state.nodes;
 
   useClickOutside(drop, () => {
-    setShowModalCreateStep(false);
-    setShowModalCreate(false);
+    setShowModalCreateService(false);
   });
 
   useEffect(() => {
@@ -256,38 +260,49 @@ export const Canvas: FC<ICanvasProps> = (props) => {
     _setScale(state.canvasPosition.scale);
   }, [state.canvasPosition]);
 
+  useEffect(() => {
+    eventBus.on("EVENT_DRAG_START", (data: any) => {
+      setNodeDragging(data.detail.message.id);
+    });
+
+    eventBus.on("EVENT_DRAG_STOP", (data: any) => {
+      setNodeDragging(null);
+    });
+
+    return () => {
+      eventBus.remove("EVENT_DRAG_START", () => {});
+      eventBus.remove("EVENT_DRAG_STOP", () => { });
+    };
+  }, []);
+
   return (
     <>
-      {showModalCreateStep
+      {showModalCreateService
         ? <ModalServiceCreate
-          onHide={() => setShowModalCreateStep(false)}
+          onHide={() => setShowModalCreateService(false)}
           onAddEndpoint={(values: any) => onAddEndpoint(values)}
         />
         : null
       }
 
-      {showModalEditStep
+      {showModalEditService
         ? <ModalServiceEdit
           node={selectedNode}
-          onHide={() => setShowModalEditStep(false)}
+          onHide={() => setShowModalEditService(false)}
           onUpdateEndpoint={(values: any) => onUpdateEndpoint(values)}
         />
         : null
       }
 
-      {showModalCreate
-        ? <ModalCreate
-          onHide={() => setShowModalCreate(false)}
-          onAddEndpoint={(values: any) => onAddEndpoint(values)}
-        />
-        : null
-      }
-
-      {showModalEdit
-        ? <ModalEdit
-          node={selectedNode}
-          onHide={() => setShowModalEdit(false)}
-          onUpdateEndpoint={(nodeItem: IClientNodeItem) => onUpdateEndpoint(nodeItem)}
+      {showModalConfirmDeleteService
+        ? <ModalConfirmDelete
+          onHide={() => setShowModalConfirmDeleteService(false)}
+          onConfirm={() => {
+            setShowModalEditService(false);
+            if (selectedNode) {
+              onRemoveEndpoint(selectedNode.key);
+            }
+          }}
         />
         : null
       }
@@ -300,14 +315,14 @@ export const Canvas: FC<ICanvasProps> = (props) => {
                 <div className="flex space-x-2 p-2">
                   <button className="hidden btn-util" type="button" onClick={zoomOut} disabled={scale <= 0.5}>-</button>
                   <button className="hidden btn-util" type="button" onClick={zoomIn} disabled={scale >= 1}>+</button>
-                  <button className="flex space-x-1 btn-util" type="button" onClick={() => setShowModalCreateStep(true)}>
+                  <button className="flex space-x-1 btn-util" type="button" onClick={() => setShowModalCreateService(true)}>
                     <PlusIcon className="w-3"/>
                     <span>Service</span>
                   </button>
-                  <button className="btn-util" type="button" onClick={() => setShowModalCreate(true)}>
+                  <button className="btn-util" type="button" onClick={() => setShowVolumesModal(true)}>
                     Volumes
                   </button>
-                  <button className="btn-util" type="button" onClick={() => setShowModalCreate(true)}>
+                  <button className="btn-util" type="button" onClick={() => setShowNetworksModal(true)}>
                     Networks
                   </button>
                 </div>
@@ -335,10 +350,28 @@ export const Canvas: FC<ICanvasProps> = (props) => {
                       {values(instanceNodes).map((x) => (
                         <div
                           key={x.key}
-                          className={"node-item cursor-pointer shadow flex flex-col"}
+                          className={"node-item cursor-pointer shadow flex flex-col group"}
                           id={x.key}
                           style={{ top: x.position.top, left: x.position.left }}
+                          onMouseEnter={() => setNodeHovering(x.key)}
+                          onMouseLeave={() => {
+                            if (nodeHovering === x.key) {
+                              setNodeHovering(null);
+                            }
+                          }}
                         >
+                          {((nodeHovering === x.key) && (nodeDragging !== x.key)) &&
+                            <Popover
+                              onEditClick={() => {
+                                setSelectedNode(x);
+                                setShowModalEditService(true);
+                              }}
+                              onDeleteClick={() => {
+                                setSelectedNode(x);
+                                setShowModalConfirmDeleteService(true);
+                              }}
+                            ></Popover>
+                          }
                           <div className="node-label w-full py-2 px-4">
                             <div className="text-sm font-semibold">
                               {x.configuration.prettyName}
