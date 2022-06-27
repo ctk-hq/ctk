@@ -13,8 +13,10 @@ import {
 import {
   BrowserJsPlumbInstance,
   newInstance,
+  EVENT_DRAG_START,
   EVENT_DRAG_STOP,
-  EVENT_CONNECTION_DBL_CLICK
+  EVENT_CONNECTION_DBL_CLICK,
+  DragStartPayload
 } from "@jsplumb/browser-ui";
 import {
   defaultOptions,
@@ -23,6 +25,7 @@ import {
   sourceEndpoint,
   targetEndpoint
 } from "../utils/options";
+import eventBus from "../events/eventBus";
 import { getConnections } from "../utils";
 import { IClientNodeItem } from "../types";
 import { Dictionary, isEqual } from "lodash";
@@ -90,11 +93,13 @@ export const useJsPlumb = (
 
     if (nodeConnections) {
       Object.values(nodeConnections).forEach((conn) => {
+        instance.destroyConnector(conn);
         instance.deleteConnection(conn);
       });
     };
 
     instance.removeAllEndpoints(document.getElementById(node.key) as Element);
+    instance.repaintEverything();
   }, [instance]);
 
   const getAnchors = (port: string[], anchorIds: AnchorId[]): IAnchor[] => {
@@ -234,7 +239,7 @@ export const useJsPlumb = (
         'connections': getConnections(instance.getConnections({}, true) as Connection[])
       });
     }
-  }, [instance, addEndpoints, onGraphUpdate]);
+  }, [instance, addEndpoints, stateRef.current]);
 
   useEffect(() => {
     if (!instance) return;
@@ -261,6 +266,14 @@ export const useJsPlumb = (
     const jsPlumbInstance: BrowserJsPlumbInstance = newInstance({
       ...defaultOptions,
       container: containerRef.current
+    });
+
+    jsPlumbInstance.bind(EVENT_DRAG_START, function (params: DragStartPayload) {
+      eventBus.dispatch("EVENT_DRAG_START", { message: { "id": params.el.id } });
+    });
+
+    jsPlumbInstance.bind(EVENT_DRAG_STOP, function (params: DragStartPayload) {
+      eventBus.dispatch("EVENT_DRAG_STOP", { message: {"id": params.el.id} });
     });
 
     jsPlumbInstance.bind(INTERCEPT_BEFORE_DROP, function (params: BeforeDropParams) {
@@ -318,7 +331,6 @@ export const useJsPlumb = (
     return () => {
       reset();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return [containerCallbackRef, setZoom, setStyle, removeEndpoint];
