@@ -87,14 +87,12 @@ export default function Project(props: IProjectProps) {
 
   const { data, error, isFetching } = useProject(uuid)
 
-  const { nodesAsList, clientNodeItems } = useMemo(() => {
+  useEffect(() => {
     if (!data) {
       return
     }
 
-    const nodesAsList = Object.keys(projectData.canvas.nodes).map(k => {
-      return projectData.canvas.nodes[k]
-    })
+    const nodesAsList = Object.keys(data.canvas.nodes).map(k => data.canvas.nodes[k])
 
     const clientNodeItems = getClientNodesAndConnections(
       nodesAsList,
@@ -106,11 +104,11 @@ export default function Project(props: IProjectProps) {
      */
     dispatch(updateProjectName(data.name));
     dispatch(nodes(clientNodeItems));
-    dispatch(connections(projectData.canvas.connections));
-    dispatch(position(projectData.canvas.position));
+    dispatch(connections(data.canvas.connections));
+    dispatch(position(data.canvas.position));
 
     return { nodesAsList, clientNodeItems }
-  }, [dispatch])
+  }, [dispatch, data])
 
   useEffect(() => {
     if (uuid && !isFetching && data) {
