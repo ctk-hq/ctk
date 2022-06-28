@@ -30,6 +30,7 @@
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^0.27.2",
     "codemirror": "^5.65.5",
     "d3": "^7.3.0",
     "formik": "^2.2.9",
