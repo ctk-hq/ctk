@@ -236,3 +236,7 @@ export const truncateStr = (str: string, length: number) => {
 
   return str
 }
+
+export const getMatchingSetIndex = (setOfSets: [[string, string]], findSet: [string, string]): number => {
+  return setOfSets.findIndex((set) => set.toString() === findSet.toString());
+}
