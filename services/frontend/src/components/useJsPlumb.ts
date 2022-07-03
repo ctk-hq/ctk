@@ -16,7 +16,8 @@ import {
   EVENT_DRAG_START,
   EVENT_DRAG_STOP,
   EVENT_CONNECTION_DBL_CLICK,
-  DragStartPayload
+  DragStartPayload,
+  DragStopPayload
 } from "@jsplumb/browser-ui";
 import {
   defaultOptions,
@@ -35,7 +36,7 @@ export const useJsPlumb = (
   nodes: Dictionary<IClientNodeItem>,
   connections: Array<[string, string]>,
   onGraphUpdate: Function,
-  onEndpointPositionUpdate: Function,
+  onNodeUpdate: Function,
   onConnectionAttached: Function,
   onConnectionDetached: Function
 ): [(containerElement: HTMLDivElement) => void,
@@ -45,7 +46,9 @@ export const useJsPlumb = (
   const [instance, setInstance] = useState<BrowserJsPlumbInstance>(null as any);
   const containerRef = useRef<HTMLDivElement>();
   const stateRef = useRef<Dictionary<IClientNodeItem>>();
+  const instanceRef = useRef<BrowserJsPlumbInstance>();
   stateRef.current = nodes;
+  instanceRef.current = instance;
   const containerCallbackRef = useCallback((containerElement: HTMLDivElement) => {
     containerRef.current = containerElement; 
   }, []);
@@ -88,7 +91,10 @@ export const useJsPlumb = (
     });
   }, [instance]);
 
-  const removeEndpoint = useCallback((node) => {
+  const removeEndpoint = (node: any) => {
+    if (!instanceRef.current) return;
+
+    const instance = instanceRef.current;
     const nodeConnections = instance.getConnections({ target: node.key });
 
     if (nodeConnections) {
@@ -100,7 +106,7 @@ export const useJsPlumb = (
 
     instance.removeAllEndpoints(document.getElementById(node.key) as Element);
     instance.repaintEverything();
-  }, [instance]);
+  };
 
   const getAnchors = (port: string[], anchorIds: AnchorId[]): IAnchor[] => {
     return port.map(
@@ -119,9 +125,8 @@ export const useJsPlumb = (
         location: .5,
         id: "remove-conn",
         cssClass: `
-        block jtk-overlay remove-conn-btn text-xs leading-normal
-        cursor-pointer text-white font-bold rounded-full w-5 h-5
-        z-20 flex justify-center
+        block jtk-overlay remove-conn-btn text-xs leading-normal cursor-pointer
+        text-white font-bold rounded-full w-5 h-5 z-20 flex justify-center
         `,
         events: {
           click: (e: any) => {
@@ -301,13 +306,15 @@ export const useJsPlumb = (
       });
     });
 
-    jsPlumbInstance.bind(EVENT_DRAG_STOP, (p: any) => {
-      onEndpointPositionUpdate({
-        key: p.el.id,
-        position: {
-          top: p.el.offsetTop,
-          left: p.el.offsetLeft
-        }
+    jsPlumbInstance.bind(EVENT_DRAG_STOP, (params: DragStopPayload) => {
+      params.elements.forEach((el) => {
+        onNodeUpdate({
+          key: el.id,
+          position: {
+            top: el.pos.y,
+            left: el.pos.x
+          }
+        });
       });
     });
 
