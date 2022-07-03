@@ -2,6 +2,14 @@ import { AnchorId } from "@jsplumb/common";
 import { Dictionary } from "lodash";
 import { NodeGroupType } from "./enums";
 
+export interface IServiceNodePosition {
+  key: string;
+  position: {
+    left: number;
+    top: number;
+  }
+}
+
 export interface IContainer {
   name: string;
   args?: string[];
@@ -79,14 +87,18 @@ export interface IProjectPayload {
   name: string;
   data: {
     canvas: {
-      position: any;
-      nodes: any;
+      position: {
+        top: number;
+        left: number;
+        scale: number;
+      };
+      nodes: {};
       connections: any;
     };
     configs: [];
     networks: [];
     secrets: [];
-    services: IService[];
+    services: {};
     version: number;
     volumes: [];
   }
