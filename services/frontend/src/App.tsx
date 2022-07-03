@@ -1,6 +1,9 @@
 import { useReducer, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
+
 import { LOCAL_STORAGE } from "./constants";
 import { reducer, initialState } from "./reducers";
 import { useLocalStorageAuth } from "./hooks/auth";
@@ -18,15 +21,17 @@ import ProtectedRoute from "./partials/ProtectedRoute";
 
 import "./index.css";
 
+const queryClient = new QueryClient();
+
 export default function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const auth = useLocalStorageAuth();
   const isAuthenticated = !!(auth && Object.keys(auth).length);
 
-  const defaultProtectedRouteProps: Omit<ProtectedRouteProps, 'outlet'> = {
+  const defaultProtectedRouteProps: Omit<ProtectedRouteProps, "outlet"> = {
     isAuthenticated: isAuthenticated,
-    authenticationPath: '/login',
-  };
+    authenticationPath: "/login"
+  }
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -45,7 +50,7 @@ export default function App() {
               if (textObj.code === "user_not_found") {
                 localStorage.removeItem(LOCAL_STORAGE);
               }
-            })
+            });
 
             refresh()
               .then(checkHttpStatus)
@@ -56,7 +61,10 @@ export default function App() {
                   const localDataParsed = JSON.parse(localData);
                   if (localDataParsed && Object.keys(localDataParsed).length) {
                     localDataParsed.access_token = data.access;
-                    localStorage.setItem(LOCAL_STORAGE, JSON.stringify(localDataParsed))
+                    localStorage.setItem(
+                      LOCAL_STORAGE,
+                      JSON.stringify(localDataParsed)
+                    );
                   }
                 }
               })
@@ -69,16 +77,35 @@ export default function App() {
   }, [dispatch, isAuthenticated]);
 
   return (
-    <div>
-      <Toaster />
-      <Routes>
-        <Route path="/" element={<Project dispatch={dispatch} state={state} />} />
-        <Route path="/projects/:uuid" element={<Project dispatch={dispatch} state={state} />} />
+    <QueryClientProvider client={queryClient}>
+      <div>
+        <Toaster />
+        <Routes>
+          <Route
+            path="/projects/:uuid"
+            element={<Project />}
+          />
 
-        <Route path="/profile" element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile dispatch={dispatch} state={state} />} />} />
-        <Route path="/signup" element={<Signup dispatch={dispatch} />} />
-        <Route path="/login" element={<Login dispatch={dispatch} />} />
-      </Routes>
-    </div>
-  );
+          <Route
+            path="/projects/new"
+            element={<Project />}
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute
+                {...defaultProtectedRouteProps}
+                outlet={<Profile dispatch={dispatch} state={state} />}
+              />
+            }
+          />
+          <Route path="/signup" element={<Signup dispatch={dispatch} />} />
+          <Route path="/login" element={<Login dispatch={dispatch} />} />
+        </Routes>
+      </div>
+
+      <ReactQueryDevtools initialIsOpen={true} />
+    </QueryClientProvider>
+  )
 }

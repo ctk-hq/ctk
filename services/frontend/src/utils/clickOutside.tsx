@@ -1,6 +1,19 @@
 import { useEffect } from "react";
 
 
+/**
+ * Use it from the component that needs outside clicks.
+ * 
+ * import { useClickOutside } from "../../utils/clickOutside";
+ * 
+ * const drop = createRef<HTMLDivElement>();
+ * useClickOutside(drop, () => {
+ *   // do stuff...
+ * });
+ * 
+ * @param ref 
+ * @param onClickOutside 
+ */
 export const useClickOutside = (ref: any, onClickOutside: any) => {
   useEffect(
     () => {
