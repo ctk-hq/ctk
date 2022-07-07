@@ -10,6 +10,15 @@ export interface IServiceNodePosition {
   }
 }
 
+export interface IProject {
+  id: number;
+  name: string;
+  uuid: string;
+  data: string;
+  created_at: string;
+  modified_at: string;
+}
+
 export interface IContainer {
   name: string;
   args?: string[];

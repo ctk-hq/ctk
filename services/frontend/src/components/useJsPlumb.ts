@@ -66,7 +66,7 @@ export const useJsPlumb = (
       // arrow overlay for connector to specify
       // it's dependency on another service
       instance.addEndpoint(el, endpoint, {
-        anchor: [[0.4, 0, 0, -1], [1, 0.4, 1, 0], [0.4, 1, 0, 1], [0, 0.4, -1, 0]],
+        anchor: [[1, 0.6, 1, 0], [0, 0.6, -1, 0], [0.6, 1, 0, 1], [0.6, 0, 0, -1]],
         uuid: x.id,
         connectorOverlays: [{
           type: "PlainArrow",
@@ -85,7 +85,7 @@ export const useJsPlumb = (
       endpoint.maxConnections = maxConnections;
 
       instance.addEndpoint(el, endpoint, {
-        anchor: [[0.6, 0, 0, -1], [1, 0.6, 1, 0], [0.6, 1, 0, 1], [0, 0.6, -1, 0]],
+        anchor: [[0, 0.4, -1, 0], [0.4, 1, 0, 1], [1, 0.4, 1, 0], [0.4, 0, 0, -1]],
         uuid: x.id
       });
     });
@@ -185,8 +185,14 @@ export const useJsPlumb = (
         onConnectionDetached([params.sourceId, firstConnection.suspendedElementId]);
 
         if (params.targetId !== firstConnection.suspendedElementId) {
-          onConnectionAttached([params.sourceId, params.targetId]);
-          return true;
+          const loopCheck = instance.select({ source: params.targetId as any, target: params.sourceId as any });
+          
+          if (loopCheck.length > 0) {
+            return false;
+          } else {
+            onConnectionAttached([params.sourceId, params.targetId]);
+            return true;
+          }
         }
       }
 
@@ -244,7 +250,7 @@ export const useJsPlumb = (
         'connections': getConnections(instance.getConnections({}, true) as Connection[])
       });
     }
-  }, [instance, addEndpoints, stateRef.current]);
+  }, [instance, addEndpoints, onGraphUpdate, stateRef.current]);
 
   useEffect(() => {
     if (!instance) return;

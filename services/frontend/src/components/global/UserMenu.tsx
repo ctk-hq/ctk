@@ -20,13 +20,16 @@ export default function UserMenu(props: IUserMenuProps) {
         flex border-t border-blue-800 p-4 w-full hover:cursor-pointer hover:bg-blue-600
       `}
     >
-      <div className="flex items-center">
-        <div>
-          <UserCircleIcon className="inline-block h-8 w-8 rounded-full" />
-        </div>
-        <div className="ml-3">
-          <p className="text-base font-medium text-white">{username}</p>
-          <p className="text-sm font-medium text-indigo-200 group-hover:text-white">View profile</p>
+      <div className="flex items-center mx-auto">
+        <UserCircleIcon className="inline-block h-8 w-8 rounded-full text-white" />
+        <div className="ml-3 md:ml-0">
+          <p className="text-base font-medium text-white md:hidden">
+            {username 
+              ? <>{username}</>
+              : <>Log in</>
+            }
+          </p>
+          <p className="text-sm font-medium text-indigo-200 group-hover:text-white md:hidden">View profile</p>
         </div>
       </div>
     </div>

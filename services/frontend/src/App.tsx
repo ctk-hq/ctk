@@ -11,6 +11,8 @@ import { checkHttpStatus } from "./services/helpers";
 import { authSelf } from "./reducers";
 import { refresh, self } from "./services/auth";
 
+import SideBar from "./components/global/SideBar";
+import Projects from "./components/Projects"
 import Project from "./components/Project";
 import Profile from "./components/Profile";
 import Signup from "./components/Auth/Signup";
@@ -80,6 +82,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <div>
         <Toaster />
+        <SideBar isAuthenticated={isAuthenticated} state={state} />
         <Routes>
           <Route
             path="/projects/:uuid"
@@ -89,6 +92,26 @@ export default function App() {
           <Route
             path="/projects/new"
             element={<Project />}
+          />
+
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute
+                {...defaultProtectedRouteProps}
+                outlet={<Projects />}
+              />
+            }
+          />
+
+          <Route
+            path="/projects/"
+            element={
+              <ProtectedRoute
+                {...defaultProtectedRouteProps}
+                outlet={<Projects />}
+              />
+            }
           />
 
           <Route

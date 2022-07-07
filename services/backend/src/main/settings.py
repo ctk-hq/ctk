@@ -162,8 +162,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 AUTHENTICATION_BACKENDS = [
+   "django.contrib.auth.backends.ModelBackend",
+   "allauth.account.auth_backends.AuthenticationBackend",
     "axes.backends.AxesBackend",
-    "django.contrib.auth.backends.ModelBackend",
 ]
 
 REST_FRAMEWORK = {
@@ -186,6 +187,7 @@ if DEBUG:
 # allauth
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_PRESERVE_USERNAME_CASING = False
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 
 # dj_rest_auth
 REST_USE_JWT = True
