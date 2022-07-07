@@ -10,6 +10,7 @@ import {
   range,
   values
 } from "lodash";
+import { LOCAL_STORAGE } from "../constants";
 import {
   IClientNodeItem,
   IServiceNodeItem,
@@ -239,4 +240,14 @@ export const truncateStr = (str: string, length: number) => {
 
 export const getMatchingSetIndex = (setOfSets: [[string, string]], findSet: [string, string]): number => {
   return setOfSets.findIndex((set) => set.toString() === findSet.toString());
+}
+
+export const getLocalStorageJWTKeys = () => {
+  let jwtKeys = localStorage.getItem(LOCAL_STORAGE);
+
+  if (jwtKeys) {
+    return JSON.parse(jwtKeys);
+  }
+
+  return null;
 }

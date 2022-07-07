@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useFormik } from "formik";
 import { Link, useNavigate } from "react-router-dom";
-import DarkModeSwitch from "../../../components/DarkModeSwitch";
-import Spinner from "../../../components/Spinner";
+import Spinner from "../../../components/global/Spinner";
 import { toaster } from "../../../utils";
 import { checkHttpStatus } from "../../../services/helpers";
 import { signup } from "../../../services/auth";
@@ -58,16 +57,7 @@ const Signup = (props: IProfileProps) => {
 
   return (
     <>
-
       <div className="flex flex-col">
-        <div className="dark:bg-gray-800 sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white shadow">
-          <div className="flex-1 px-4 sm:px-6 md:px-8 flex justify-end items-center">
-            <div className="ml-4 flex md:ml-6">
-              <DarkModeSwitch />
-            </div>
-          </div>
-        </div>
-
         <main className="py-6 md:w-2/3 lg:w-1/4 mx-auto">
           <h2 className="mb-4 px-4 sm:px-6 md:flex-row md:px-8 text-xl font-extrabold dark:text-white text-gray-900">
             Create account
@@ -205,7 +195,7 @@ const Signup = (props: IProfileProps) => {
               <button
                 onClick={() => formik.handleSubmit()}
                 type="button"
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-1 bg-green-600 text-sm font-medium text-white hover:bg-green-700 sm:w-auto text-sm"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-2.5 py-1.5 bg-green-600 text-sm font-medium text-white hover:bg-green-700 sm:w-auto text-sm"
               >
                 <div className="flex justify-center items-center space-x-2">
                   {signingUp &&

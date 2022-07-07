@@ -22,3 +22,7 @@ $ cd services/frontend && npm run start
 - Ongoing improvements and features for docker compose yaml generation.
 - Kubernetes manifest generation.
 - Deployment to user's ECS, K8S, GS accounts.
+
+## Docs
+
+- https://docs.jsplumbtoolkit.com/community/

@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { debounce, Dictionary, omit } from 'lodash';
 import YAML from "yaml";
 import { PlusIcon } from "@heroicons/react/solid";
-import { IProjectPayload, IClientNodeItem, IServiceNodePosition } from "../../types";
+import { IProjectPayload, IClientNodeItem, IServiceNodePosition, IProject } from "../../types";
 import eventBus from "../../events/eventBus";
-import { useProject, useUpdateProject } from "../../hooks/useProject";
+import { useMutation } from "react-query";
+import { useProject, useUpdateProject, createProject } from "../../hooks/useProject";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
-import { projectHttpCreate } from "../../services/project";
 import { flattenGraphData } from "../../utils/generators";
 import { nodeLibraries } from "../../utils/data/libraries";
 import {
@@ -20,20 +20,16 @@ import {
 import { checkHttpStatus } from "../../services/helpers";
 import { generateHttp } from "../../services/generate";
 import { Canvas } from "../Canvas";
-import Spinner from "../Spinner";
-import ModalConfirmDelete from "../Modal/Service/ConfirmDelete";
+import Spinner from "../global/Spinner";
+import ModalConfirmDelete from "../Modal/ConfirmDelete";
 import ModalServiceCreate from "../Modal/Service/Create";
 import ModalServiceEdit from "../Modal/Service/Edit";
 import CodeEditor from "../CodeEditor";
 
-interface IProjectProps {}
-
-export default function Project(props: IProjectProps) {
-  const navigate = useNavigate();
+export default function Project() {
   const { uuid } = useParams<{ uuid: string }>();
   const { height } = useWindowDimensions();
   const { data, error, isFetching } = useProject(uuid);
-  const mutation = useUpdateProject(uuid);
   const stateNodesRef = useRef<Dictionary<IClientNodeItem>>();
   const stateConnectionsRef = useRef<[[string, string]] | []>();
 
@@ -50,23 +46,21 @@ export default function Project(props: IProjectProps) {
   const [connections, setConnections] = useState<[[string, string]] | []>([]);  
   const [projectName, setProjectName] = useState("Untitled");
   const [canvasPosition, setCanvasPosition] = useState({top: 0, left: 0, scale: 1});
+  const updateProjectMutation = useUpdateProject(uuid);
+  const createProjectMutation = useMutation((payload: IProjectPayload) => {
+    return createProject(payload)
+  },
+  {
+    onSuccess: (project: IProject) => {
+      window.location.replace(`/projects/${project.uuid}`)
+    }
+  });
 
   stateNodesRef.current = nodes;
   stateConnectionsRef.current = connections;
 
   const handleNameChange = (e: any) => {
     setProjectName(e.target.value);
-  }
-
-  const createProject = (payload: IProjectPayload) => {
-    projectHttpCreate(JSON.stringify(payload))
-      .then(checkHttpStatus)
-      .then(data => {
-        navigate(`/projects/${data.uuid}`);
-      })
-      .catch(err => {})
-      .finally(() => {
-      })
   }
 
   const onNodeUpdate = (positionData: IServiceNodePosition) => {
@@ -95,9 +89,9 @@ export default function Project(props: IProjectProps) {
     }
 
     if (uuid) {
-      mutation.mutate(payload);
+      updateProjectMutation.mutate(payload);
     } else {
-      createProject(payload);
+      createProjectMutation.mutate(payload);
     }
   }
 
@@ -119,8 +113,6 @@ export default function Project(props: IProjectProps) {
     if (!data) {
       return;
     }
-
-    console.log(data);
 
     const canvasData = JSON.parse(data.data);
     const nodesAsList = Object.keys(canvasData.canvas.nodes).map(k => canvasData.canvas.nodes[k]);
@@ -241,10 +233,6 @@ export default function Project(props: IProjectProps) {
     }
   }, [language, generatedCode]);
 
-  useEffect(() => {
-
-  }, [nodeForEdit]);
-
   if (!isFetching) {
     return (
       <>
@@ -276,120 +264,123 @@ export default function Project(props: IProjectProps) {
           : null
         }
 
-        <div className="px-4 py-3 border-b border-gray-200">
-          <form
-            className="flex flex-col space-y-2 md:flex-row md:justify-between items-center"
-            autoComplete="off"
-          >
-            <input
-              className={`
-                bg-gray-100
-                appearance-none
-                w-full
-                md:w-1/2
-                lg:w-1/3
-                block
-                text-gray-700
-                border
-                border-gray-100
-                dark:bg-gray-900
-                dark:text-white
-                dark:border-gray-900
-                rounded
-                py-2
-                px-3
-                leading-tight
-                focus:outline-none
-                focus:border-indigo-400
-                focus:ring-0
-              `}
-              type="text"
-              placeholder="Untitled"
+        <div className="md:pl-16 flex flex-col flex-1">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <form
+              className="flex flex-col space-y-2 md:space-y-0 md:flex-row md:justify-between items-center"
               autoComplete="off"
-              id="name"
-              name="name"
-              onChange={handleNameChange}
-              value={projectName}
-            />
+            >
+              <input
+                className={`
+                  bg-gray-100
+                  appearance-none
+                  w-full
+                  md:w-1/2
+                  lg:w-1/3
+                  block
+                  text-gray-700
+                  border
+                  border-gray-100
+                  dark:bg-gray-900
+                  dark:text-white
+                  dark:border-gray-900
+                  rounded
+                  py-2
+                  px-3
+                  leading-tight
+                  focus:outline-none
+                  focus:border-indigo-400
+                  focus:ring-0
+                `}
+                type="text"
+                placeholder="Untitled"
+                autoComplete="off"
+                id="name"
+                name="name"
+                onChange={handleNameChange}
+                value={projectName}
+              />
 
-            <div className="flex flex-col space-y-2 w-full justify-end mb-4  md:flex-row md:space-y-0 md:space-x-2 md:mb-0">
-              <button
-                onClick={() => {
-                  window.location.replace("/projects/new")
-                }}
-                type="button"
-                className="btn-util text-black bg-gray-200 hover:bg-gray-300 sm:w-auto"
-              >
-                <div className="flex justify-center items-center space-x-2 mx-auto">
-                  <span>New</span>
-                </div>
-              </button>
+              <div className="flex flex-col space-y-2 w-full justify-end mb-4  md:flex-row md:space-y-0 md:space-x-2 md:mb-0">
+                <button
+                  onClick={() => {
+                    window.location.replace("/projects/new")
+                  }}
+                  type="button"
+                  className="btn-util text-black bg-gray-200 hover:bg-gray-300 sm:w-auto"
+                >
+                  <div className="flex justify-center items-center space-x-2 mx-auto">
+                    <span>New</span>
+                  </div>
+                </button>
 
-              <button
-                onClick={() => onSave()}
-                type="button"
-                className="btn-util text-white bg-green-600 hover:bg-green-700 sm:w-auto"
-              >
-                <div className="flex justify-center items-center space-x-2 mx-auto">
-                  {mutation.isLoading && <Spinner className="w-4 h-4 text-green-300" />}
-                  <span>Save</span>
+                <button
+                  onClick={() => onSave()}
+                  type="button"
+                  className="btn-util text-white bg-green-600 hover:bg-green-700 sm:w-auto"
+                >
+                  <div className="flex justify-center items-center space-x-2 mx-auto">
+                    {updateProjectMutation.isLoading && <Spinner className="w-4 h-4 text-green-300" />}
+                    {createProjectMutation.isLoading && <Spinner className="w-4 h-4 text-green-300" />}
+                    <span>Save</span>
+                  </div>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="flex flex-grow relative flex-col md:flex-row">
+            <div className="w-full overflow-hidden md:w-2/3 z-40" style={{ height: (height - 64) }}>
+              <div className="relative h-full">
+                <div className="absolute top-0 right-0 z-40">
+                  <div className="flex space-x-2 p-2">
+                    <button className="flex space-x-1 btn-util" type="button" onClick={() => setShowModalCreateService(true)}>
+                      <PlusIcon className="w-3" />
+                      <span>Service</span>
+                    </button>
+                    <button className="btn-util" type="button" onClick={() => setShowVolumesModal(true)}>
+                      Volumes
+                    </button>
+                    <button className="btn-util" type="button" onClick={() => setShowNetworksModal(true)}>
+                      Networks
+                    </button>
+                  </div>
                 </div>
-              </button>
+
+                <Canvas
+                  nodes={nodes}
+                  connections={connections}
+                  canvasPosition={canvasPosition}
+                  onNodeUpdate={(node: IServiceNodePosition) => onNodeUpdate(node)}
+                  onGraphUpdate={(graphData: any) => onGraphUpdate(graphData)}
+                  onCanvasUpdate={(canvasData: any) => onCanvasUpdate(canvasData)}
+                  onConnectionAttached={(connectionData: any) => onConnectionAttached(connectionData)}
+                  onConnectionDetached={(connectionData: any) => onConnectionDetached(connectionData)}
+                  setNodeForEdit={(node: IClientNodeItem) => setNodeForEdit(node)}
+                  setNodeForDelete={(node: IClientNodeItem) => setNodeForDelete(node)}
+                />
+              </div>
             </div>
-          </form>
-        </div>
-
-        <div className="flex flex-grow relative flex-col md:flex-row">
-          <div className="w-full overflow-hidden md:w-2/3 z-40" style={{ height: height }}>
-            <div className="relative h-full">
-              <div className="absolute top-0 right-0 z-40">
-                <div className="flex space-x-2 p-2">
-                  <button className="flex space-x-1 btn-util" type="button" onClick={() => setShowModalCreateService(true)}>
-                    <PlusIcon className="w-3" />
-                    <span>Service</span>
-                  </button>
-                  <button className="btn-util" type="button" onClick={() => setShowVolumesModal(true)}>
-                    Volumes
-                  </button>
-                  <button className="btn-util" type="button" onClick={() => setShowNetworksModal(true)}>
-                    Networks
-                  </button>
-                </div>
+            <div className="relative group code-column w-full md:w-1/3">
+              <div className={`absolute top-0 left-0 right-0 z-10 flex justify-end p-1 space-x-2 group-hover:visible invisible`}>
+                <button className={`btn-util ${language === "json" ? `btn-util-selected` : ``}`} onClick={() => setLanguage('json')}>json</button>
+                <button className={`btn-util ${language === "yaml" ? `btn-util-selected` : ``}`} onClick={() => setLanguage('yaml')}>yaml</button>
+                <button className="btn-util" type="button" onClick={copy}>{copyText}</button>
               </div>
 
-              <Canvas
-                nodes={nodes}
-                connections={connections}
-                canvasPosition={canvasPosition}
-                onNodeUpdate={(node: IServiceNodePosition) => onNodeUpdate(node)}
-                onGraphUpdate={(graphData: any) => onGraphUpdate(graphData)}
-                onCanvasUpdate={(canvasData: any) => onCanvasUpdate(canvasData)}
-                onConnectionAttached={(connectionData: any) => onConnectionAttached(connectionData)}
-                onConnectionDetached={(connectionData: any) => onConnectionDetached(connectionData)}
-                setNodeForEdit={(node: IClientNodeItem) => setNodeForEdit(node)}
-                setNodeForDelete={(node: IClientNodeItem) => setNodeForDelete(node)}
+              <CodeEditor
+                data={formattedCode}
+                language={language}
+                onChange={(e: any) => { onCodeUpdate(e) }}
+                disabled={false}
+                lineWrapping={false}
+                height={height - 64}
               />
             </div>
           </div>
-          <div className="relative group code-column w-full md:w-1/3">
-            <div className={`absolute top-0 left-0 right-0 z-10 flex justify-end p-1 space-x-2 group-hover:visible invisible`}>
-              <button className={`btn-util ${language === "json" ? `btn-util-selected` : ``}`} onClick={() => setLanguage('json')}>json</button>
-              <button className={`btn-util ${language === "yaml" ? `btn-util-selected` : ``}`} onClick={() => setLanguage('yaml')}>yaml</button>
-              <button className="btn-util" type="button" onClick={copy}>{copyText}</button>
-            </div>
-
-            <CodeEditor
-              data={formattedCode}
-              language={language}
-              onChange={(e: any) => { onCodeUpdate(e) }}
-              disabled={false}
-              lineWrapping={false}
-              height={height - 64}
-            />
-          </div>
         </div>
       </>
-    )
+    );
   }
 
   return (
