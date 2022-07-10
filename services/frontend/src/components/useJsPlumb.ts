@@ -30,66 +30,86 @@ import eventBus from "../events/eventBus";
 import { getConnections } from "../utils";
 import { IClientNodeItem } from "../types";
 import { Dictionary, isEqual } from "lodash";
-import { IAnchor } from "../types";
+import { IAnchor, CallbackFunction } from "../types";
 
 export const useJsPlumb = (
   nodes: Dictionary<IClientNodeItem>,
   connections: Array<[string, string]>,
-  onGraphUpdate: Function,
-  onNodeUpdate: Function,
-  onConnectionAttached: Function,
-  onConnectionDetached: Function
-): [(containerElement: HTMLDivElement) => void,
-    (zoom: number) => void,
-    (style: any) => void,
-    (node: IClientNodeItem) => void] => {
+  onGraphUpdate: CallbackFunction,
+  onNodeUpdate: CallbackFunction,
+  onConnectionAttached: CallbackFunction,
+  onConnectionDetached: CallbackFunction
+): [
+  (containerElement: HTMLDivElement) => void,
+  (zoom: number) => void,
+  (style: any) => void,
+  (node: IClientNodeItem) => void
+] => {
   const [instance, setInstance] = useState<BrowserJsPlumbInstance>(null as any);
   const containerRef = useRef<HTMLDivElement>();
   const stateRef = useRef<Dictionary<IClientNodeItem>>();
   const instanceRef = useRef<BrowserJsPlumbInstance>();
   stateRef.current = nodes;
   instanceRef.current = instance;
-  const containerCallbackRef = useCallback((containerElement: HTMLDivElement) => {
-    containerRef.current = containerElement; 
-  }, []);
+  const containerCallbackRef = useCallback(
+    (containerElement: HTMLDivElement) => {
+      containerRef.current = containerElement;
+    },
+    []
+  );
 
-  const addEndpoints = useCallback((
-    el: Element,
-    sourceAnchors: IAnchor[],
-    targetAnchors: IAnchor[],
-    maxConnections: number
-  ) => {
-    sourceAnchors.forEach((x) => {
-      let endpoint = sourceEndpoint;
-      endpoint.maxConnections = maxConnections;
+  const addEndpoints = useCallback(
+    (
+      el: Element,
+      sourceAnchors: IAnchor[],
+      targetAnchors: IAnchor[],
+      maxConnections: number
+    ) => {
+      sourceAnchors.forEach((x) => {
+        const endpoint = sourceEndpoint;
+        endpoint.maxConnections = maxConnections;
 
-      // arrow overlay for connector to specify
-      // it's dependency on another service
-      instance.addEndpoint(el, endpoint, {
-        anchor: [[1, 0.6, 1, 0], [0, 0.6, -1, 0], [0.6, 1, 0, 1], [0.6, 0, 0, -1]],
-        uuid: x.id,
-        connectorOverlays: [{
-          type: "PlainArrow",
-          options: {
-            width: 16,
-            length: 16,
-            location: 1,
-            id: "arrow"
-          },
-        }]
-      })
-    });
-
-    targetAnchors.forEach((x) => {
-      let endpoint = targetEndpoint;
-      endpoint.maxConnections = maxConnections;
-
-      instance.addEndpoint(el, endpoint, {
-        anchor: [[0, 0.4, -1, 0], [0.4, 1, 0, 1], [1, 0.4, 1, 0], [0.4, 0, 0, -1]],
-        uuid: x.id
+        // arrow overlay for connector to specify
+        // it's dependency on another service
+        instance.addEndpoint(el, endpoint, {
+          anchor: [
+            [1, 0.6, 1, 0],
+            [0, 0.6, -1, 0],
+            [0.6, 1, 0, 1],
+            [0.6, 0, 0, -1]
+          ],
+          uuid: x.id,
+          connectorOverlays: [
+            {
+              type: "PlainArrow",
+              options: {
+                width: 16,
+                length: 16,
+                location: 1,
+                id: "arrow"
+              }
+            }
+          ]
+        });
       });
-    });
-  }, [instance]);
+
+      targetAnchors.forEach((x) => {
+        const endpoint = targetEndpoint;
+        endpoint.maxConnections = maxConnections;
+
+        instance.addEndpoint(el, endpoint, {
+          anchor: [
+            [0, 0.4, -1, 0],
+            [0.4, 1, 0, 1],
+            [1, 0.4, 1, 0],
+            [0.4, 0, 0, -1]
+          ],
+          uuid: x.id
+        });
+      });
+    },
+    [instance]
+  );
 
   const removeEndpoint = (node: any) => {
     if (!instanceRef.current) return;
@@ -102,7 +122,7 @@ export const useJsPlumb = (
         instance.destroyConnector(conn);
         instance.deleteConnection(conn);
       });
-    };
+    }
 
     instance.removeAllEndpoints(document.getElementById(node.key) as Element);
     instance.repaintEverything();
@@ -122,7 +142,7 @@ export const useJsPlumb = (
       type: "Label",
       options: {
         label: "x",
-        location: .5,
+        location: 0.5,
         id: "remove-conn",
         cssClass: `
         block jtk-overlay remove-conn-btn text-xs leading-normal cursor-pointer
@@ -134,43 +154,50 @@ export const useJsPlumb = (
           }
         }
       }
-    }
+    };
   };
 
-  const setZoom = useCallback((zoom: number) => {
-    if (instance) {
-      instance.setZoom(zoom);
-    }
-  }, [instance]);
+  const setZoom = useCallback(
+    (zoom: number) => {
+      if (instance) {
+        instance.setZoom(zoom);
+      }
+    },
+    [instance]
+  );
 
   const setStyle = useCallback((style: any) => {
     let styles: { [key: string]: any } = {};
     const currentStyle = containerRef.current?.getAttribute("style");
 
     if (currentStyle) {
-      let currentStyleParts = (
-        currentStyle
-          .split(";")
-          .map(element => element.trim())
-          .filter(element => element !== '')
-      );
+      const currentStyleParts = currentStyle
+        .split(";")
+        .map((element) => element.trim())
+        .filter((element) => element !== "");
 
       for (let i = 0; i < currentStyleParts.length; i++) {
-        const entry = currentStyleParts[i].split(':');
-        styles[entry.splice(0, 1)[0]] = entry.join(':').trim();
+        const entry = currentStyleParts[i].split(":");
+        styles[entry.splice(0, 1)[0]] = entry.join(":").trim();
       }
     }
 
-    styles = {...styles, ...style};
-    const styleString = (
-      Object.entries(styles).map(([k, v]) => `${k}:${v}`).join(';')
-    );
+    styles = { ...styles, ...style };
+    const styleString = Object.entries(styles)
+      .map(([k, v]) => `${k}:${v}`)
+      .join(";");
 
     containerRef.current?.setAttribute("style", `${styleString}`);
   }, []);
 
-  const onbeforeDropIntercept = (instance: BrowserJsPlumbInstance, params: BeforeDropParams) => {
-    const existingConnections: ConnectionSelection = instance.select({ source: params.sourceId as any, target: params.targetId as any });
+  const onbeforeDropIntercept = (
+    instance: BrowserJsPlumbInstance,
+    params: BeforeDropParams
+  ) => {
+    const existingConnections: ConnectionSelection = instance.select({
+      source: params.sourceId as any,
+      target: params.targetId as any
+    });
 
     // prevent duplicates when switching existing connections
     if (existingConnections.length > 1) {
@@ -178,15 +205,23 @@ export const useJsPlumb = (
     }
 
     if (existingConnections.length > 0) {
-      const firstConnection: Connection = {...existingConnections.get(0)} as Connection;
+      const firstConnection: Connection = {
+        ...existingConnections.get(0)
+      } as Connection;
 
       // special case to handle existing connections changing targets
       if (firstConnection.suspendedElementId) {
-        onConnectionDetached([params.sourceId, firstConnection.suspendedElementId]);
+        onConnectionDetached([
+          params.sourceId,
+          firstConnection.suspendedElementId
+        ]);
 
         if (params.targetId !== firstConnection.suspendedElementId) {
-          const loopCheck = instance.select({ source: params.targetId as any, target: params.sourceId as any });
-          
+          const loopCheck = instance.select({
+            source: params.targetId as any,
+            target: params.sourceId as any
+          });
+
           if (loopCheck.length > 0) {
             return false;
           } else {
@@ -197,13 +232,19 @@ export const useJsPlumb = (
       }
 
       // prevent duplicate connections from the same source to target
-      if (firstConnection.sourceId === params.sourceId && firstConnection.targetId === params.targetId) {
+      if (
+        firstConnection.sourceId === params.sourceId &&
+        firstConnection.targetId === params.targetId
+      ) {
         return false;
       }
     }
 
     // prevent looping connections between a target and source
-    const loopCheck = instance.select({ source: params.targetId as any, target: params.sourceId as any });
+    const loopCheck = instance.select({
+      source: params.targetId as any,
+      target: params.sourceId as any
+    });
     if (loopCheck.length > 0) {
       return false;
     }
@@ -223,7 +264,7 @@ export const useJsPlumb = (
 
     instance.reset();
     instance.destroy();
-  }
+  };
 
   useEffect(() => {
     if (!instance) return;
@@ -242,12 +283,14 @@ export const useJsPlumb = (
               maxConnections
             );
           }
-        };
+        }
       });
 
       onGraphUpdate({
-        'nodes': stateRef.current,
-        'connections': getConnections(instance.getConnections({}, true) as Connection[])
+        nodes: stateRef.current,
+        connections: getConnections(
+          instance.getConnections({}, true) as Connection[]
+        )
       });
     }
   }, [instance, addEndpoints, onGraphUpdate, stateRef.current]);
@@ -255,13 +298,13 @@ export const useJsPlumb = (
   useEffect(() => {
     if (!instance) return;
 
-    let exisitngConnectionUuids = (instance.getConnections({}, true) as Connection[]).map(
-      (x) => x.getUuids()
-    );
+    const exisitngConnectionUuids = (
+      instance.getConnections({}, true) as Connection[]
+    ).map((x) => x.getUuids());
 
     connections.forEach((x) => {
-      let c = exisitngConnectionUuids.find((y) => {
-        return isEqual([`op_${x[0]}`, `ip_${x[1]}`], y)
+      const c = exisitngConnectionUuids.find((y) => {
+        return isEqual([`op_${x[0]}`, `ip_${x[1]}`], y);
       });
 
       if (!c) {
@@ -280,37 +323,61 @@ export const useJsPlumb = (
     });
 
     jsPlumbInstance.bind(EVENT_DRAG_START, function (params: DragStartPayload) {
-      eventBus.dispatch("EVENT_DRAG_START", { message: { "id": params.el.id } });
+      eventBus.dispatch("EVENT_DRAG_START", { message: { id: params.el.id } });
     });
 
     jsPlumbInstance.bind(EVENT_DRAG_STOP, function (params: DragStartPayload) {
-      eventBus.dispatch("EVENT_DRAG_STOP", { message: {"id": params.el.id} });
+      eventBus.dispatch("EVENT_DRAG_STOP", { message: { id: params.el.id } });
     });
 
-    jsPlumbInstance.bind(INTERCEPT_BEFORE_DROP, function (params: BeforeDropParams) {
-      return onbeforeDropIntercept(jsPlumbInstance, params);
-    });
-
-    jsPlumbInstance.bind(EVENT_CONNECTION_DETACHED, function (this: BrowserJsPlumbInstance, params: ConnectionDetachedParams) {
-      onConnectionDetached([params.sourceId, params.targetId]);
-
-      onGraphUpdate({
-        'nodes': stateRef.current,
-        'connections': getConnections(this.getConnections({}, true) as Connection[])
-      });
-    });
-
-    jsPlumbInstance.bind(EVENT_CONNECTION, function (this: BrowserJsPlumbInstance, params: ConnectionEstablishedParams) {
-      if (!params.connection.overlays.hasOwnProperty("remove-conn")) {
-        params.connection.addOverlay(getOverlayObject(this));
-        onConnectionAttached([params.sourceId, params.targetId]);
+    jsPlumbInstance.bind(
+      INTERCEPT_BEFORE_DROP,
+      function (params: BeforeDropParams) {
+        return onbeforeDropIntercept(jsPlumbInstance, params);
       }
+    );
 
-      onGraphUpdate({
-        'nodes': stateRef.current,
-        'connections': getConnections(this.getConnections({}, true) as Connection[])
-      });
-    });
+    jsPlumbInstance.bind(
+      EVENT_CONNECTION_DETACHED,
+      function (
+        this: BrowserJsPlumbInstance,
+        params: ConnectionDetachedParams
+      ) {
+        onConnectionDetached([params.sourceId, params.targetId]);
+
+        onGraphUpdate({
+          nodes: stateRef.current,
+          connections: getConnections(
+            this.getConnections({}, true) as Connection[]
+          )
+        });
+      }
+    );
+
+    jsPlumbInstance.bind(
+      EVENT_CONNECTION,
+      function (
+        this: BrowserJsPlumbInstance,
+        params: ConnectionEstablishedParams
+      ) {
+        if (
+          !Object.prototype.hasOwnProperty.call(
+            params.connection.overlays,
+            "remove-conn"
+          )
+        ) {
+          params.connection.addOverlay(getOverlayObject(this));
+          onConnectionAttached([params.sourceId, params.targetId]);
+        }
+
+        onGraphUpdate({
+          nodes: stateRef.current,
+          connections: getConnections(
+            this.getConnections({}, true) as Connection[]
+          )
+        });
+      }
+    );
 
     jsPlumbInstance.bind(EVENT_DRAG_STOP, (params: DragStopPayload) => {
       params.elements.forEach((el) => {
@@ -324,9 +391,12 @@ export const useJsPlumb = (
       });
     });
 
-    jsPlumbInstance.bind(EVENT_CONNECTION_DBL_CLICK, (connection: Connection) => {
-      jsPlumbInstance.deleteConnection(connection);
-    });
+    jsPlumbInstance.bind(
+      EVENT_CONNECTION_DBL_CLICK,
+      (connection: Connection) => {
+        jsPlumbInstance.deleteConnection(connection);
+      }
+    );
 
     /*
     jsPlumbInstance.bind("drag:move", function (info: any) {
@@ -347,4 +417,4 @@ export const useJsPlumb = (
   }, []);
 
   return [containerCallbackRef, setZoom, setStyle, removeEndpoint];
-}
+};

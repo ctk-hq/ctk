@@ -1,5 +1,3 @@
-import { useState } from "react";
-import SideBar from "../../components/global/SideBar";
 import { LOCAL_STORAGE } from "../../constants";
 import { authSelf } from "../../reducers";
 
@@ -14,14 +12,16 @@ const Profile = (props: IProfileProps) => {
   const logOut = () => {
     localStorage.removeItem(LOCAL_STORAGE);
     dispatch(authSelf(null));
-  }
+  };
 
   return (
     <>
       <div className="md:pl-16 flex flex-col flex-1">
         <main className="py-6">
           <div className="flex justify-between px-4 sm:px-6 md:px-8">
-            <h1 className="text-2xl font-semibold dark:text-white text-gray-900">Profile</h1>
+            <h1 className="text-2xl font-semibold dark:text-white text-gray-900">
+              Profile
+            </h1>
             <button
               className="btn-util text-white bg-blue-600 hover:bg-blue-700 sm:w-auto"
               onClick={logOut}
@@ -30,9 +30,9 @@ const Profile = (props: IProfileProps) => {
             </button>
           </div>
           <div className="grid grid-cols-1 gap-x-4 gap-y-8 px-4 py-4 sm:px-6 md:flex-row md:px-8">
-            {state.user &&
+            {state.user && (
               <>
-                {state.user.username &&
+                {state.user.username && (
                   <div className="sm:col-span-1">
                     <dt className="text-sm font-medium dark:text-gray-200 text-gray-500">
                       username
@@ -41,9 +41,9 @@ const Profile = (props: IProfileProps) => {
                       {state.user.username}
                     </dd>
                   </div>
-                }
+                )}
 
-                {state.user.email &&
+                {state.user.email && (
                   <div className="sm:col-span-1">
                     <dt className="text-sm font-medium dark:text-gray-200 text-gray-500">
                       email
@@ -52,14 +52,14 @@ const Profile = (props: IProfileProps) => {
                       {state.user.email}
                     </dd>
                   </div>
-                }
+                )}
               </>
-            }
+            )}
           </div>
         </main>
       </div>
     </>
-  )
-}
+  );
+};
 
 export default Profile;

@@ -5,18 +5,18 @@ import General from "./General";
 import Container from "./Container";
 import Resource from "./Resource";
 import { initialValues, formatName } from "./../../../utils";
-import { IClientNodeItem } from "../../../types";
-
+import { IClientNodeItem, CallbackFunction } from "../../../types";
 
 interface IModalProps {
   node: IClientNodeItem | null;
-  onHide: any;
-  onUpdateEndpoint: any;
+  onHide: CallbackFunction;
+  onUpdateEndpoint: CallbackFunction;
 }
 
 const ModalEdit = (props: IModalProps) => {
   const { node, onHide, onUpdateEndpoint } = props;
-  const [selectedNode, setSelectedNode] = React.useState<IClientNodeItem | null>(null);
+  const [selectedNode, setSelectedNode] =
+    React.useState<IClientNodeItem | null>(null);
   const [openTab, setOpenTab] = React.useState("General");
   const formik = useFormik({
     initialValues: {
@@ -24,19 +24,32 @@ const ModalEdit = (props: IModalProps) => {
         ...initialValues()
       }
     },
-    onSubmit: ((values, { setSubmitting }) => {
-
-    })
+    onSubmit: () => undefined
   });
   const tabs = [
-    { name: 'General', href: '#', current: true, hidden: false },
-    { name: 'Container', href: '#', current: false, hidden: (formik.values.configuration.type === 'container' ? false : true) },
-    { name: 'Resource', href: '#', current: false, hidden: (formik.values.configuration.type === 'resource' ? false : true) }
+    {
+      name: "General",
+      href: "#",
+      current: true,
+      hidden: false
+    },
+    {
+      name: "Container",
+      href: "#",
+      current: false,
+      hidden: formik.values.configuration.type === "container" ? false : true
+    },
+    {
+      name: "Resource",
+      href: "#",
+      current: false,
+      hidden: formik.values.configuration.type === "resource" ? false : true
+    }
   ];
 
   const classNames = (...classes: string[]) => {
-    return classes.filter(Boolean).join(' ');
-  }
+    return classes.filter(Boolean).join(" ");
+  };
 
   React.useEffect(() => {
     if (node) {
@@ -55,14 +68,17 @@ const ModalEdit = (props: IModalProps) => {
   React.useEffect(() => {
     return () => {
       formik.resetForm();
-    }
+    };
   }, []);
 
   return (
     <>
       <div className="fixed z-50 inset-0 overflow-y-auto">
         <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none">
-          <div onClick={onHide} className="opacity-25 fixed inset-0 z-40 bg-black"></div>
+          <div
+            onClick={onHide}
+            className="opacity-25 fixed inset-0 z-40 bg-black"
+          ></div>
           <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
             <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
               <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
@@ -86,7 +102,7 @@ const ModalEdit = (props: IModalProps) => {
                     id="tabs"
                     name="tabs"
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                    defaultValue={tabs.find((tab) => tab.current)!.name}
+                    defaultValue={tabs.find((tab) => tab.current)?.name}
                   >
                     {tabs.map((tab) => (
                       <option key={tab.name}>{tab.name}</option>
@@ -103,15 +119,13 @@ const ModalEdit = (props: IModalProps) => {
                           href={tab.href}
                           className={classNames(
                             tab.name === openTab
-                              ? 'border-indigo-500 text-indigo-600'
-                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
-                            (tab.hidden)
-                              ? 'hidden'
-                              : ''
+                              ? "border-indigo-500 text-indigo-600"
+                              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+                            "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
+                            tab.hidden ? "hidden" : ""
                           )}
-                          aria-current={tab.current ? 'page' : undefined}
-                          onClick={e => {
+                          aria-current={tab.current ? "page" : undefined}
+                          onClick={(e) => {
                             e.preventDefault();
                             setOpenTab(tab.name);
                           }}
@@ -125,17 +139,11 @@ const ModalEdit = (props: IModalProps) => {
 
                 <div className="relative px-4 py-3 flex-auto">
                   <form onSubmit={formik.handleSubmit}>
-                    {openTab === "General" &&
-                      <General formik={formik} />
-                    }
+                    {openTab === "General" && <General formik={formik} />}
 
-                    {openTab === "Container" &&
-                      <Container formik={formik} />
-                    }
+                    {openTab === "Container" && <Container formik={formik} />}
 
-                    {openTab === "Resource" &&
-                      <Resource formik={formik} />
-                    }
+                    {openTab === "Resource" && <Resource formik={formik} />}
                   </form>
                 </div>
               </div>
@@ -145,8 +153,10 @@ const ModalEdit = (props: IModalProps) => {
                   className="btn-util"
                   type="button"
                   onClick={() => {
-                    let updated = { ...selectedNode };
-                    formik.values.configuration.name = formatName(formik.values.configuration.prettyName);
+                    const updated = { ...selectedNode };
+                    formik.values.configuration.name = formatName(
+                      formik.values.configuration.prettyName
+                    );
                     updated.configuration = formik.values.configuration;
                     onUpdateEndpoint(updated);
                   }}
@@ -160,6 +170,6 @@ const ModalEdit = (props: IModalProps) => {
       </div>
     </>
   );
-}
+};
 
-export default ModalEdit
+export default ModalEdit;

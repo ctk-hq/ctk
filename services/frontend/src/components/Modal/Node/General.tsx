@@ -1,6 +1,5 @@
 import React from "react";
 
-
 const General = (props: any) => {
   const { formik } = props;
 
@@ -8,7 +7,12 @@ const General = (props: any) => {
     <>
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-3">
-          <label htmlFor="prettyName" className="block text-xs font-medium text-gray-700">Name</label>
+          <label
+            htmlFor="prettyName"
+            className="block text-xs font-medium text-gray-700"
+          >
+            Name
+          </label>
           <div className="mt-1">
             <input
               id="prettyName"
@@ -24,7 +28,12 @@ const General = (props: any) => {
       </div>
 
       <div className="mt-2">
-        <label htmlFor="about" className="block text-xs font-medium text-gray-700">Description</label>
+        <label
+          htmlFor="about"
+          className="block text-xs font-medium text-gray-700"
+        >
+          Description
+        </label>
         <div className="mt-1">
           <textarea
             id="description"
@@ -40,7 +49,12 @@ const General = (props: any) => {
 
       <div className="grid grid-cols-3 gap-4 mt-2">
         <div className="col-span-3">
-          <label htmlFor="templateType" className="block text-xs font-medium text-gray-700">Type</label>
+          <label
+            htmlFor="templateType"
+            className="block text-xs font-medium text-gray-700"
+          >
+            Type
+          </label>
           <div className="mt-1">
             <select
               id="templateType"
@@ -57,6 +71,6 @@ const General = (props: any) => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 export default General;

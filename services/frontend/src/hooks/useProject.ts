@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "react-query";
 import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys } from "../utils";
 import { IProject, IProjectPayload } from "../types";
+import useLocalStorageJWTKeys from "./useLocalStorageJWTKeys";
 
 interface IProjectsReturn {
   count: number;
@@ -12,31 +13,10 @@ interface IProjectsReturn {
   results: IProject[];
 }
 
-const fetchProjectByUuid = async (uuid: string) => {
-  const jwtKeys = getLocalStorageJWTKeys();
-  const requestConfig = {
-    method: 'get',
-    url: `${API_SERVER_URL}/projects/${uuid}/`,
-    headers: {
-      "Content-Type": "application/json"
-    }
-  };
-
-  if (jwtKeys) {
-    requestConfig.headers = {
-      ...requestConfig.headers,
-      ...{"Authorization": `Bearer ${jwtKeys.access_token}`}
-    }
-  }
-
-  const response = await axios(requestConfig);
-  return response.data;
-}
-
 export const createProject = async (project: IProjectPayload) => {
   const jwtKeys = getLocalStorageJWTKeys();
   const requestConfig = {
-    method: 'post',
+    method: "post",
     url: `${API_SERVER_URL}/projects/`,
     headers: {
       "Content-Type": "application/json"
@@ -47,18 +27,18 @@ export const createProject = async (project: IProjectPayload) => {
   if (jwtKeys) {
     requestConfig.headers = {
       ...requestConfig.headers,
-      ...{ "Authorization": `Bearer ${jwtKeys.access_token}` }
-    }
+      ...{ Authorization: `Bearer ${jwtKeys.access_token}` }
+    };
   }
 
   const response = await axios(requestConfig);
   return response.data;
-}
+};
 
 const deleteProjectByUuid = async (uuid: string) => {
   const jwtKeys = getLocalStorageJWTKeys();
   const requestConfig = {
-    method: 'delete',
+    method: "delete",
     url: `${API_SERVER_URL}/projects/${uuid}/`,
     headers: {
       "Content-Type": "application/json"
@@ -68,18 +48,18 @@ const deleteProjectByUuid = async (uuid: string) => {
   if (jwtKeys) {
     requestConfig.headers = {
       ...requestConfig.headers,
-      ...{ "Authorization": `Bearer ${jwtKeys.access_token}` }
-    }
+      ...{ Authorization: `Bearer ${jwtKeys.access_token}` }
+    };
   }
 
   const response = await axios(requestConfig);
   return response.data;
-}
+};
 
 const updateProjectByUuid = async (uuid: string, data: string) => {
   const jwtKeys = getLocalStorageJWTKeys();
   const requestConfig = {
-    method: 'put',
+    method: "put",
     url: `${API_SERVER_URL}/projects/${uuid}/`,
     headers: {
       "Content-Type": "application/json"
@@ -90,28 +70,46 @@ const updateProjectByUuid = async (uuid: string, data: string) => {
   if (jwtKeys) {
     requestConfig.headers = {
       ...requestConfig.headers,
-      ...{ "Authorization": `Bearer ${jwtKeys.access_token}` }
-    }
+      ...{ Authorization: `Bearer ${jwtKeys.access_token}` }
+    };
   }
 
   const response = await axios(requestConfig);
   return response.data;
-}
+};
 
 export const useProject = (uuid: string | undefined) => {
+  const jwtKeys = useLocalStorageJWTKeys();
+
   return useQuery(
     ["projects", uuid],
     async () => {
       if (!uuid) {
         return;
       }
-      return await fetchProjectByUuid(uuid);
+
+      const requestConfig = {
+        method: "get",
+        url: `${API_SERVER_URL}/projects/${uuid}/`,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      };
+
+      if (jwtKeys) {
+        requestConfig.headers = {
+          ...requestConfig.headers,
+          ...{ Authorization: `Bearer ${jwtKeys.access_token}` }
+        };
+      }
+
+      return (await axios(requestConfig)).data;
     },
     {
       staleTime: Infinity
     }
-  )
-}
+  );
+};
 
 export const useUpdateProject = (uuid: string | undefined) => {
   const queryClient = useQueryClient();
@@ -121,25 +119,28 @@ export const useUpdateProject = (uuid: string | undefined) => {
       if (!uuid) {
         return;
       }
-      
+
       try {
-        const data = await updateProjectByUuid(uuid, JSON.stringify(projectData));
+        const data = await updateProjectByUuid(
+          uuid,
+          JSON.stringify(projectData)
+        );
         return data;
       } catch (err: any) {
         if (err.response.status === 404) {
-          console.error('Resource could not be found!');
+          // console.error("Resource could not be found!");
         } else {
-          console.error(err.message);
+          // console.error(err.message);
         }
       }
     },
     {
       onSuccess: (projectData) => {
-        queryClient.setQueryData(['projects', uuid], projectData);
-      },
+        queryClient.setQueryData(["projects", uuid], projectData);
+      }
     }
-  )
-}
+  );
+};
 
 export const useDeleteProject = (uuid: string | undefined) => {
   const queryClient = useQueryClient();
@@ -155,9 +156,9 @@ export const useDeleteProject = (uuid: string | undefined) => {
         return data;
       } catch (err: any) {
         if (err.response.status === 404) {
-          console.error('Resource could not be found!');
+          // console.error("Resource could not be found!");
         } else {
-          console.error(err.message);
+          // console.error(err.message);
         }
       }
     },
@@ -166,15 +167,17 @@ export const useDeleteProject = (uuid: string | undefined) => {
         // could just invalidate the query here and refetch everything
         // queryClient.invalidateQueries(['projects']);
 
-        queryClient.cancelQueries('projects');
-        const previousProjects = queryClient.getQueryData('projects') as IProjectsReturn;
-        const filtered = _.filter(previousProjects.results, (project, index) => {
-          return project.uuid !== uuid
+        queryClient.cancelQueries("projects");
+        const previousProjects = queryClient.getQueryData(
+          "projects"
+        ) as IProjectsReturn;
+        const filtered = _.filter(previousProjects.results, (project) => {
+          return project.uuid !== uuid;
         });
         previousProjects.count = filtered.length;
         previousProjects.results = filtered;
-        queryClient.setQueryData('projects', previousProjects);
+        queryClient.setQueryData("projects", previousProjects);
       }
     }
-  )
-}
+  );
+};

@@ -2,12 +2,14 @@ import { AnchorId } from "@jsplumb/common";
 import { Dictionary } from "lodash";
 import { NodeGroupType } from "./enums";
 
+export type CallbackFunction = (...args: any[]) => any;
+
 export interface IServiceNodePosition {
   key: string;
   position: {
     left: number;
     top: number;
-  }
+  };
 }
 
 export interface IProject {
@@ -89,7 +91,7 @@ export interface IAnchor {
 
 export interface IService {
   name: string;
-  labels: {}
+  labels: any;
 }
 
 export interface IProjectPayload {
@@ -101,16 +103,16 @@ export interface IProjectPayload {
         left: number;
         scale: number;
       };
-      nodes: {};
+      nodes: any;
       connections: any;
     };
     configs: [];
     networks: [];
     secrets: [];
-    services: {};
+    services: any;
     version: number;
     volumes: [];
-  }
+  };
 }
 
 export interface IGeneratePayload {
@@ -122,5 +124,5 @@ export interface IGeneratePayload {
     connections: [[string, string]];
     version: number;
     volumes: [];
-  }
+  };
 }

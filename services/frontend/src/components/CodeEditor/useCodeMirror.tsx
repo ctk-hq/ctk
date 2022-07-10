@@ -1,30 +1,30 @@
 import { useCallback, useEffect, useState } from "react";
-import { EditorView } from '@codemirror/view'
+import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { Extension } from "@codemirror/state";
 
 export default function useCodeMirror(extensions: Extension[], doc: any) {
-    const [element, setElement] = useState<HTMLElement>();
+  const [element, setElement] = useState<HTMLElement>();
 
-    const ref = useCallback((node: HTMLElement | null) => {
-        if (!node) return;
+  const ref = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
 
-        setElement(node);
-    }, []);
+    setElement(node);
+  }, []);
 
-    useEffect(() => {
-        if (!element) return;
+  useEffect(() => {
+    if (!element) return;
 
-        const view = new EditorView({
-            state: EditorState.create({
-                doc: doc,
-                extensions: [...extensions],
-            }),
-            parent: element,
-        });
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: doc,
+        extensions: [...extensions]
+      }),
+      parent: element
+    });
 
-        return () => view?.destroy();
-    }, [element, extensions, doc]);
+    return () => view?.destroy();
+  }, [element, extensions, doc]);
 
-    return { ref };
+  return { ref };
 }

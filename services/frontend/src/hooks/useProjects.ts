@@ -1,21 +1,21 @@
-import axios from "axios"
+import axios from "axios";
 import { useQuery } from "react-query";
-import { API_SERVER_URL, PROJECTS_FETCH_LIMIT } from "../constants";
+import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys } from "../utils";
 
 const fetchProjects = async () => {
   const jwtKeys = getLocalStorageJWTKeys();
 
   const response = await axios({
-    method: 'get',
+    method: "get",
     url: `${API_SERVER_URL}/projects/`,
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${jwtKeys.access_token}`
+      Authorization: `Bearer ${jwtKeys.access_token}`
     }
   });
   return response.data;
-}
+};
 
 export const useProjects = () => {
   return useQuery(
@@ -26,5 +26,5 @@ export const useProjects = () => {
     {
       staleTime: Infinity
     }
-  )
-}
+  );
+};
