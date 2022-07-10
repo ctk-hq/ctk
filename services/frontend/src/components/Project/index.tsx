@@ -460,7 +460,7 @@ export default function Project() {
                   onChange={(e: any) => {
                     onCodeUpdate(e);
                   }}
-                  disabled={false}
+                  disabled={true}
                   lineWrapping={false}
                   height={height - 64}
                 />
