@@ -164,19 +164,21 @@ export const useDeleteProject = (uuid: string | undefined) => {
     },
     {
       onSuccess: () => {
-        // could just invalidate the query here and refetch everything
-        // queryClient.invalidateQueries(['projects']);
-
         queryClient.cancelQueries("projects");
         const previousProjects = queryClient.getQueryData(
           "projects"
         ) as IProjectsReturn;
-        const filtered = _.filter(previousProjects.results, (project) => {
-          return project.uuid !== uuid;
-        });
-        previousProjects.count = filtered.length;
-        previousProjects.results = filtered;
-        queryClient.setQueryData("projects", previousProjects);
+
+        if (previousProjects) {
+          const filtered = _.filter(previousProjects.results, (project) => {
+            return project.uuid !== uuid;
+          });
+          previousProjects.count = filtered.length;
+          previousProjects.results = filtered;
+          queryClient.setQueryData("projects", previousProjects);
+        } else {
+          queryClient.invalidateQueries(["projects"]);
+        }
       }
     }
   );

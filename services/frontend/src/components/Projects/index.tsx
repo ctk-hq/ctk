@@ -1,11 +1,16 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { PROJECTS_FETCH_LIMIT } from "../../constants";
 import { IProject } from "../../types";
 import Spinner from "../../components/global/Spinner";
 import PreviewBlock from "./PreviewBlock";
 import { useProjects } from "../../hooks/useProjects";
 
 const Projects = () => {
-  const { data, error, isFetching } = useProjects();
+  const [limit] = useState(PROJECTS_FETCH_LIMIT);
+  const [offset, setOffset] = useState(0);
+  const { isLoading, isError, error, data, isFetching, isPreviousData } =
+    useProjects(limit, offset);
 
   return (
     <>
@@ -33,37 +38,80 @@ const Projects = () => {
               )}
 
               {!isFetching && (
-                <div className="py-4">
-                  {error && (
-                    <div className="text-center">
-                      <h3 className="mt-12 text-sm font-medium text-gray-900 dark:text-white">
-                        Something went wrong...
-                      </h3>
-                    </div>
-                  )}
+                <>
+                  <div className="py-4">
+                    {error && (
+                      <div className="text-center">
+                        <h3 className="mt-12 text-sm font-medium text-gray-900 dark:text-white">
+                          Something went wrong...
+                        </h3>
+                      </div>
+                    )}
 
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {data.results.length > 0 &&
-                      data.results.map((project: IProject) => {
-                        return (
-                          <div key={`${project.uuid}`}>
-                            <PreviewBlock project={project} />
-                          </div>
-                        );
-                      })}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {data.results.length > 0 &&
+                        data.results.map((project: IProject) => {
+                          return (
+                            <div key={`${project.uuid}`}>
+                              <PreviewBlock project={project} />
+                            </div>
+                          );
+                        })}
+                    </div>
+
+                    {data.results.length === 0 && (
+                      <div className="text-center">
+                        <h3 className="mt-12 text-sm font-medium text-gray-900 dark:text-white">
+                          Nothing here
+                        </h3>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                          Get started by creating a project.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  {data.results.length === 0 && (
-                    <div className="text-center">
-                      <h3 className="mt-12 text-sm font-medium text-gray-900 dark:text-white">
-                        Nothing here
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Get started by creating a project.
-                      </p>
+                  {data.count > PROJECTS_FETCH_LIMIT && (
+                    <div className="flex justify-center space-x-1 my-4">
+                      <button
+                        className={`
+                          text-xs border-dotted border-b
+                          ${
+                            !data.previous
+                              ? "text-gray-500 border-gray-500"
+                              : "text-blue-600 border-blue-600"
+                          }
+                        `}
+                        onClick={() =>
+                          setOffset((old) =>
+                            Math.max(old - PROJECTS_FETCH_LIMIT, 0)
+                          )
+                        }
+                        disabled={!data.previous}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        className={`
+                          text-xs border-dotted border-b
+                          ${
+                            !data.next
+                              ? "text-gray-500 border-gray-500"
+                              : "text-blue-600 border-blue-600"
+                          }
+                        `}
+                        onClick={() => {
+                          if (!isPreviousData && data.next) {
+                            setOffset((old) => old + PROJECTS_FETCH_LIMIT);
+                          }
+                        }}
+                        disabled={isPreviousData || !data.next}
+                      >
+                        Next
+                      </button>
                     </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           </div>
