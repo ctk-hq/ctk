@@ -2,7 +2,7 @@
 // Copyright (C) 2018-2021 by Marijn Haverbeke <marijnh@gmail.com> and others
 // MIT License: https://github.com/codemirror/theme-one-dark/blob/main/LICENSE
 
-import { HighlightStyle, tags as t } from "@codemirror/highlight"
+import { HighlightStyle, tags as t } from "@codemirror/highlight";
 
 const chalky = "#e5c07b",
   coral = "#e06c75",
@@ -13,7 +13,7 @@ const chalky = "#e5c07b",
   malibu = "#61afef",
   sage = "#98c379",
   whiskey = "#d19a66",
-  violet = "#c678dd"
+  violet = "#c678dd";
 
 /// The highlighting style for code in the One Dark theme.
 export default HighlightStyle.define([
@@ -42,11 +42,28 @@ export default HighlightStyle.define([
     color: ivory
   },
   {
-    tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace],
+    tag: [
+      t.typeName,
+      t.className,
+      t.number,
+      t.changed,
+      t.annotation,
+      t.modifier,
+      t.self,
+      t.namespace
+    ],
     color: chalky
   },
   {
-    tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)],
+    tag: [
+      t.operator,
+      t.operatorKeyword,
+      t.url,
+      t.escape,
+      t.regexp,
+      t.link,
+      t.special(t.string)
+    ],
     color: cyan
   },
   {
@@ -78,5 +95,5 @@ export default HighlightStyle.define([
   {
     tag: t.invalid,
     color: invalid
-  },
+  }
 ]);

@@ -1,6 +1,4 @@
-
 import Spinner from "./Spinner";
-
 
 interface IPaginationProps {
   defaultCurrent: number;
@@ -26,7 +24,7 @@ const Pagination = (props: IPaginationProps) => {
         {loading ? <Spinner className="w-4 h-4" /> : <span>load more</span>}
       </button>
     </div>
-  )
+  );
 };
 
 export default Pagination;

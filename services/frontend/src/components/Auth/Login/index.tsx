@@ -22,37 +22,41 @@ const Login = (props: IProfileProps) => {
       username: "",
       password: ""
     },
-    onSubmit: values => {
+    onSubmit: (values) => {
       const username = values.username;
       const password = values.password;
       setLoggingIn(true);
+
       if (username && password) {
         logIn(username, password)
           .then(checkHttpStatus)
-          .then(data => {
-            localStorage.setItem(LOCAL_STORAGE, JSON.stringify({
-              "access_token": data.access_token,
-              "refresh_token": data.refresh_token
-            }))
-            dispatch(authLoginSuccess(data))
+          .then((data) => {
+            localStorage.setItem(
+              LOCAL_STORAGE,
+              JSON.stringify({
+                access_token: data.access_token,
+                refresh_token: data.refresh_token
+              })
+            );
+            dispatch(authLoginSuccess(data));
             navigate("/");
           })
-          .catch(err => {
+          .catch((err) => {
             if (err) {
               err.text().then((e: string) => {
                 toaster(e, "error");
-              })
+              });
             }
-          }).finally(() => {
-            setLoggingIn(false);
           })
+          .finally(() => {
+            setLoggingIn(false);
+          });
       }
-    },
+    }
   });
 
   return (
     <>
-
       <div className="flex flex-col">
         <main className="py-6 md:w-2/3 lg:w-1/4 mx-auto">
           <h2 className="mb-4 px-4 sm:px-6 md:flex-row md:px-8 text-xl font-extrabold dark:text-white text-gray-900">
@@ -130,9 +134,7 @@ const Login = (props: IProfileProps) => {
                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-2.5 py-1.5 bg-green-600 text-sm font-medium text-white hover:bg-green-700 sm:w-auto text-sm"
               >
                 <div className="flex justify-center items-center space-x-2">
-                  {loggingIn &&
-                    <Spinner className="w-5 h-5 text-green-300" />
-                  }
+                  {loggingIn && <Spinner className="w-5 h-5 text-green-300" />}
                   <span>Login</span>
                 </div>
               </button>
@@ -150,7 +152,7 @@ const Login = (props: IProfileProps) => {
         </main>
       </div>
     </>
-  )
-}
+  );
+};
 
 export default Login;

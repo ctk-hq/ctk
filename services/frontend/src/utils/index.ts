@@ -33,7 +33,10 @@ interface IServiceConf {
   template: string;
 }
 
-export function ensure<T>(argument: T | undefined | null, message: string = 'This value was promised to be there.'): T {
+export function ensure<T>(
+  argument: T | undefined | null,
+  message = "This value was promised to be there."
+): T {
   if (argument === undefined || argument === null) {
     throw new TypeError(message);
   }
@@ -41,43 +44,34 @@ export function ensure<T>(argument: T | undefined | null, message: string = 'Thi
   return argument;
 }
 
-export const parseSingleNode = (
-  configurationStr: string
-): IServiceNodeItem => {
+export const parseSingleNode = (configurationStr: string): IServiceNodeItem => {
   let node: IServiceNodeItem = {} as IServiceNodeItem;
-  let configurationObj: any = null;
-  try {
-    configurationObj = JSON.parse(configurationStr);
-  } catch (err) { }
+  const configurationObj = JSON.parse(configurationStr);
 
   if (isPlainObject(configurationObj)) {
     node = configurationObj;
   }
 
   return node;
-}
+};
 
 export const formatName = (name: string): string => {
-  let regExpr = /[^a-zA-Z0-9]/g;
+  const regExpr = /[^a-zA-Z0-9]/g;
   return name.replace(regExpr, "-").toLowerCase();
-}
+};
 
 export const parseConfiguration = (
   configurationStr: string
 ): IServiceNodeItem[] => {
   let nodes: IServiceNodeItem[] = [];
-  let configurationObj: any = null;
-
-  try {
-    configurationObj = JSON.parse(configurationStr);
-  } catch (err) { }
+  const configurationObj = JSON.parse(configurationStr);
 
   if (isPlainObject(configurationObj)) {
     nodes = flattenDeep(values(configurationObj));
   }
 
   if (isArray(configurationObj)) {
-    nodes = configurationObj
+    nodes = configurationObj;
   }
 
   nodes.forEach((node) => {
@@ -87,20 +81,20 @@ export const parseConfiguration = (
   });
 
   return nodes;
-}
+};
 
 export const flattenLibraries = (
   sections: INodeGroup[]
 ): INodeLibraryItem[] => {
   return flattenDeep(sections.map((x) => x.NodeTypes));
-}
+};
 
 const getEndPointUuids = (
   key: string,
   type: "ip" | "op",
   _count: string | number
 ): string[] => {
-  let count = parseInt(_count as string);
+  const count = parseInt(_count as string);
 
   return range(0, count).map((x) => {
     if (count === 1) {
@@ -111,17 +105,19 @@ const getEndPointUuids = (
       return `${type}_${x}_${key}`;
     }
   });
-}
+};
 
 export const attachUUID = (key: string): string => {
-  const v4 = new RegExp(/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/i);
+  const v4 = new RegExp(
+    /[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/i
+  );
 
   if (key.match(v4)) {
     return key;
   }
 
   return key + "-" + uuidv4();
-}
+};
 
 export const getClientNodeItem = (
   nodeItem: IServiceNodeItem,
@@ -140,10 +136,12 @@ export const getClientNodeItem = (
     },
     outputs: getEndPointUuids(uniqueKey, "op", library.NoOutputs)
   };
-}
+};
 
-export const getConnections = (connections: Connection[]): Array<[string, string]> => {
-  let ret: Array<[string, string]> = [];
+export const getConnections = (
+  connections: Connection[]
+): Array<[string, string]> => {
+  const ret: Array<[string, string]> = [];
 
   /*
   connections.forEach((x) => {
@@ -168,7 +166,7 @@ export const getConnections = (connections: Connection[]): Array<[string, string
   });
 
   return ret;
-}
+};
 
 export const getClientNodesAndConnections = (
   nodeItems: IServiceNodeItem[],
@@ -178,18 +176,21 @@ export const getClientNodesAndConnections = (
     return {};
   }
 
-  let libraries = flattenLibraries(sections);
-  let clientItems = nodeItems.map((x) => {
-    return getClientNodeItem(x, ensure(libraries.find((l) => l.Type === x.type)));
+  const libraries = flattenLibraries(sections);
+  const clientItems = nodeItems.map((x) => {
+    return getClientNodeItem(
+      x,
+      ensure(libraries.find((l) => l.Type === x.type))
+    );
   });
 
   return keyBy(clientItems, (x) => x.key);
-}
+};
 
 export const getNodeKeyFromConnectionId = (uuid: string) => {
-  let key = uuid.substr(uuid.lastIndexOf("_") + 1);
+  const key = uuid.substr(uuid.lastIndexOf("_") + 1);
   return key;
-}
+};
 
 export const initialValues = (): IConf => {
   return {
@@ -202,23 +203,24 @@ export const initialValues = (): IConf => {
       image: "",
       imagePullPolicy: ""
     }
-  }
-}
+  };
+};
 
 export const serviceInitialValues = (): IServiceConf => {
   return {
     prettyName: "Unnamed",
     name: "unnamed",
     template: ""
-  }
-}
+  };
+};
 
 export const toaster = (message: string, type: string) => {
   const toastConfig = {
     duration: 3000,
-    position: 'bottom-right',
+    position: "bottom-right",
     style: {},
-    className: 'text-sm rounded-md text-gray-600 bg-white dark:text-white dark:bg-gray-600'
+    className:
+      "text-sm rounded-md text-gray-600 bg-white dark:text-white dark:bg-gray-600"
   };
 
   if (type === "error") {
@@ -228,26 +230,29 @@ export const toaster = (message: string, type: string) => {
   if (type === "success") {
     toast.success(message, toastConfig as any);
   }
-}
+};
 
 export const truncateStr = (str: string, length: number) => {
   if (str.length > length) {
-    return str.slice(0, length) + '...'
+    return str.slice(0, length) + "...";
   }
 
-  return str
-}
+  return str;
+};
 
-export const getMatchingSetIndex = (setOfSets: [[string, string]], findSet: [string, string]): number => {
+export const getMatchingSetIndex = (
+  setOfSets: [[string, string]],
+  findSet: [string, string]
+): number => {
   return setOfSets.findIndex((set) => set.toString() === findSet.toString());
-}
+};
 
 export const getLocalStorageJWTKeys = () => {
-  let jwtKeys = localStorage.getItem(LOCAL_STORAGE);
+  const jwtKeys = localStorage.getItem(LOCAL_STORAGE);
 
   if (jwtKeys) {
     return JSON.parse(jwtKeys);
   }
 
   return null;
-}
+};

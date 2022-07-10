@@ -13,14 +13,16 @@ export default function SideBar(props: ISideBarProps) {
   const { pathname } = useLocation();
   const { state, isAuthenticated } = props;
   const projRegex = /\/projects\/?$/;
-  const navigation = [{ 
-    name: "Projects",
-    href: "/projects",
-    icon: BookOpenIcon,
-    current: (pathname.match(projRegex) ? true : false)
-  }];
+  const navigation = [
+    {
+      name: "Projects",
+      href: "/projects",
+      icon: BookOpenIcon,
+      current: pathname.match(projRegex) ? true : false
+    }
+  ];
   const classNames = (...classes: any[]) => {
-    return classes.filter(Boolean).join(" ")
+    return classes.filter(Boolean).join(" ");
   };
   const userName = state.user ? state.user.username : "";
 
@@ -30,7 +32,7 @@ export default function SideBar(props: ISideBarProps) {
         <div className="flex flex-col flex-grow pt-5 bg-blue-700 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 mx-auto">
             <Link to={isAuthenticated ? "/" : "projects/new"}>
-              <Logo className="" />
+              <Logo />
             </Link>
           </div>
 
@@ -41,20 +43,26 @@ export default function SideBar(props: ISideBarProps) {
                   key={item.name}
                   href={item.href}
                   className={classNames(
-                    item.current ? "bg-blue-800 text-white" : "text-blue-100 hover:bg-blue-600",
+                    item.current
+                      ? "bg-blue-800 text-white"
+                      : "text-blue-100 hover:bg-blue-600",
                     "group flex items-center justify-center px-2 py-2 text-sm font-medium rounded-md"
                   )}
                 >
-                  <item.icon className="mr-3 md:mr-0 flex-shrink-0 h-5 w-5" aria-hidden="true" />
-                  <span className="md:hidden">
-                    {item.name}
-                  </span>
+                  <item.icon
+                    className="mr-3 md:mr-0 flex-shrink-0 h-5 w-5"
+                    aria-hidden="true"
+                  />
+                  <span className="md:hidden">{item.name}</span>
                 </a>
               ))}
             </nav>
           </div>
-          
-          <UserMenu username={userName} current={pathname.includes("profile")} />
+
+          <UserMenu
+            username={userName}
+            current={pathname.includes("profile")}
+          />
         </div>
       </div>
     </>

@@ -1,6 +1,5 @@
 import React from "react";
 
-
 const Resource = (props: any) => {
   const { formik } = props;
 
@@ -8,7 +7,12 @@ const Resource = (props: any) => {
     <>
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-3">
-          <label htmlFor={`resource-action`} className="block text-xs font-medium text-gray-700">Action</label>
+          <label
+            htmlFor={`resource-action`}
+            className="block text-xs font-medium text-gray-700"
+          >
+            Action
+          </label>
           <div key={`resource-action`}>
             <input
               type="text"
@@ -23,7 +27,12 @@ const Resource = (props: any) => {
 
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-3">
-          <label htmlFor={`resource-manifest`} className="block text-xs font-medium text-gray-700 mt-2">Manifest</label>
+          <label
+            htmlFor={`resource-manifest`}
+            className="block text-xs font-medium text-gray-700 mt-2"
+          >
+            Manifest
+          </label>
           <textarea
             id="resource-manifest"
             rows={2}
@@ -36,6 +45,6 @@ const Resource = (props: any) => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 export default Resource;

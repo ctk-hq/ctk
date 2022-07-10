@@ -1,11 +1,11 @@
 import { useFormik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
 import { serviceInitialValues, formatName } from "../../../utils";
-
+import { CallbackFunction } from "../../../types";
 
 interface IModalServiceProps {
-  onHide: any;
-  onAddEndpoint: Function;
+  onHide: CallbackFunction;
+  onAddEndpoint: CallbackFunction;
 }
 
 const ModalServiceCreate = (props: IModalServiceProps) => {
@@ -13,7 +13,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
   const formik = useFormik({
     initialValues: {
       configuration: {
-        ...serviceInitialValues(),
+        ...serviceInitialValues()
       },
       key: "service",
       type: "SERVICE",
@@ -21,15 +21,16 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
       outputs: [],
       config: {}
     },
-    onSubmit: ((values, { setSubmitting }) => {
-
-    })
+    onSubmit: () => undefined
   });
 
   return (
     <div className="fixed z-50 inset-0 overflow-y-auto">
       <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none">
-        <div onClick={onHide} className="opacity-25 fixed inset-0 z-40 bg-black"></div>
+        <div
+          onClick={onHide}
+          className="opacity-25 fixed inset-0 z-40 bg-black"
+        ></div>
         <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
             <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
@@ -47,7 +48,12 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
             <div className="relative px-4 py-3 flex-auto">
               <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-3">
-                  <label htmlFor="prettyName" className="block text-xs font-medium text-gray-700">Name</label>
+                  <label
+                    htmlFor="prettyName"
+                    className="block text-xs font-medium text-gray-700"
+                  >
+                    Name
+                  </label>
                   <div className="mt-1">
                     <input
                       id="prettyName"
@@ -64,7 +70,12 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
 
               <div className="mt-2">
                 <div className="col-span-3">
-                  <label htmlFor="template" className="block text-xs font-medium text-gray-700">Template</label>
+                  <label
+                    htmlFor="template"
+                    className="block text-xs font-medium text-gray-700"
+                  >
+                    Template
+                  </label>
                   <div className="mt-1">
                     <input
                       id="template"
@@ -85,7 +96,9 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                 className="btn-util"
                 type="button"
                 onClick={() => {
-                  formik.values.configuration.name = formatName(formik.values.configuration.prettyName);
+                  formik.values.configuration.name = formatName(
+                    formik.values.configuration.prettyName
+                  );
                   onAddEndpoint(formik.values);
                   formik.resetForm();
                 }}
@@ -98,6 +111,6 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
       </div>
     </div>
   );
-}
+};
 
-export default ModalServiceCreate
+export default ModalServiceCreate;

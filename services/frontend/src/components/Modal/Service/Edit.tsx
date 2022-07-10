@@ -3,7 +3,6 @@ import { useFormik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
 import { serviceInitialValues, formatName } from "../../../utils";
 
-
 interface IModalServiceProps {
   node: any;
   onHide: any;
@@ -19,9 +18,7 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
         ...serviceInitialValues()
       }
     },
-    onSubmit: ((values, { setSubmitting }) => {
-
-    })
+    onSubmit: () => undefined
   });
 
   React.useEffect(() => {
@@ -41,14 +38,17 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
   React.useEffect(() => {
     return () => {
       formik.resetForm();
-    }
+    };
   }, []);
 
   return (
     <>
       <div className="fixed z-50 inset-0 overflow-y-auto">
         <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none">
-          <div onClick={onHide} className="opacity-25 fixed inset-0 z-40 bg-black"></div>
+          <div
+            onClick={onHide}
+            className="opacity-25 fixed inset-0 z-40 bg-black"
+          ></div>
           <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
             <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
               <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
@@ -66,7 +66,12 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
               <div className="relative px-4 py-3 flex-auto">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="col-span-3">
-                    <label htmlFor="prettyName" className="block text-xs font-medium text-gray-700">Name</label>
+                    <label
+                      htmlFor="prettyName"
+                      className="block text-xs font-medium text-gray-700"
+                    >
+                      Name
+                    </label>
                     <div className="mt-1">
                       <input
                         id="prettyName"
@@ -83,7 +88,12 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
 
                 <div className="mt-2">
                   <div className="col-span-3">
-                    <label htmlFor="template" className="block text-xs font-medium text-gray-700">Template</label>
+                    <label
+                      htmlFor="template"
+                      className="block text-xs font-medium text-gray-700"
+                    >
+                      Template
+                    </label>
                     <div className="mt-1">
                       <input
                         id="template"
@@ -104,8 +114,10 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
                   className="btn-util"
                   type="button"
                   onClick={() => {
-                    let updated = { ...selectedNode };
-                    formik.values.configuration.name = formatName(formik.values.configuration.prettyName);
+                    const updated = { ...selectedNode };
+                    formik.values.configuration.name = formatName(
+                      formik.values.configuration.prettyName
+                    );
                     updated.configuration = formik.values.configuration;
                     onUpdateEndpoint(updated);
                   }}
@@ -119,6 +131,6 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
       </div>
     </>
   );
-}
+};
 
-export default ModalServiceEdit
+export default ModalServiceEdit;

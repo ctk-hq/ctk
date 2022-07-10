@@ -1,7 +1,6 @@
 import { NodeGroupType } from "../../types/enums";
 import { INodeGroup } from "../../types";
 
-
 export const nodeLibraries: INodeGroup[] = [
   {
     Id: 1,

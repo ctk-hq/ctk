@@ -12,7 +12,7 @@ import { authSelf } from "./reducers";
 import { refresh, self } from "./services/auth";
 
 import SideBar from "./components/global/SideBar";
-import Projects from "./components/Projects"
+import Projects from "./components/Projects";
 import Project from "./components/Project";
 import Profile from "./components/Profile";
 import Signup from "./components/Auth/Signup";
@@ -33,16 +33,16 @@ export default function App() {
   const defaultProtectedRouteProps: Omit<ProtectedRouteProps, "outlet"> = {
     isAuthenticated: isAuthenticated,
     authenticationPath: "/login"
-  }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
       self()
         .then(checkHttpStatus)
-        .then(data => {
+        .then((data) => {
           dispatch(authSelf(data));
         })
-        .catch(err => {
+        .catch((err) => {
           // since auth is set in localstorage,
           // try to refresh the existing token,
           // on error clear localstorage
@@ -56,7 +56,7 @@ export default function App() {
 
             refresh()
               .then(checkHttpStatus)
-              .then(data => {
+              .then((data) => {
                 const localData = localStorage.getItem(LOCAL_STORAGE);
 
                 if (localData) {
@@ -70,11 +70,11 @@ export default function App() {
                   }
                 }
               })
-              .catch(err => {
+              .catch(() => {
                 localStorage.removeItem(LOCAL_STORAGE);
-              })
+              });
           }
-        })
+        });
     }
   }, [dispatch, isAuthenticated]);
 
@@ -84,15 +84,9 @@ export default function App() {
         <Toaster />
         <SideBar isAuthenticated={isAuthenticated} state={state} />
         <Routes>
-          <Route
-            path="/projects/:uuid"
-            element={<Project />}
-          />
+          <Route path="/projects/:uuid" element={<Project />} />
 
-          <Route
-            path="/projects/new"
-            element={<Project />}
-          />
+          <Route path="/projects/new" element={<Project />} />
 
           <Route
             path="/"
@@ -123,6 +117,7 @@ export default function App() {
               />
             }
           />
+
           <Route path="/signup" element={<Signup dispatch={dispatch} />} />
           <Route path="/login" element={<Login dispatch={dispatch} />} />
         </Routes>
@@ -130,5 +125,5 @@ export default function App() {
 
       <ReactQueryDevtools initialIsOpen={true} />
     </QueryClientProvider>
-  )
+  );
 }

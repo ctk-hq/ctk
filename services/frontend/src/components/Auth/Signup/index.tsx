@@ -24,35 +24,39 @@ const Signup = (props: IProfileProps) => {
       password: "",
       confirmPassword: ""
     },
-    onSubmit: values => {
+    onSubmit: (values) => {
       const username = values.username;
       const email = values.email;
       const password1 = values.password;
       const password2 = values.confirmPassword;
-
       setSigningUp(true);
+
       if (username && email && password1 && password2) {
         signup(username, email, password1, password2)
           .then(checkHttpStatus)
-          .then(data => {
-            localStorage.setItem(LOCAL_STORAGE, JSON.stringify({
-              "access_token": data.access_token,
-              "refresh_token": data.refresh_token
-            }))
-            dispatch(authLoginSuccess(data))
+          .then((data) => {
+            localStorage.setItem(
+              LOCAL_STORAGE,
+              JSON.stringify({
+                access_token: data.access_token,
+                refresh_token: data.refresh_token
+              })
+            );
+            dispatch(authLoginSuccess(data));
             navigate("/");
           })
-          .catch(err => {
+          .catch((err) => {
             if (err) {
               err.text().then((e: string) => {
                 toaster(e, "error");
-              })
+              });
             }
-          }).finally(() => {
-            setSigningUp(false);
           })
+          .finally(() => {
+            setSigningUp(false);
+          });
       }
-    },
+    }
   });
 
   return (
@@ -198,9 +202,7 @@ const Signup = (props: IProfileProps) => {
                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-2.5 py-1.5 bg-green-600 text-sm font-medium text-white hover:bg-green-700 sm:w-auto text-sm"
               >
                 <div className="flex justify-center items-center space-x-2">
-                  {signingUp &&
-                    <Spinner className="w-5 h-5 text-green-300" />
-                  }
+                  {signingUp && <Spinner className="w-5 h-5 text-green-300" />}
                   <span>Signup</span>
                 </div>
               </button>
@@ -218,7 +220,7 @@ const Signup = (props: IProfileProps) => {
         </main>
       </div>
     </>
-  )
-}
+  );
+};
 
 export default Signup;

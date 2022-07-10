@@ -10,12 +10,15 @@ export function usePrefersDarkMode() {
     const handler = () => setValue(mediaQuery.matches);
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
-  }, [])
+  }, []);
 
   return value;
 }
 
-export function useSafeLocalStorage(key: string, initialValue: string | undefined) {
+export function useSafeLocalStorage(
+  key: string,
+  initialValue: string | undefined
+) {
   const [valueProxy, setValueProxy] = useState(() => {
     try {
       const value = window.localStorage.getItem(key);
@@ -23,7 +26,7 @@ export function useSafeLocalStorage(key: string, initialValue: string | undefine
     } catch {
       return initialValue;
     }
-  })
+  });
 
   const setValue = (value: string) => {
     try {
@@ -32,7 +35,7 @@ export function useSafeLocalStorage(key: string, initialValue: string | undefine
     } catch {
       setValueProxy(value);
     }
-  }
+  };
 
   return [valueProxy, setValue];
 }
