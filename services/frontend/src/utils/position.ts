@@ -12,16 +12,14 @@ const nodeHeight = 60;
 export const getHierarchyTree = (
   nodes: IServiceNodeItem[]
 ): d3.HierarchyPointNode<INodeItemWithParent> => {
-  let data = nodes.map(
-    (node): INodeItemWithParent => {
-      return {
-        ...node,
-        parent: node.inputs[0] ? getNodeKeyFromConnectionId(node.inputs[0]) : ""
-      };
-    }
-  );
+  const data = nodes.map((node): INodeItemWithParent => {
+    return {
+      ...node,
+      parent: node.inputs[0] ? getNodeKeyFromConnectionId(node.inputs[0]) : ""
+    };
+  });
 
-  let parents = data.filter((x) => !x.parent);
+  const parents = data.filter((x) => !x.parent);
 
   if (parents.length > 1) {
     parents.forEach((x) => {
@@ -33,7 +31,7 @@ export const getHierarchyTree = (
     } as INodeItemWithParent);
   }
 
-  let hierarchy = d3
+  const hierarchy = d3
     .stratify<INodeItemWithParent>()
     .id(function (d: INodeItemWithParent) {
       return d.key;
@@ -42,18 +40,18 @@ export const getHierarchyTree = (
       return d.parent;
     })(data);
 
-  let tree = d3.tree<INodeItemWithParent>().nodeSize([nodeHeight, nodeWidth])(
+  const tree = d3.tree<INodeItemWithParent>().nodeSize([nodeHeight, nodeWidth])(
     hierarchy
   );
 
   return tree;
-}
+};
 
 export const getNodesPositions = (
   nodes: IServiceNodeItem[]
 ): [IServiceNodeItem[], number, number] => {
-  let nodeWithPosition: IServiceNodeItem[] = [];
-  let tree = getHierarchyTree(nodes);
+  const nodeWithPosition: IServiceNodeItem[] = [];
+  const tree = getHierarchyTree(nodes);
   let x0 = Infinity;
   let x1 = -x0;
 
@@ -62,13 +60,16 @@ export const getNodesPositions = (
     if (d.x < x0) x0 = d.x;
   });
 
-  let descendants = tree.descendants();
+  const descendants = tree.descendants();
 
   descendants.forEach((x) => {
     if (x.data.key !== "root_parent") {
-      nodeWithPosition.push({ ...x.data, position: { left: x.y, top: x.x + nodeHeight } });
+      nodeWithPosition.push({
+        ...x.data,
+        position: { left: x.y, top: x.x + nodeHeight }
+      });
     }
   });
 
   return [nodeWithPosition, 0, 0];
-}
+};

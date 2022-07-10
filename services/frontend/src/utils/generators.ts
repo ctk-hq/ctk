@@ -1,23 +1,19 @@
-import {
-  IClientNodeItem,
-  IService,
-  IGeneratePayload,
-} from "../types";
+import { IClientNodeItem, IService, IGeneratePayload } from "../types";
 import { Dictionary } from "lodash";
 
 const getServices = (graphNodes: Dictionary<IClientNodeItem>): IService[] => {
-  let ret: IService[] = [];
+  const ret: IService[] = [];
   for (const [, value] of Object.entries(graphNodes)) {
     ret.push({
-      "name": value.configuration.name,
-      "labels": {
-        "key": value.key
+      name: value.configuration.name,
+      labels: {
+        key: value.key
       }
     });
   }
 
   return ret;
-}
+};
 
 export const flattenGraphData = (graphData: any): IGeneratePayload => {
   const nodes = graphData["nodes"];
@@ -38,4 +34,4 @@ export const flattenGraphData = (graphData: any): IGeneratePayload => {
   });
 
   return base;
-}
+};

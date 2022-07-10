@@ -9,4 +9,4 @@ export const generateHttp = (data: IGeneratePayload) => {
     },
     body: JSON.stringify(data)
   });
-}
+};

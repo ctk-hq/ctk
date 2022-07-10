@@ -1,1 +1,1 @@
-export const StartConfigString = '[]';
+export const StartConfigString = "[]";

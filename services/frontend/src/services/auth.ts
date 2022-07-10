@@ -1,7 +1,12 @@
 import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys } from "./utils";
 
-export const signup = (username: string, email: string, password1: string, password2: string) =>
+export const signup = (
+  username: string,
+  email: string,
+  password1: string,
+  password2: string
+) =>
   fetch(`${API_SERVER_URL}/auth/registration/`, {
     method: "POST",
     headers: {
@@ -25,14 +30,14 @@ export const self = () => {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${jwtKeys.access_token}`
+      Authorization: `Bearer ${jwtKeys.access_token}`
     }
-  })
-}
+  });
+};
 
 export const refresh = () => {
   const jwtKeys = getLocalStorageJWTKeys();
-  const body = { "refresh": jwtKeys.refresh_token };
+  const body = { refresh: jwtKeys.refresh_token };
 
   return fetch(`${API_SERVER_URL}/auth/token/refresh/`, {
     method: "POST",
@@ -40,5 +45,5 @@ export const refresh = () => {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(body)
-  })
-}
+  });
+};

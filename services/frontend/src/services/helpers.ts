@@ -8,7 +8,7 @@ export const checkHttpStatus = (response: any) => {
   }
 
   throw response;
-}
+};
 
 export const checkHttpSuccess = (response: any) => {
   if ([200, 201, 202].includes(response.status)) {
@@ -20,4 +20,4 @@ export const checkHttpSuccess = (response: any) => {
   }
 
   throw response;
-}
+};

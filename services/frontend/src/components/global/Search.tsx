@@ -9,8 +9,18 @@ const Search = (props: ISearchProps) => {
 
   return (
     <div className="flex-1 flex">
-      <form className="w-full flex md:ml-0" autoComplete="off" method="post" action="">
-        <input autoComplete="false" name="hidden" type="text" className="hidden" />
+      <form
+        className="w-full flex md:ml-0"
+        autoComplete="off"
+        method="post"
+        action=""
+      >
+        <input
+          autoComplete="false"
+          name="hidden"
+          type="text"
+          className="hidden"
+        />
         <label htmlFor="search-field" className="sr-only">
           Search
         </label>
@@ -29,7 +39,7 @@ const Search = (props: ISearchProps) => {
         </div>
       </form>
     </div>
-  ) 
-}
+  );
+};
 
 export default Search;

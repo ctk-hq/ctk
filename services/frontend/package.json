@@ -25,7 +25,7 @@
     "@jsplumb/connector-bezier": "^5.5.2",
     "@jsplumb/core": "^5.5.2",
     "@jsplumb/util": "^5.5.2",
-    "@tailwindcss/forms": "^0.4.0",
+    "@tailwindcss/forms": "^0.5.2",
     "@tailwindcss/typography": "^0.5.1",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
@@ -51,7 +51,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "lint": "eslint . --ext .ts"
   },
   "eslintConfig": {
     "extends": [
@@ -79,7 +81,11 @@
     "@types/react": "^17.0.45",
     "@types/react-dom": "^17.0.11",
     "@types/uuid": "^8.3.4",
-    "autoprefixer": "^10.4.2",
-    "postcss": "^8.4.6"
+    "autoprefixer": "10.4.7",
+    "eslint": "^8.19.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "postcss": "^8.4.14",
+    "prettier": "^2.7.1"
   }
 }

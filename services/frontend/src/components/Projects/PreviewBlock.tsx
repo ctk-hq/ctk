@@ -14,7 +14,6 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
   const { project } = props;
   const [isHovering, setIsHovering] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
-  const objId = project.id;
   const mutation = useDeleteProject(project.uuid);
 
   const handleMouseOver = () => {
@@ -53,11 +52,9 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
           hover:border-gray-400
         `}
       >
-        <div className="flex-1 min-w-0">
-          {truncateStr(project.name, 25)}
-        </div>
+        <div className="flex-1 min-w-0">{truncateStr(project.name, 25)}</div>
 
-        {isHovering &&
+        {isHovering && (
           <div className="flex space-x-1 absolute top-2 right-2">
             <button
               onClick={() => onDelete()}
@@ -73,19 +70,19 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
               <PencilIcon className="w-3 h-3 text-gray-500 hover:text-gray-600" />
             </Link>
           </div>
-        }
+        )}
       </div>
 
-      {showDeleteConfirmModal &&
+      {showDeleteConfirmModal && (
         <ModalConfirmDelete
           onConfirm={() => onDeleteConfirmed()}
           onHide={() => {
             setShowDeleteConfirmModal(false);
           }}
         />
-      }
+      )}
     </>
-  )
-}
+  );
+};
 
 export default PreviewBlock;
