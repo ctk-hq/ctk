@@ -3,12 +3,12 @@ import { useQuery } from "react-query";
 import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys } from "../utils";
 
-const fetchProjects = async () => {
+export const fetchProjects = async (limit: number, offset: number) => {
   const jwtKeys = getLocalStorageJWTKeys();
 
   const response = await axios({
     method: "get",
-    url: `${API_SERVER_URL}/projects/`,
+    url: `${API_SERVER_URL}/projects/?limit=${limit}&offset=${offset}`,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${jwtKeys.access_token}`
@@ -17,13 +17,12 @@ const fetchProjects = async () => {
   return response.data;
 };
 
-export const useProjects = () => {
+export const useProjects = (limit: number, offset: number) => {
   return useQuery(
-    ["projects"],
-    async () => {
-      return await fetchProjects();
-    },
+    ["projects", limit, offset],
+    () => fetchProjects(limit, offset),
     {
+      keepPreviousData: true,
       staleTime: Infinity
     }
   );
