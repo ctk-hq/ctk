@@ -16,7 +16,8 @@ import {
   INodeLibraryItem,
   INodeGroup,
   ICanvasConfig,
-  INetworkTopLevel
+  INetworkTopLevel,
+  IVolumeTopLevel
 } from "../types";
 
 export function ensure<T>(
@@ -172,6 +173,13 @@ export const getNodeKeyFromConnectionId = (uuid: string) => {
   const key = uuid.substr(uuid.lastIndexOf("_") + 1);
   return key;
 };
+
+export const topLevelVolumeConfigInitialValues =
+  (): Partial<IVolumeTopLevel> => {
+    return {
+      name: "unnamed"
+    };
+  };
 
 export const topLevelNetworkConfigInitialValues =
   (): Partial<INetworkTopLevel> => {

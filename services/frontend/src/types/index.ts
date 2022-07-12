@@ -1,8 +1,7 @@
 import { AnchorId } from "@jsplumb/common";
 import { Dictionary } from "lodash";
+import { KeyValuePair } from "tailwindcss/types/config";
 import { NodeGroupType } from "./enums";
-
-type NetworkImapConfig = "subnet";
 
 type KeyValPair = {
   [x: string]: string | number;
@@ -78,23 +77,16 @@ export interface IAnchor {
   position: AnchorId;
 }
 
-export interface IVolume {
-  type: string;
-  source: string;
-  target: string;
-  read_only: boolean;
-  bind: {
-    propagation: string;
-    create_host_path: boolean;
-    selinux: string;
+export interface IVolumeTopLevel {
+  driver: string;
+  driver_opts: {
+    type: string;
+    o: string;
+    device: string;
   };
-  volume: {
-    nocopy: boolean;
-  };
-  tmpfs: {
-    size: string | number;
-  };
-  consistency: string;
+  external: boolean;
+  labels: string[] | KeyValuePair;
+  name: string;
 }
 
 export interface INetworkTopLevel {
@@ -148,10 +140,26 @@ export interface IService {
   cap_drop: string[];
   cgroup_parent: string;
   command: string | string[];
-  configs: string[] | KeyValPair[];
+  configs:
+    | string[]
+    | {
+        [x: string]: {
+          source: string;
+          target: string;
+          uid: string;
+          gid: string;
+          mode: number;
+        };
+      };
   container_name: string;
   credential_spec: KeyValPair;
-  depends_on: string[] | { [key: string]: string | number | KeyValPair };
+  depends_on:
+    | string[]
+    | {
+        [key: string]: {
+          condition: string;
+        };
+      };
   deploy: {
     endpoint_mode: string;
     labels: string[] | { [key: string]: string };
@@ -291,7 +299,26 @@ export interface IService {
   };
   user: string;
   userns_mode: string;
-  volumes: string[] | IVolume;
+  volumes:
+    | string[]
+    | {
+        type: string;
+        source: string;
+        target: string;
+        read_only: boolean;
+        bind: {
+          propagation: string;
+          create_host_path: boolean;
+          selinux: string;
+        };
+        volume: {
+          nocopy: boolean;
+        };
+        tmpfs: {
+          size: string | number;
+        };
+        consistency: string;
+      };
   volumes_from: string[];
   working_dir: string;
   tag: string;
