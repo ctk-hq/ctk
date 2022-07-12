@@ -15,6 +15,17 @@ make dev_server
 cd services/frontend && npm i && npm run start
 ```
 
+### Server
+
+```bash
+python -m venv .env
+source .env/bin/activate
+python -m pip install -r services/backend/requirements.txt
+python -m pip  install black
+
+make dev_server
+```
+
 ... this command will bring up the backend, the database, sync migrations,
 
 ## Project roadmap
