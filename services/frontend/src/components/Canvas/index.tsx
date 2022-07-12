@@ -2,9 +2,9 @@ import { FC, useState, useEffect } from "react";
 import { Dictionary, values } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import eventBus from "../../events/eventBus";
-import { Popover } from "./Popover";
 import { IGraphData, CallbackFunction, IClientNodeItem } from "../../types";
 import { useJsPlumb } from "../useJsPlumb";
+import Node from "./node";
 
 const CANVAS_ID: string = "canvas-container-" + uuidv4();
 
@@ -34,8 +34,6 @@ export const Canvas: FC<ICanvasProps> = (props) => {
     setNodeForEdit,
     setNodeForDelete
   } = props;
-  const [nodeDragging, setNodeDragging] = useState<string | null>();
-  const [nodeHovering, setNodeHovering] = useState<string | null>();
   const [dragging, setDragging] = useState(false);
   const [scale, setScale] = useState(1);
   const [_scale, _setScale] = useState(1);
@@ -130,22 +128,12 @@ export const Canvas: FC<ICanvasProps> = (props) => {
   }, [canvasPosition]);
 
   useEffect(() => {
-    eventBus.on("EVENT_DRAG_START", (data: any) => {
-      setNodeDragging(data.detail.message.id);
-    });
-
-    eventBus.on("EVENT_DRAG_STOP", () => {
-      setNodeDragging(null);
-    });
-
     eventBus.on("NODE_DELETED", (data: any) => {
       removeEndpoint(data.detail.message.node);
     });
 
     return () => {
       eventBus.remove("NODE_DELETED", () => undefined);
-      eventBus.remove("EVENT_DRAG_START", () => undefined);
-      eventBus.remove("EVENT_DRAG_STOP", () => undefined);
     };
   }, []);
 
@@ -175,39 +163,12 @@ export const Canvas: FC<ICanvasProps> = (props) => {
             }}
           >
             {values(nodes).map((x) => (
-              <div
+              <Node
                 key={x.key}
-                className={
-                  "node-item cursor-pointer shadow flex flex-col group"
-                }
-                id={x.key}
-                style={{ top: x.position.top, left: x.position.left }}
-                onMouseEnter={() => setNodeHovering(x.key)}
-                onMouseLeave={() => {
-                  if (nodeHovering === x.key) {
-                    setNodeHovering(null);
-                  }
-                }}
-              >
-                {nodeHovering === x.key && nodeDragging !== x.key && (
-                  <Popover
-                    onEditClick={() => {
-                      setNodeForEdit(x);
-                    }}
-                    onDeleteClick={() => {
-                      setNodeForDelete(x);
-                    }}
-                  ></Popover>
-                )}
-                <div className="node-label w-full py-2 px-4">
-                  <div className="text-sm font-semibold overflow-x-hidden">
-                    {x.canvasConfig.service_name}
-                  </div>
-                  <div className="text-xs text-gray-500 overflow-x-hidden">
-                    {x.serviceConfig?.container_name}
-                  </div>
-                </div>
-              </div>
+                node={x}
+                setNodeForEdit={setNodeForEdit}
+                setNodeForDelete={setNodeForDelete}
+              />
             ))}
           </div>
         </div>
