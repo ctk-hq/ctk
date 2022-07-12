@@ -68,7 +68,7 @@ export interface ICanvasConfig {
 }
 
 export interface IGraphData {
-  nodes: IClientNodeItem[];
+  nodes: IServiceNodeItem[];
   connections: Dictionary<IFlatConnection>;
 }
 
@@ -329,7 +329,7 @@ export interface IDockerCompose {
   services: IService[];
 }
 
-export interface IClientNodeItem extends INodeItem {
+export interface IServiceNodeItem extends INodeItem {
   outputs: string[];
   canvasConfig: ICanvasConfig;
   serviceConfig: Partial<IService>;

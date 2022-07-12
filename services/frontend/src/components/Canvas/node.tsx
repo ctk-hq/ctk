@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { IClientNodeItem, CallbackFunction } from "../../types";
+import { IServiceNodeItem, CallbackFunction } from "../../types";
 import eventBus from "../../events/eventBus";
 import { Popover } from "./Popover";
 
 interface INodeProps {
-  node: IClientNodeItem;
+  node: IServiceNodeItem;
   setNodeForEdit: CallbackFunction;
   setNodeForDelete: CallableFunction;
 }

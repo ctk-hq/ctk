@@ -9,7 +9,7 @@ import { canvasConfigInitialValues } from "../../../utils";
 import {
   CallbackFunction,
   ICanvasConfig,
-  IClientNodeItem,
+  IServiceNodeItem,
   IService
 } from "../../../types";
 
@@ -22,7 +22,7 @@ interface IModalServiceProps {
 const ModalServiceEdit = (props: IModalServiceProps) => {
   const { node, onHide, onUpdateEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
-  const [selectedNode, setSelectedNode] = useState<IClientNodeItem>();
+  const [selectedNode, setSelectedNode] = useState<IServiceNodeItem>();
   const formik = useFormik({
     initialValues: {
       canvasConfig: {

@@ -12,7 +12,7 @@ import {
 } from "lodash";
 import { LOCAL_STORAGE } from "../constants";
 import {
-  IClientNodeItem,
+  IServiceNodeItem,
   INodeLibraryItem,
   INodeGroup,
   ICanvasConfig,
@@ -31,8 +31,8 @@ export function ensure<T>(
   return argument;
 }
 
-export const parseSingleNode = (configurationStr: string): IClientNodeItem => {
-  let node: IClientNodeItem = {} as IClientNodeItem;
+export const parseSingleNode = (configurationStr: string): IServiceNodeItem => {
+  let node: IServiceNodeItem = {} as IServiceNodeItem;
   const configurationObj = JSON.parse(configurationStr);
 
   if (isPlainObject(configurationObj)) {
@@ -49,8 +49,8 @@ export const formatName = (name: string): string => {
 
 export const parseConfiguration = (
   configurationStr: string
-): IClientNodeItem[] => {
-  let nodes: IClientNodeItem[] = [];
+): IServiceNodeItem[] => {
+  let nodes: IServiceNodeItem[] = [];
   const configurationObj = JSON.parse(configurationStr);
 
   if (isPlainObject(configurationObj)) {
@@ -107,9 +107,9 @@ export const attachUUID = (key: string): string => {
 };
 
 export const getClientNodeItem = (
-  nodeItem: IClientNodeItem,
+  nodeItem: IServiceNodeItem,
   library: INodeLibraryItem
-): IClientNodeItem => {
+): IServiceNodeItem => {
   const uniqueKey = attachUUID(nodeItem.key);
 
   return {
@@ -151,9 +151,9 @@ export const getConnections = (
 };
 
 export const getClientNodesAndConnections = (
-  nodeItems: IClientNodeItem[],
+  nodeItems: IServiceNodeItem[],
   sections: INodeGroup[]
-): Dictionary<IClientNodeItem> => {
+): Dictionary<IServiceNodeItem> => {
   if (!Array.isArray(nodeItems) || !Array.isArray(sections)) {
     return {};
   }

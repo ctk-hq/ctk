@@ -5,7 +5,7 @@ import YAML from "yaml";
 import { PlusIcon } from "@heroicons/react/solid";
 import {
   IProjectPayload,
-  IClientNodeItem,
+  IServiceNodeItem,
   IServiceNodePosition,
   IProject
 } from "../../types";
@@ -41,7 +41,7 @@ export default function Project() {
   const { uuid } = useParams<{ uuid: string }>();
   const { height } = useWindowDimensions();
   const { data, error, isFetching } = useProject(uuid);
-  const stateNodesRef = useRef<Dictionary<IClientNodeItem>>();
+  const stateNodesRef = useRef<Dictionary<IServiceNodeItem>>();
   const stateConnectionsRef = useRef<[[string, string]] | []>();
 
   const [generatedCode, setGeneratedCode] = useState<string>();
@@ -49,8 +49,8 @@ export default function Project() {
   const [showModalCreateService, setShowModalCreateService] = useState(false);
   const [showVolumesModal, setShowVolumesModal] = useState(false);
   const [showNetworksModal, setShowNetworksModal] = useState(false);
-  const [nodeForEdit, setNodeForEdit] = useState<IClientNodeItem | null>(null);
-  const [nodeForDelete, setNodeForDelete] = useState<IClientNodeItem | null>(
+  const [nodeForEdit, setNodeForEdit] = useState<IServiceNodeItem | null>(null);
+  const [nodeForDelete, setNodeForDelete] = useState<IServiceNodeItem | null>(
     null
   );
   const [language, setLanguage] = useState("yaml");
@@ -216,7 +216,7 @@ export default function Project() {
     setNodes({ ...nodes, [clientNodeItem.key]: clientNodeItem });
   };
 
-  const onUpdateEndpoint = (nodeItem: IClientNodeItem) => {
+  const onUpdateEndpoint = (nodeItem: IServiceNodeItem) => {
     setNodes({ ...nodes, [nodeItem.key]: nodeItem });
   };
 
@@ -255,7 +255,7 @@ export default function Project() {
     }
   };
 
-  const onRemoveEndpoint = (node: IClientNodeItem) => {
+  const onRemoveEndpoint = (node: IServiceNodeItem) => {
     setNodes({ ...omit(nodes, node.key) });
     eventBus.dispatch("NODE_DELETED", { message: { node: node } });
   };
@@ -434,10 +434,10 @@ export default function Project() {
                     onConnectionDetached={(connectionData: any) =>
                       onConnectionDetached(connectionData)
                     }
-                    setNodeForEdit={(node: IClientNodeItem) =>
+                    setNodeForEdit={(node: IServiceNodeItem) =>
                       setNodeForEdit(node)
                     }
-                    setNodeForDelete={(node: IClientNodeItem) =>
+                    setNodeForDelete={(node: IServiceNodeItem) =>
                       setNodeForDelete(node)
                     }
                   />

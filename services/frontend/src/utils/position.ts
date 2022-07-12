@@ -1,8 +1,8 @@
 import * as d3 from "d3";
-import { IClientNodeItem } from "../types";
+import { IServiceNodeItem } from "../types";
 import { getNodeKeyFromConnectionId } from "./index";
 
-interface INodeItemWithParent extends IClientNodeItem {
+interface INodeItemWithParent extends IServiceNodeItem {
   parent: string;
 }
 
@@ -10,7 +10,7 @@ const nodeWidth = 150;
 const nodeHeight = 60;
 
 export const getHierarchyTree = (
-  nodes: IClientNodeItem[]
+  nodes: IServiceNodeItem[]
 ): d3.HierarchyPointNode<INodeItemWithParent> => {
   const data = nodes.map((node): INodeItemWithParent => {
     return {
@@ -48,9 +48,9 @@ export const getHierarchyTree = (
 };
 
 export const getNodesPositions = (
-  nodes: IClientNodeItem[]
-): [IClientNodeItem[], number, number] => {
-  const nodeWithPosition: IClientNodeItem[] = [];
+  nodes: IServiceNodeItem[]
+): [IServiceNodeItem[], number, number] => {
+  const nodeWithPosition: IServiceNodeItem[] = [];
   const tree = getHierarchyTree(nodes);
   let x0 = Infinity;
   let x1 = -x0;

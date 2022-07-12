@@ -1,8 +1,12 @@
-import { IClientNodeItem, IGeneratePayload, ISaturatedService } from "../types";
+import {
+  IServiceNodeItem,
+  IGeneratePayload,
+  ISaturatedService
+} from "../types";
 import { Dictionary } from "lodash";
 
 const getServices = (
-  graphNodes: Dictionary<IClientNodeItem>
+  graphNodes: Dictionary<IServiceNodeItem>
 ): ISaturatedService[] => {
   const ret: ISaturatedService[] = [];
   for (const [, value] of Object.entries(graphNodes)) {

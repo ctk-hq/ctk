@@ -2,14 +2,14 @@ import { FC, useState, useEffect } from "react";
 import { Dictionary, values } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import eventBus from "../../events/eventBus";
-import { IGraphData, CallbackFunction, IClientNodeItem } from "../../types";
+import { IGraphData, CallbackFunction, IServiceNodeItem } from "../../types";
 import { useJsPlumb } from "../useJsPlumb";
 import Node from "./node";
 
 const CANVAS_ID: string = "canvas-container-" + uuidv4();
 
 interface ICanvasProps {
-  nodes: Dictionary<IClientNodeItem>;
+  nodes: Dictionary<IServiceNodeItem>;
   connections: any;
   canvasPosition: any;
   onNodeUpdate: CallbackFunction;
