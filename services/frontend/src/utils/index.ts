@@ -15,7 +15,8 @@ import {
   IClientNodeItem,
   INodeLibraryItem,
   INodeGroup,
-  ICanvasConfig
+  ICanvasConfig,
+  INetworkTopLevel
 } from "../types";
 
 export function ensure<T>(
@@ -171,6 +172,13 @@ export const getNodeKeyFromConnectionId = (uuid: string) => {
   const key = uuid.substr(uuid.lastIndexOf("_") + 1);
   return key;
 };
+
+export const topLevelNetworkConfigInitialValues =
+  (): Partial<INetworkTopLevel> => {
+    return {
+      name: "unnamed"
+    };
+  };
 
 export const canvasConfigInitialValues = (): ICanvasConfig => {
   return {
