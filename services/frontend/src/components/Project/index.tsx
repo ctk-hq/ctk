@@ -33,6 +33,7 @@ import Spinner from "../global/Spinner";
 import ModalConfirmDelete from "../Modal/ConfirmDelete";
 import ModalServiceCreate from "../Modal/Service/Create";
 import ModalServiceEdit from "../Modal/Service/Edit";
+import ModalNetwork from "../Modal/Network";
 import CodeEditor from "../CodeEditor";
 
 export default function Project() {
@@ -276,6 +277,10 @@ export default function Project() {
     if (!error) {
       return (
         <>
+          {showNetworksModal ? (
+            <ModalNetwork onHide={() => setShowNetworksModal(false)} />
+          ) : null}
+
           {showModalCreateService ? (
             <ModalServiceCreate
               onHide={() => setShowModalCreateService(false)}

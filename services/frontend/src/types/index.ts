@@ -2,6 +2,8 @@ import { AnchorId } from "@jsplumb/common";
 import { Dictionary } from "lodash";
 import { NodeGroupType } from "./enums";
 
+type NetworkImapConfig = "subnet";
+
 type KeyValPair = {
   [x: string]: string | number;
 };
@@ -93,6 +95,31 @@ export interface IVolume {
     size: string | number;
   };
   consistency: string;
+}
+
+export interface INetworkTopLevel {
+  driver: string;
+  driver_opts: KeyValPair;
+  attachable: boolean;
+  enable_ipv6: boolean;
+  ipam: {
+    driver: string;
+    config: {
+      subnet: string;
+      ip_range: string;
+      gateway: string;
+      aux_addresses: {
+        host1: string;
+        host2: string;
+        host3: string;
+      };
+    }[];
+    options: KeyValPair;
+  };
+  internal: boolean;
+  labels: string[] | KeyValPair;
+  external: boolean;
+  name: string;
 }
 
 export interface IService {
