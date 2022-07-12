@@ -3,18 +3,18 @@ import { INodeGroup } from "../../types";
 
 export const nodeLibraries: INodeGroup[] = [
   {
-    Id: 1,
-    Name: NodeGroupType.Services,
-    Description: "Services",
-    NodeTypes: [
+    id: 1,
+    name: NodeGroupType.Services,
+    description: "Services",
+    nodeTypes: [
       {
-        Id: 1,
-        Name: "service",
-        Type: "SERVICE",
-        Description: "Service node",
-        NoInputs: 1,
-        NoOutputs: 1,
-        IsActive: true
+        id: 1,
+        name: "service",
+        type: "SERVICE",
+        description: "Service node",
+        noInputs: 1,
+        noOutputs: 1,
+        isActive: true
       }
     ]
   }

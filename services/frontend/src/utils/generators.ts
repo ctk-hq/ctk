@@ -1,14 +1,14 @@
-import { IClientNodeItem, IService, IGeneratePayload } from "../types";
+import { IClientNodeItem, IGeneratePayload, ISaturatedService } from "../types";
 import { Dictionary } from "lodash";
 
-const getServices = (graphNodes: Dictionary<IClientNodeItem>): IService[] => {
-  const ret: IService[] = [];
+const getServices = (
+  graphNodes: Dictionary<IClientNodeItem>
+): ISaturatedService[] => {
+  const ret: ISaturatedService[] = [];
   for (const [, value] of Object.entries(graphNodes)) {
     ret.push({
-      name: value.configuration.name,
-      labels: {
-        key: value.key
-      }
+      ...value.canvasConfig,
+      ...value.serviceConfig
     });
   }
 

@@ -26,3 +26,4 @@ $ cd services/frontend && npm run start
 ## Docs
 
 - https://docs.jsplumbtoolkit.com/community/
+- https://github.com/compose-spec/compose-spec/blob/master/spec.md

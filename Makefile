@@ -41,9 +41,7 @@ shell_server:
 frontend_build:
 	@ cd ./services/frontend/src && npm install && npm run build
 
-local_setup: frontend_build up
-	@ echo "Waiting for PostgreSQL..." \
-	&& sleep 5 \
-	&& docker exec -it ${CONTAINER} python /home/server/manage.py makemigrations \
+local_server_init:
+	docker exec -it ${CONTAINER} python /home/server/manage.py makemigrations \
 	&& docker exec -it ${CONTAINER} python /home/server/manage.py migrate \
-	&& docker exec -it ${BACKEND_CONTAINER_NAME} python /home/server/manage.py collectstatic --noinput
+	&& docker exec -it ${CONTAINER} python /home/server/manage.py collectstatic --noinput

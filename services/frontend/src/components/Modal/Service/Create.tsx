@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { useFormik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
-import { serviceInitialValues, formatName } from "../../../utils";
+import General from "./General";
+import Environment from "./Environment";
+import Volumes from "./Volumes";
+import Labels from "./Labels";
+import { canvasConfigInitialValues } from "../../../utils";
 import { CallbackFunction } from "../../../types";
 
 interface IModalServiceProps {
@@ -10,10 +15,15 @@ interface IModalServiceProps {
 
 const ModalServiceCreate = (props: IModalServiceProps) => {
   const { onHide, onAddEndpoint } = props;
+  const [openTab, setOpenTab] = useState("General");
+
   const formik = useFormik({
     initialValues: {
-      configuration: {
-        ...serviceInitialValues()
+      canvasConfig: {
+        ...canvasConfigInitialValues()
+      },
+      serviceConfig: {
+        container_name: ""
       },
       key: "service",
       type: "SERVICE",
@@ -23,6 +33,35 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
     },
     onSubmit: () => undefined
   });
+  const tabs = [
+    {
+      name: "General",
+      href: "#",
+      current: true,
+      hidden: false
+    },
+    {
+      name: "Environment",
+      href: "#",
+      current: false,
+      hidden: false
+    },
+    {
+      name: "Volumes",
+      href: "#",
+      current: false,
+      hidden: false
+    },
+    {
+      name: "Labels",
+      href: "#",
+      current: false,
+      hidden: false
+    }
+  ];
+  const classNames = (...classes: string[]) => {
+    return classes.filter(Boolean).join(" ");
+  };
 
   return (
     <div className="fixed z-50 inset-0 overflow-y-auto">
@@ -45,49 +84,41 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
               </button>
             </div>
 
-            <div className="relative px-4 py-3 flex-auto">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-3">
-                  <label
-                    htmlFor="prettyName"
-                    className="block text-xs font-medium text-gray-700"
-                  >
-                    Name
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="prettyName"
-                      name="configuration.prettyName"
-                      type="text"
-                      autoComplete="none"
-                      className="input-util"
-                      onChange={formik.handleChange}
-                      value={formik.values.configuration.prettyName}
-                    />
-                  </div>
+            <div>
+              <div className="hidden sm:block">
+                <div className="border-b border-gray-200 px-8">
+                  <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                    {tabs.map((tab) => (
+                      <a
+                        key={tab.name}
+                        href={tab.href}
+                        className={classNames(
+                          tab.name === openTab
+                            ? "border-indigo-500 text-indigo-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+                          "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
+                          tab.hidden ? "hidden" : ""
+                        )}
+                        aria-current={tab.current ? "page" : undefined}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setOpenTab(tab.name);
+                        }}
+                      >
+                        {tab.name}
+                      </a>
+                    ))}
+                  </nav>
                 </div>
               </div>
 
-              <div className="mt-2">
-                <div className="col-span-3">
-                  <label
-                    htmlFor="template"
-                    className="block text-xs font-medium text-gray-700"
-                  >
-                    Template
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="template"
-                      name="configuration.template"
-                      type="text"
-                      autoComplete="none"
-                      className="input-util"
-                      onChange={formik.handleChange}
-                      value={formik.values.configuration.template}
-                    />
-                  </div>
-                </div>
+              <div className="relative px-4 py-3 flex-auto">
+                <form onSubmit={formik.handleSubmit}>
+                  {openTab === "General" && <General formik={formik} />}
+                  {openTab === "Environment" && <Environment formik={formik} />}
+                  {openTab === "Volumes" && <Volumes formik={formik} />}
+                  {openTab === "Labels" && <Labels formik={formik} />}
+                </form>
               </div>
             </div>
 
@@ -96,9 +127,6 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                 className="btn-util"
                 type="button"
                 onClick={() => {
-                  formik.values.configuration.name = formatName(
-                    formik.values.configuration.prettyName
-                  );
                   onAddEndpoint(formik.values);
                   formik.resetForm();
                 }}

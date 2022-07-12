@@ -47,10 +47,10 @@ const ModalConfirmDelete = (props: IModalConfirmDeleteProps) => {
               </div>
             </div>
 
-            <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 items-center justify-end px-4 py-3 border-t border-solid border-gray-200 rounded-b">
               <button
                 type="button"
-                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-3 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm"
+                className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-3 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto sm:text-sm"
                 onClick={onHide}
               >
                 Cancel
@@ -58,7 +58,7 @@ const ModalConfirmDelete = (props: IModalConfirmDeleteProps) => {
 
               <button
                 type="button"
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-1 bg-red-600 text-sm font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-1 bg-red-600 text-sm font-medium text-white hover:bg-red-700 sm:w-auto sm:text-sm"
                 onClick={() => {
                   onHide();
                   onConfirm();

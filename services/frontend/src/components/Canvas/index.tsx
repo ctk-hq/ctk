@@ -1,15 +1,15 @@
 import { FC, useState, useEffect } from "react";
-import { values } from "lodash";
+import { Dictionary, values } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import eventBus from "../../events/eventBus";
 import { Popover } from "./Popover";
-import { IGraphData, CallbackFunction } from "../../types";
+import { IGraphData, CallbackFunction, IClientNodeItem } from "../../types";
 import { useJsPlumb } from "../useJsPlumb";
 
 const CANVAS_ID: string = "canvas-container-" + uuidv4();
 
 interface ICanvasProps {
-  nodes: any;
+  nodes: Dictionary<IClientNodeItem>;
   connections: any;
   canvasPosition: any;
   onNodeUpdate: CallbackFunction;
@@ -200,11 +200,11 @@ export const Canvas: FC<ICanvasProps> = (props) => {
                   ></Popover>
                 )}
                 <div className="node-label w-full py-2 px-4">
-                  <div className="text-sm font-semibold">
-                    {x.configuration.prettyName}
+                  <div className="text-sm font-semibold overflow-x-hidden">
+                    {x.canvasConfig.service_name}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {x.configuration.prettyName}
+                  <div className="text-xs text-gray-500 overflow-x-hidden">
+                    {x.serviceConfig?.container_name}
                   </div>
                 </div>
               </div>
