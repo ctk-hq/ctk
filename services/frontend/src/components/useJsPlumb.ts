@@ -28,12 +28,12 @@ import {
 } from "../utils/options";
 import eventBus from "../events/eventBus";
 import { getConnections } from "../utils";
-import { IClientNodeItem } from "../types";
+import { IServiceNodeItem } from "../types";
 import { Dictionary, isEqual } from "lodash";
 import { IAnchor, CallbackFunction } from "../types";
 
 export const useJsPlumb = (
-  nodes: Dictionary<IClientNodeItem>,
+  nodes: Dictionary<IServiceNodeItem>,
   connections: Array<[string, string]>,
   onGraphUpdate: CallbackFunction,
   onNodeUpdate: CallbackFunction,
@@ -43,11 +43,11 @@ export const useJsPlumb = (
   (containerElement: HTMLDivElement) => void,
   (zoom: number) => void,
   (style: any) => void,
-  (node: IClientNodeItem) => void
+  (node: IServiceNodeItem) => void
 ] => {
   const [instance, setInstance] = useState<BrowserJsPlumbInstance>(null as any);
   const containerRef = useRef<HTMLDivElement>();
-  const stateRef = useRef<Dictionary<IClientNodeItem>>();
+  const stateRef = useRef<Dictionary<IServiceNodeItem>>();
   const instanceRef = useRef<BrowserJsPlumbInstance>();
   stateRef.current = nodes;
   instanceRef.current = instance;
