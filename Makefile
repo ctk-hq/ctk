@@ -29,9 +29,6 @@ down_clean : down
 reset : down
 	make up
 
-run_server : validate
-	docker-compose run $(CONTAINER) -c "cd /home/server/ && python manage.py runserver 0.0.0.0:9001"
-
 dev_server :
 	docker exec -ti $(CONTAINER) python /home/server/manage.py runserver 0.0.0.0:9001
 
