@@ -39,3 +39,4 @@ make dev_server
 
 - https://docs.jsplumbtoolkit.com/community/
 - https://github.com/compose-spec/compose-spec/blob/master/spec.md
+- https://docs.docker.com/compose/compose-file/
