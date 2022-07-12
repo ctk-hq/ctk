@@ -175,7 +175,7 @@ export default function Project() {
           })
           .catch(() => undefined)
           .finally(() => undefined);
-      }, 450),
+      }, 600),
     []
   );
 
