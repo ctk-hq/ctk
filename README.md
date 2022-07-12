@@ -9,9 +9,10 @@ On a Mac/Linux/Windows you need Docker, Docker Compose installed. Optionally GCC
 To get the tool working locally,  just run:
 
 ```shell script
-$ make local_setup
-$ make run_server
-$ cd services/frontend && npm run start
+make up
+make local_server_init
+make dev_server
+cd services/frontend && npm i && npm run start
 ```
 
 ... this command will bring up the backend, the database, sync migrations,
