@@ -13,25 +13,10 @@ import {
 import { LOCAL_STORAGE } from "../constants";
 import {
   IClientNodeItem,
-  IServiceNodeItem,
   INodeLibraryItem,
   INodeGroup,
-  IContainer
+  ICanvasConfig
 } from "../types";
-
-interface IConf {
-  prettyName: string;
-  name: string;
-  description: string;
-  type: string;
-  container?: IContainer;
-}
-
-interface IServiceConf {
-  prettyName: string;
-  name: string;
-  template: string;
-}
 
 export function ensure<T>(
   argument: T | undefined | null,
@@ -44,8 +29,8 @@ export function ensure<T>(
   return argument;
 }
 
-export const parseSingleNode = (configurationStr: string): IServiceNodeItem => {
-  let node: IServiceNodeItem = {} as IServiceNodeItem;
+export const parseSingleNode = (configurationStr: string): IClientNodeItem => {
+  let node: IClientNodeItem = {} as IClientNodeItem;
   const configurationObj = JSON.parse(configurationStr);
 
   if (isPlainObject(configurationObj)) {
@@ -62,8 +47,8 @@ export const formatName = (name: string): string => {
 
 export const parseConfiguration = (
   configurationStr: string
-): IServiceNodeItem[] => {
-  let nodes: IServiceNodeItem[] = [];
+): IClientNodeItem[] => {
+  let nodes: IClientNodeItem[] = [];
   const configurationObj = JSON.parse(configurationStr);
 
   if (isPlainObject(configurationObj)) {
@@ -86,7 +71,7 @@ export const parseConfiguration = (
 export const flattenLibraries = (
   sections: INodeGroup[]
 ): INodeLibraryItem[] => {
-  return flattenDeep(sections.map((x) => x.NodeTypes));
+  return flattenDeep(sections.map((x) => x.nodeTypes));
 };
 
 const getEndPointUuids = (
@@ -120,21 +105,16 @@ export const attachUUID = (key: string): string => {
 };
 
 export const getClientNodeItem = (
-  nodeItem: IServiceNodeItem,
+  nodeItem: IClientNodeItem,
   library: INodeLibraryItem
 ): IClientNodeItem => {
   const uniqueKey = attachUUID(nodeItem.key);
 
   return {
+    ...nodeItem,
     key: uniqueKey,
-    type: nodeItem.type,
-    position: nodeItem.position,
-    inputs: getEndPointUuids(uniqueKey, "ip", library.NoInputs),
-    configuration: {
-      ...nodeItem.configuration,
-      name: formatName(nodeItem.configuration.prettyName)
-    },
-    outputs: getEndPointUuids(uniqueKey, "op", library.NoOutputs)
+    inputs: getEndPointUuids(uniqueKey, "ip", library.noInputs),
+    outputs: getEndPointUuids(uniqueKey, "op", library.noOutputs)
   };
 };
 
@@ -169,7 +149,7 @@ export const getConnections = (
 };
 
 export const getClientNodesAndConnections = (
-  nodeItems: IServiceNodeItem[],
+  nodeItems: IClientNodeItem[],
   sections: INodeGroup[]
 ): Dictionary<IClientNodeItem> => {
   if (!Array.isArray(nodeItems) || !Array.isArray(sections)) {
@@ -180,7 +160,7 @@ export const getClientNodesAndConnections = (
   const clientItems = nodeItems.map((x) => {
     return getClientNodeItem(
       x,
-      ensure(libraries.find((l) => l.Type === x.type))
+      ensure(libraries.find((l) => l.type === x.type))
     );
   });
 
@@ -192,25 +172,9 @@ export const getNodeKeyFromConnectionId = (uuid: string) => {
   return key;
 };
 
-export const initialValues = (): IConf => {
+export const canvasConfigInitialValues = (): ICanvasConfig => {
   return {
-    prettyName: "Unnamed",
-    name: "unnamed",
-    description: "",
-    type: "",
-    container: {
-      name: "",
-      image: "",
-      imagePullPolicy: ""
-    }
-  };
-};
-
-export const serviceInitialValues = (): IServiceConf => {
-  return {
-    prettyName: "Unnamed",
-    name: "unnamed",
-    template: ""
+    service_name: "unnamed"
   };
 };
 

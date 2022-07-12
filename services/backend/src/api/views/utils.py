@@ -10,7 +10,9 @@ import docker
 from better_profanity import profanity
 
 from ruamel.yaml import YAML
-from ruamel.yaml.scalarstring import SingleQuotedScalarString, DoubleQuotedScalarString
+from ruamel.yaml.scalarstring import (
+    SingleQuotedScalarString,
+    DoubleQuotedScalarString)
 
 from api.models import Project
 
@@ -18,7 +20,7 @@ from api.models import Project
 try:
     import textwrap
     textwrap.indent
-except AttributeError:  # undefined function (wasn't added until Python 3.3)
+except AttributeError:
     def indent(text, amount, ch=' '):
         padding = amount * ch
         return ''.join(padding+line for line in text.splitlines(True))
@@ -267,32 +269,31 @@ def format_build(specified_version, build):
         return build_str
 
     for _key, _val in build.items():
-        if _key in ['args', 'cache_from', 'labels']:
-            if _val:
+        if _val:
+            if _key in ['args', 'cache_from', 'labels']:
                 ret[_key] = format_key_val_pairs(_val)
-        else:
-            if _val:
+            else:
                 ret[_key] = _val
 
     return ret
 
 
-def _remove_missing_and_underscored_keys(d):
-    if not d: return d
-    for key in list(d.keys()):
-        if isinstance(d[key], list):
-            d[key] = list(filter(None, d[key]))
-        if not d.get(key):
-            del d[key]
-        elif isinstance(d[key], dict):
-            d[key] = _remove_missing_and_underscored_keys(d[key])
-            if d[key] is None or d[key] == {}:
-                del d[key]
+def _remove_missing_and_underscored_keys(str):
+    if not str: return str
+    for key in list(str.keys()):
+        if isinstance(str[key], list):
+            str[key] = list(filter(None, str[key]))
+        if not str.get(key):
+            del str[key]
+        elif isinstance(str[key], dict):
+            str[key] = _remove_missing_and_underscored_keys(str[key])
+            if str[key] is None or str[key] == {}:
+                del str[key]
 
-    return d
+    return str
 
 
-def format_deploy(specified_version, deploy):
+def format_deploy(deploy):
     ret = deploy
 
     with contextlib.suppress(Exception):
@@ -418,7 +419,7 @@ def format_services_version_three(specified_version, services, connections, volu
             if connected_services := get_connected_services(service_key, connections, services):
               service_formatted['depends_on'] = []
               for connected_service in connected_services:
-                service_formatted['depends_on'].append(f"{connected_service['name']}")
+                service_formatted['depends_on'].append(f"{connected_service['service_name']}")
         with contextlib.suppress(KeyError):
             if service['container_name']:
                 service_formatted['container_name'] = service['container_name']
@@ -458,9 +459,9 @@ def format_services_version_three(specified_version, services, connections, volu
                 service_formatted['build'] = build
         if int(float(specified_version)) >= 3:
             with contextlib.suppress(KeyError):
-                if deploy := format_deploy(specified_version, service['deploy']):
+                if deploy := format_deploy(service['deploy']):
                     service_formatted['deploy'] = deploy
-        services_formatted[service['name']] = service_formatted
+        services_formatted[service['service_name']] = service_formatted
 
     return services_formatted
 
@@ -534,9 +535,7 @@ def generate(cname):
         sys.exit(1)
 
     cattrs = c.containers.get(cid).attrs
-    cfile = {}
-    networks = {}
-    cfile[cattrs['Name'][1:]] = {}
+    cfile = {cattrs['Name'][1:]: {}}
     ct = cfile[cattrs['Name'][1:]]
 
     values = {
@@ -580,9 +579,7 @@ def generate(cname):
     }
 
     networklist = c.networks.list()
-    for network in networklist:
-        if network.attrs['Name'] in values['networks'].keys():
-            networks[network.attrs['Name']] = {'external': (not network.attrs['Internal'])}
+    networks = {network.attrs['Name']: {'external': (not network.attrs['Internal'])} for network in networklist if network.attrs['Name'] in values['networks'].keys()}
 
     # Check for command and add it if present.
     if cattrs['Config']['Cmd'] != None:

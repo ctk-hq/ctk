@@ -208,7 +208,7 @@ export default function Project() {
     const sections = flattenLibraries(nodeLibraries);
     const clientNodeItem = getClientNodeItem(
       values,
-      ensure(sections.find((l) => l.Type === values.type))
+      ensure(sections.find((l) => l.type === values.type))
     );
     clientNodeItem.position = { left: 60, top: 30 };
     setNodes({ ...nodes, [clientNodeItem.key]: clientNodeItem });
