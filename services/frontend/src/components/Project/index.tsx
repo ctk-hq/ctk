@@ -34,6 +34,7 @@ import ModalConfirmDelete from "../Modal/ConfirmDelete";
 import ModalServiceCreate from "../Modal/Service/Create";
 import ModalServiceEdit from "../Modal/Service/Edit";
 import ModalNetwork from "../Modal/Network";
+import ModalVolume from "../Modal/Volume";
 import CodeEditor from "../CodeEditor";
 
 export default function Project() {
@@ -281,6 +282,10 @@ export default function Project() {
             <ModalNetwork onHide={() => setShowNetworksModal(false)} />
           ) : null}
 
+          {showVolumesModal ? (
+            <ModalVolume onHide={() => setShowVolumesModal(false)} />
+          ) : null}
+
           {showModalCreateService ? (
             <ModalServiceCreate
               onHide={() => setShowModalCreateService(false)}
@@ -391,19 +396,23 @@ export default function Project() {
                         <PlusIcon className="w-3" />
                         <span>Service</span>
                       </button>
+
                       <button
-                        className="btn-util"
+                        className="flex space-x-1 btn-util"
                         type="button"
                         onClick={() => setShowVolumesModal(true)}
                       >
-                        Volumes
+                        <PlusIcon className="w-3" />
+                        <span>Volume</span>
                       </button>
+
                       <button
-                        className="btn-util"
+                        className="flex space-x-1 btn-util"
                         type="button"
                         onClick={() => setShowNetworksModal(true)}
                       >
-                        Networks
+                        <PlusIcon className="w-3" />
+                        <span>Network</span>
                       </button>
                     </div>
                   </div>
