@@ -15,6 +15,15 @@ export const nodeLibraries: INodeGroup[] = [
         noInputs: 1,
         noOutputs: 1,
         isActive: true
+      },
+      {
+        id: 2,
+        name: "volume",
+        type: "VOLUME",
+        description: "Volume node",
+        noInputs: 0,
+        noOutputs: 0,
+        isActive: true
       }
     ]
   }
