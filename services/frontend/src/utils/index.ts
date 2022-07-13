@@ -188,7 +188,7 @@ export const topLevelNetworkConfigInitialValues =
     };
   };
 
-export const canvasConfigInitialValues = (): ICanvasConfig => {
+export const serviceConfigCanvasInitialValues = (): ICanvasConfig => {
   return {
     service_name: "unnamed"
   };

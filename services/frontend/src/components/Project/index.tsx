@@ -6,6 +6,7 @@ import { PlusIcon } from "@heroicons/react/solid";
 import {
   IProjectPayload,
   IServiceNodeItem,
+  IVolumeNodeItem,
   IServiceNodePosition,
   IProject
 } from "../../types";
@@ -34,14 +35,16 @@ import ModalConfirmDelete from "../Modal/ConfirmDelete";
 import ModalServiceCreate from "../Modal/Service/Create";
 import ModalServiceEdit from "../Modal/Service/Edit";
 import ModalNetwork from "../Modal/Network";
-import ModalVolume from "../Modal/Volume";
+import ModalVolumeCreate from "../Modal/Volume/Create";
+import ModalVolumeEdit from "../Modal/Volume/Edit";
 import CodeEditor from "../CodeEditor";
 
 export default function Project() {
   const { uuid } = useParams<{ uuid: string }>();
   const { height } = useWindowDimensions();
   const { data, error, isFetching } = useProject(uuid);
-  const stateNodesRef = useRef<Dictionary<IServiceNodeItem>>();
+  const stateNodesRef =
+    useRef<Dictionary<IServiceNodeItem | IVolumeNodeItem>>();
   const stateConnectionsRef = useRef<[[string, string]] | []>();
 
   const [generatedCode, setGeneratedCode] = useState<string>();
@@ -49,8 +52,15 @@ export default function Project() {
   const [showModalCreateService, setShowModalCreateService] = useState(false);
   const [showVolumesModal, setShowVolumesModal] = useState(false);
   const [showNetworksModal, setShowNetworksModal] = useState(false);
-  const [nodeForEdit, setNodeForEdit] = useState<IServiceNodeItem | null>(null);
-  const [nodeForDelete, setNodeForDelete] = useState<IServiceNodeItem | null>(
+  const [serviceToEdit, setServiceToEdit] = useState<IServiceNodeItem | null>(
+    null
+  );
+  const [serviceToDelete, setServiceToDelete] =
+    useState<IServiceNodeItem | null>(null);
+  const [volumeToEdit, setVolumeToEdit] = useState<IVolumeNodeItem | null>(
+    null
+  );
+  const [volumeToDelete, setVolumeToDelete] = useState<IVolumeNodeItem | null>(
     null
   );
   const [language, setLanguage] = useState("yaml");
@@ -255,7 +265,7 @@ export default function Project() {
     }
   };
 
-  const onRemoveEndpoint = (node: IServiceNodeItem) => {
+  const onRemoveEndpoint = (node: IServiceNodeItem | IVolumeNodeItem) => {
     setNodes({ ...omit(nodes, node.key) });
     eventBus.dispatch("NODE_DELETED", { message: { node: node } });
   };
@@ -283,7 +293,10 @@ export default function Project() {
           ) : null}
 
           {showVolumesModal ? (
-            <ModalVolume onHide={() => setShowVolumesModal(false)} />
+            <ModalVolumeCreate
+              onHide={() => setShowVolumesModal(false)}
+              onAddEndpoint={(values: any) => onAddEndpoint(values)}
+            />
           ) : null}
 
           {showModalCreateService ? (
@@ -293,20 +306,38 @@ export default function Project() {
             />
           ) : null}
 
-          {nodeForEdit ? (
+          {serviceToEdit ? (
             <ModalServiceEdit
-              node={nodeForEdit}
-              onHide={() => setNodeForEdit(null)}
+              node={serviceToEdit}
+              onHide={() => setServiceToEdit(null)}
               onUpdateEndpoint={(values: any) => onUpdateEndpoint(values)}
             />
           ) : null}
 
-          {nodeForDelete ? (
+          {serviceToDelete ? (
             <ModalConfirmDelete
-              onHide={() => setNodeForDelete(null)}
+              onHide={() => setServiceToDelete(null)}
               onConfirm={() => {
-                onRemoveEndpoint(nodeForDelete);
-                setNodeForDelete(null);
+                onRemoveEndpoint(serviceToDelete);
+                setServiceToDelete(null);
+              }}
+            />
+          ) : null}
+
+          {volumeToEdit ? (
+            <ModalVolumeEdit
+              node={volumeToEdit}
+              onHide={() => setVolumeToEdit(null)}
+              onUpdateEndpoint={(values: any) => onUpdateEndpoint(values)}
+            />
+          ) : null}
+
+          {volumeToDelete ? (
+            <ModalConfirmDelete
+              onHide={() => setServiceToDelete(null)}
+              onConfirm={() => {
+                onRemoveEndpoint(volumeToDelete);
+                setVolumeToDelete(null);
               }}
             />
           ) : null}
@@ -411,8 +442,7 @@ export default function Project() {
                         type="button"
                         onClick={() => setShowNetworksModal(true)}
                       >
-                        <PlusIcon className="w-3" />
-                        <span>Network</span>
+                        <span>Networks</span>
                       </button>
                     </div>
                   </div>
@@ -434,11 +464,17 @@ export default function Project() {
                     onConnectionDetached={(connectionData: any) =>
                       onConnectionDetached(connectionData)
                     }
-                    setNodeForEdit={(node: IServiceNodeItem) =>
-                      setNodeForEdit(node)
+                    setServiceToEdit={(node: IServiceNodeItem) =>
+                      setServiceToEdit(node)
                     }
-                    setNodeForDelete={(node: IServiceNodeItem) =>
-                      setNodeForDelete(node)
+                    setServiceToDelete={(node: IServiceNodeItem) =>
+                      setServiceToDelete(node)
+                    }
+                    setVolumeToEdit={(node: IVolumeNodeItem) =>
+                      setVolumeToEdit(node)
+                    }
+                    setVolumeToDelete={(node: IVolumeNodeItem) =>
+                      setVolumeToDelete(node)
                     }
                   />
                 </div>

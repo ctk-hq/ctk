@@ -2,14 +2,20 @@ import { FC, useState, useEffect } from "react";
 import { Dictionary, values } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import eventBus from "../../events/eventBus";
-import { IGraphData, CallbackFunction, IServiceNodeItem } from "../../types";
+import {
+  IGraphData,
+  CallbackFunction,
+  IServiceNodeItem,
+  IVolumeNodeItem
+} from "../../types";
 import { useJsPlumb } from "../useJsPlumb";
-import Node from "./node";
+import ServiceNode from "./ServiceNode";
+import VolumeNode from "./VolumeNode";
 
 const CANVAS_ID: string = "canvas-container-" + uuidv4();
 
 interface ICanvasProps {
-  nodes: Dictionary<IServiceNodeItem>;
+  nodes: Dictionary<IServiceNodeItem | IVolumeNodeItem>;
   connections: any;
   canvasPosition: any;
   onNodeUpdate: CallbackFunction;
@@ -17,8 +23,10 @@ interface ICanvasProps {
   onCanvasUpdate: CallbackFunction;
   onConnectionAttached: CallbackFunction;
   onConnectionDetached: CallbackFunction;
-  setNodeForEdit: CallbackFunction;
-  setNodeForDelete: CallbackFunction;
+  setServiceToEdit: CallbackFunction;
+  setServiceToDelete: CallbackFunction;
+  setVolumeToEdit: CallbackFunction;
+  setVolumeToDelete: CallbackFunction;
 }
 
 export const Canvas: FC<ICanvasProps> = (props) => {
@@ -31,8 +39,10 @@ export const Canvas: FC<ICanvasProps> = (props) => {
     onCanvasUpdate,
     onConnectionAttached,
     onConnectionDetached,
-    setNodeForEdit,
-    setNodeForDelete
+    setServiceToEdit,
+    setServiceToDelete,
+    setVolumeToEdit,
+    setVolumeToDelete
   } = props;
   const [dragging, setDragging] = useState(false);
   const [scale, setScale] = useState(1);
@@ -162,14 +172,31 @@ export const Canvas: FC<ICanvasProps> = (props) => {
               transform: `translate(${translateWidth}px, ${translateHeight}px) scale(${_scale})`
             }}
           >
-            {values(nodes).map((x) => (
-              <Node
-                key={x.key}
-                node={x}
-                setNodeForEdit={setNodeForEdit}
-                setNodeForDelete={setNodeForDelete}
-              />
-            ))}
+            {values(nodes).map((x) => {
+              if (x.type === "SERVICE") {
+                x = x as IServiceNodeItem;
+                return (
+                  <ServiceNode
+                    key={x.key}
+                    node={x}
+                    setServiceToEdit={setServiceToEdit}
+                    setServiceToDelete={setServiceToDelete}
+                  />
+                );
+              }
+
+              if (x.type === "VOLUME") {
+                x = x as IVolumeNodeItem;
+                return (
+                  <VolumeNode
+                    key={x.key}
+                    node={x}
+                    setVolumeToEdit={setVolumeToEdit}
+                    setVolumeToDelete={setVolumeToDelete}
+                  />
+                );
+              }
+            })}
           </div>
         </div>
       )}

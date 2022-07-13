@@ -1,22 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Labels from "./Labels";
 import { topLevelVolumeConfigInitialValues } from "../../../utils";
-import { CallbackFunction } from "../../../types";
+import {
+  CallbackFunction,
+  IVolumeNodeItem,
+  IVolumeTopLevel
+} from "../../../types";
 
-interface IModalVolume {
+interface IModalVolumeEdit {
+  node: IVolumeNodeItem;
   onHide: CallbackFunction;
+  onUpdateEndpoint: CallbackFunction;
 }
 
-const ModalVolume = (props: IModalVolume) => {
-  const { onHide } = props;
+const ModalVolumeEdit = (props: IModalVolumeEdit) => {
+  const { node, onHide, onUpdateEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
+  const [selectedNode, setSelectedNode] = useState<IVolumeNodeItem>();
 
   const formik = useFormik({
     initialValues: {
-      ...topLevelVolumeConfigInitialValues()
+      volumeConfig: {
+        ...topLevelVolumeConfigInitialValues()
+      }
     },
     onSubmit: () => undefined
   });
@@ -38,6 +47,28 @@ const ModalVolume = (props: IModalVolume) => {
     return classes.filter(Boolean).join(" ");
   };
 
+  useEffect(() => {
+    if (node) {
+      setSelectedNode(node);
+    }
+  }, [node]);
+
+  useEffect(() => {
+    formik.resetForm();
+
+    if (selectedNode) {
+      formik.initialValues.volumeConfig = {
+        ...selectedNode.volumeConfig
+      } as IVolumeTopLevel;
+    }
+  }, [selectedNode]);
+
+  useEffect(() => {
+    return () => {
+      formik.resetForm();
+    };
+  }, []);
+
   return (
     <div className="fixed z-50 inset-0 overflow-y-auto">
       <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none">
@@ -48,7 +79,9 @@ const ModalVolume = (props: IModalVolume) => {
         <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
             <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
-              <h3 className="text-sm font-semibold">Top level volumes</h3>
+              <h3 className="text-sm font-semibold">
+                Update top level volumes
+              </h3>
               <button
                 className="p-1 ml-auto text-black float-right outline-none focus:outline-none"
                 onClick={onHide}
@@ -100,10 +133,12 @@ const ModalVolume = (props: IModalVolume) => {
                 className="btn-util"
                 type="button"
                 onClick={() => {
-                  formik.resetForm();
+                  const updated = { ...selectedNode };
+                  updated.volumeConfig = formik.values.volumeConfig;
+                  onUpdateEndpoint(updated);
                 }}
               >
-                Add
+                Update
               </button>
             </div>
           </div>
@@ -113,4 +148,4 @@ const ModalVolume = (props: IModalVolume) => {
   );
 };
 
-export default ModalVolume;
+export default ModalVolumeEdit;

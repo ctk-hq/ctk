@@ -15,12 +15,12 @@ const General = (props: any) => {
             <div className="mt-1">
               <input
                 id="name"
-                name="name"
+                name="volumeConfig.name"
                 type="text"
                 autoComplete="none"
                 className="input-util"
                 onChange={formik.handleChange}
-                value={formik.values.name}
+                value={formik.values.volumeConfig.name}
               />
             </div>
           </div>

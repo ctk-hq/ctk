@@ -5,7 +5,7 @@ import General from "./General";
 import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
-import { canvasConfigInitialValues } from "../../../utils";
+import { serviceConfigCanvasInitialValues } from "../../../utils";
 import { CallbackFunction } from "../../../types";
 
 interface IModalServiceProps {
@@ -20,7 +20,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
   const formik = useFormik({
     initialValues: {
       canvasConfig: {
-        ...canvasConfigInitialValues()
+        ...serviceConfigCanvasInitialValues()
       },
       serviceConfig: {
         container_name: ""
