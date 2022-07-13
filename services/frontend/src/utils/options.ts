@@ -28,7 +28,7 @@ export const sourceEndpoint: EndpointOptions = {
   endpoint: {
     type: DotEndpoint.type,
     options: {
-      radius: 6
+      radius: 8
     }
   },
   paintStyle: {

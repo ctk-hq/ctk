@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { AnchorId } from "@jsplumb/common";
+import { AnchorId, AnchorLocations } from "@jsplumb/common";
 import {
   BeforeDropParams,
   Connection,
@@ -28,12 +28,12 @@ import {
 } from "../utils/options";
 import eventBus from "../events/eventBus";
 import { getConnections } from "../utils";
-import { IServiceNodeItem } from "../types";
+import { IServiceNodeItem, IVolumeNodeItem } from "../types";
 import { Dictionary, isEqual } from "lodash";
 import { IAnchor, CallbackFunction } from "../types";
 
 export const useJsPlumb = (
-  nodes: Dictionary<IServiceNodeItem>,
+  nodes: Dictionary<IServiceNodeItem | IVolumeNodeItem>,
   connections: Array<[string, string]>,
   onGraphUpdate: CallbackFunction,
   onNodeUpdate: CallbackFunction,
@@ -47,7 +47,7 @@ export const useJsPlumb = (
 ] => {
   const [instance, setInstance] = useState<BrowserJsPlumbInstance>(null as any);
   const containerRef = useRef<HTMLDivElement>();
-  const stateRef = useRef<Dictionary<IServiceNodeItem>>();
+  const stateRef = useRef<Dictionary<IServiceNodeItem | IVolumeNodeItem>>();
   const instanceRef = useRef<BrowserJsPlumbInstance>();
   stateRef.current = nodes;
   instanceRef.current = instance;
@@ -65,12 +65,15 @@ export const useJsPlumb = (
       targetAnchors: IAnchor[],
       maxConnections: number
     ) => {
+      if (sourceAnchors.length === 0 && targetAnchors.length === 0) {
+        instance.addEndpoint(el, {
+          endpoint: "Blank"
+        });
+      }
+
       sourceAnchors.forEach((x) => {
         const endpoint = sourceEndpoint;
         endpoint.maxConnections = maxConnections;
-
-        // arrow overlay for connector to specify
-        // it's dependency on another service
         instance.addEndpoint(el, endpoint, {
           anchor: [
             [1, 0.6, 1, 0],
@@ -83,8 +86,8 @@ export const useJsPlumb = (
             {
               type: "PlainArrow",
               options: {
-                width: 16,
-                length: 16,
+                width: 12,
+                length: 12,
                 location: 1,
                 id: "arrow"
               }
@@ -96,14 +99,8 @@ export const useJsPlumb = (
       targetAnchors.forEach((x) => {
         const endpoint = targetEndpoint;
         endpoint.maxConnections = maxConnections;
-
         instance.addEndpoint(el, endpoint, {
-          anchor: [
-            [0, 0.4, -1, 0],
-            [0.4, 1, 0, 1],
-            [1, 0.4, 1, 0],
-            [0.4, 0, 0, -1]
-          ],
+          anchor: AnchorLocations.AutoDefault,
           uuid: x.id
         });
       });

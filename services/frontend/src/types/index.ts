@@ -335,6 +335,12 @@ export interface IServiceNodeItem extends INodeItem {
   serviceConfig: Partial<IService>;
 }
 
+export interface IVolumeNodeItem extends INodeItem {
+  outputs: string[];
+  canvasConfig: ICanvasConfig;
+  volumeConfig: Partial<IVolumeTopLevel>;
+}
+
 export interface IProjectPayload {
   name: string;
   data: {
