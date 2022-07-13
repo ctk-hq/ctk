@@ -5,12 +5,12 @@ import { Popover } from "./Popover";
 
 interface INodeProps {
   node: IServiceNodeItem;
-  setNodeForEdit: CallbackFunction;
-  setNodeForDelete: CallableFunction;
+  setServiceToEdit: CallbackFunction;
+  setServiceToDelete: CallableFunction;
 }
 
-export default function Node(props: INodeProps) {
-  const { node, setNodeForEdit, setNodeForDelete } = props;
+export default function ServiceNode(props: INodeProps) {
+  const { node, setServiceToEdit, setServiceToDelete } = props;
   const [nodeDragging, setNodeDragging] = useState<string | null>();
   const [nodeHovering, setNodeHovering] = useState<string | null>();
 
@@ -45,20 +45,22 @@ export default function Node(props: INodeProps) {
       {nodeHovering === node.key && nodeDragging !== node.key && (
         <Popover
           onEditClick={() => {
-            setNodeForEdit(node);
+            setServiceToEdit(node);
           }}
           onDeleteClick={() => {
-            setNodeForDelete(node);
+            setServiceToDelete(node);
           }}
         ></Popover>
       )}
       <div className="node-label w-full py-2 px-4">
-        <div className="text-sm font-semibold overflow-x-hidden">
-          {node.canvasConfig.service_name}
-        </div>
-        <div className="text-xs text-gray-500 overflow-x-hidden">
-          {node.serviceConfig?.container_name}
-        </div>
+        <>
+          <div className="text-sm font-semibold overflow-x-hidden">
+            {node.canvasConfig.service_name}
+          </div>
+          <div className="text-xs text-gray-500 overflow-x-hidden">
+            {node.serviceConfig.container_name}
+          </div>
+        </>
       </div>
     </div>
   );
