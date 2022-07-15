@@ -5,22 +5,22 @@ VERSION = 0.1.0
 .PHONY : validate build pull up down down_clean reset run backend_dev shell_server shell_nginx local_setup local_build
 
 validate :
-	docker-compose config
+	docker compose config
 
 build : validate
-	docker-compose build
+	docker compose build
 
 pull :
-	docker-compose pull
+	docker compose pull
 
 up :
-	docker-compose up -d
+	docker compose up -d
 
 up_local :
-	docker-compose up -d --no-build
+	docker compose up -d --no-build
 
 down :
-	docker-compose down
+	docker compose down
 
 down_clean : down
 	-docker volume rm ctk_postgres_data
