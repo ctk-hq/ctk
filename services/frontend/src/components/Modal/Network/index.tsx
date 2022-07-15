@@ -71,9 +71,7 @@ const ModalNetwork = (props: IModalNetworkProps) => {
 
             <Formik
               initialValues={{
-                initialValues: {
-                  ...topLevelNetworkConfigInitialValues()
-                },
+                ...topLevelNetworkConfigInitialValues(),
                 key: "volume",
                 type: "VOLUME",
                 inputs: [],

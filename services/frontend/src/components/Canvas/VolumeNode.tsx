@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { truncateStr } from "../../utils";
 import { IVolumeNodeItem, CallbackFunction } from "../../types";
 import eventBus from "../../events/eventBus";
 import { Popover } from "./Popover";
@@ -54,9 +55,11 @@ export default function VolumeNode(props: INodeProps) {
       )}
       <div className="node-label w-full py-2 px-4">
         <>
-          <div className="text-xs text-gray-500 overflow-x-hidden">
-            {node.volumeConfig.name}
-          </div>
+          {node.volumeConfig.name && (
+            <div className="text-sm font-semibold overflow-x-hidden">
+              {truncateStr(node.volumeConfig.name, 10)}
+            </div>
+          )}
         </>
       </div>
     </div>
