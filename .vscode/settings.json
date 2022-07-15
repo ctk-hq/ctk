@@ -1,0 +1,9 @@
+{
+  "editor.lineHeight": 20,
+  "editor.tabSize": 2,
+  "editor.formatOnSave": false,
+  "editor.renderWhitespace": "all",
+  "editor.renderControlCharacters": true,
+  "files.eol": "\n",
+  "python.formatting.provider": "black"
+}

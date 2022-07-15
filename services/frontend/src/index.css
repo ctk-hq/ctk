@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.canvas {
+  position: relative;
+  height: 100%;
+}
+
+.jsplumb-box {
+  background-size: 16px 16px;
+    background-image:
+      linear-gradient(to right, #80808014 1px, transparent 1px),
+      linear-gradient(to bottom, #80808014 1px, transparent 1px);
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 64px); /* 64px is the bar above the canvas */
+  overflow: hidden;
+  cursor: move;
+  user-select: none;
+}
+
+.node-item {
+  border-radius: 1em;
+  width: 150px;
+  height: 60px;
+  z-index: 30;
+  position: absolute;
+  background-color: #fff;
+}
+
+.node-item img {
+  width: 26px;
+  height: 26px;
+}
+
+.jtk-connector {
+  z-index: 4;
+}
+
+path,
+.jtk-endpoint {
+  z-index: 20;
+  cursor: pointer;
+}
+
+.node-item.jtk-drag {
+  box-shadow: 0px 0px 5px 2px rgba(75, 0, 255, 0.37);
+}
+
+.jtk-drag-select * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.endpoint {
+  width: 14px;
+  height: 14px;
+}
+
+.remove-conn-btn {
+  background-color: #61B7CF;
+}
+
+.remove-conn-btn:hover {
+  background-color: #ce4551;
+}
+
+.code-column {
+  background-color: #1F2937;
+}
+
+.cke_reset_all .CodeMirror-scroll * {
+  white-space: pre;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #464646 #282c34;
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #282c34;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #464646;
+  border-radius: 20px;
+  border: 5px solid #282c34;
+}
+
+@layer components {
+  .btn-util {
+    @apply inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-indigo-500;
+  }
+  .btn-util-selected {
+    @apply text-white bg-indigo-500 hover:bg-indigo-500 focus:ring-indigo-500;
+  }
+  .input-util {
+    @apply shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md px-2 py-1 mt-1
+  }
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
