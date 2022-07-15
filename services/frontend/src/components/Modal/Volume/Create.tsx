@@ -15,7 +15,7 @@ interface IModalVolumeCreate {
 const ModalVolumeCreate = (props: IModalVolumeCreate) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
-  const handleSave = (values: any, formik: any) => {
+  const handleCreate = (values: any, formik: any) => {
     onAddEndpoint(values);
     formik.resetForm();
   };
@@ -79,7 +79,7 @@ const ModalVolumeCreate = (props: IModalVolumeCreate) => {
               }}
               enableReinitialize={true}
               onSubmit={(values, formik) => {
-                handleSave(values, formik);
+                handleCreate(values, formik);
               }}
               validationSchema={validationSchema}
             >
