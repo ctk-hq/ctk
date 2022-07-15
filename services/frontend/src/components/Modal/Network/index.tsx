@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useFormik } from "formik";
+import { Formik } from "formik";
+import * as yup from "yup";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import IPam from "./IPam";
@@ -14,12 +15,14 @@ interface IModalNetworkProps {
 const ModalNetwork = (props: IModalNetworkProps) => {
   const { onHide } = props;
   const [openTab, setOpenTab] = useState("General");
-
-  const formik = useFormik({
-    initialValues: {
-      ...topLevelNetworkConfigInitialValues()
-    },
-    onSubmit: () => undefined
+  const handleCreate = (values: any, formik: any) => {
+    formik.resetForm();
+  };
+  const validationSchema = yup.object({
+    name: yup
+      .string()
+      .max(256, "name should be 256 characters or less")
+      .required("name is required")
   });
   const tabs = [
     {
@@ -66,54 +69,72 @@ const ModalNetwork = (props: IModalNetworkProps) => {
               </button>
             </div>
 
-            <div>
-              <div className="hidden sm:block">
-                <div className="border-b border-gray-200 px-8">
-                  <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                    {tabs.map((tab) => (
-                      <a
-                        key={tab.name}
-                        href={tab.href}
-                        className={classNames(
-                          tab.name === openTab
-                            ? "border-indigo-500 text-indigo-600"
-                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-                          "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
-                          tab.hidden ? "hidden" : ""
-                        )}
-                        aria-current={tab.current ? "page" : undefined}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setOpenTab(tab.name);
-                        }}
-                      >
-                        {tab.name}
-                      </a>
-                    ))}
-                  </nav>
-                </div>
-              </div>
+            <Formik
+              initialValues={{
+                initialValues: {
+                  ...topLevelNetworkConfigInitialValues()
+                },
+                key: "volume",
+                type: "VOLUME",
+                inputs: [],
+                outputs: [],
+                config: {}
+              }}
+              enableReinitialize={true}
+              onSubmit={(values, formik) => {
+                handleCreate(values, formik);
+              }}
+              validationSchema={validationSchema}
+            >
+              {(formik) => (
+                <>
+                  <div className="hidden sm:block">
+                    <div className="border-b border-gray-200 px-8">
+                      <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                        {tabs.map((tab) => (
+                          <a
+                            key={tab.name}
+                            href={tab.href}
+                            className={classNames(
+                              tab.name === openTab
+                                ? "border-indigo-500 text-indigo-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+                              "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
+                              tab.hidden ? "hidden" : ""
+                            )}
+                            aria-current={tab.current ? "page" : undefined}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setOpenTab(tab.name);
+                            }}
+                          >
+                            {tab.name}
+                          </a>
+                        ))}
+                      </nav>
+                    </div>
+                  </div>
 
-              <div className="relative px-4 py-3 flex-auto">
-                <form onSubmit={formik.handleSubmit}>
-                  {openTab === "General" && <General formik={formik} />}
-                  {openTab === "IPam" && <IPam formik={formik} />}
-                  {openTab === "Labels" && <Labels formik={formik} />}
-                </form>
-              </div>
-            </div>
+                  <div className="relative px-4 py-3 flex-auto">
+                    {openTab === "General" && <General />}
+                    {openTab === "IPam" && <IPam />}
+                    {openTab === "Labels" && <Labels />}
+                  </div>
 
-            <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
-              <button
-                className="btn-util"
-                type="button"
-                onClick={() => {
-                  formik.resetForm();
-                }}
-              >
-                Add
-              </button>
-            </div>
+                  <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
+                    <button
+                      className="btn-util"
+                      type="button"
+                      onClick={() => {
+                        formik.submitForm();
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </>
+              )}
+            </Formik>
           </div>
         </div>
       </div>
