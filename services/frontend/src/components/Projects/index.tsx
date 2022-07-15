@@ -26,7 +26,7 @@ const Projects = () => {
                 className="btn-util text-white bg-blue-600 hover:bg-blue-700 sm:w-auto"
                 to="/projects/new"
               >
-                <span>New</span>
+                <span>Create new project</span>
               </Link>
             </div>
 
@@ -60,13 +60,32 @@ const Projects = () => {
                     </div>
 
                     {data.results.length === 0 && (
-                      <div className="text-center">
-                        <h3 className="mt-12 text-sm font-medium text-gray-900 dark:text-white">
-                          Nothing here
-                        </h3>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                          Get started by creating a project.
+                      <div
+                        className="text-center"
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          minHeight: "calc(100vh - 120px)"
+                        }}
+                      >
+                        <img
+                          style={{
+                            width: 400,
+                            height: "auto"
+                          }}
+                          src="https://res.cloudinary.com/hypertool/image/upload/v1657816359/hypertool-assets/empty-projects_fdcxtk.svg"
+                        />
+                        <p className="mt-4 text-md text-gray-500 dark:text-gray-400">
+                          We tried our best, but could not find any projects.
                         </p>
+                        <Link
+                          className="btn-util text-white bg-blue-600 hover:bg-blue-700 sm:w-auto mt-3"
+                          to="/projects/new"
+                        >
+                          <span>Create new project</span>
+                        </Link>
                       </div>
                     )}
                   </div>
