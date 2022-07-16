@@ -43,9 +43,11 @@ const Labels = (props: any) => {
     [formik]
   );
 
+  const emptyLabels = labels.length === 0;
+
   return (
-    <Root sx={{ alignItems: labels.length > 0 ? "flex-start" : "center" }}>
-      {labels.length > 0 && (
+    <Root sx={{ alignItems: emptyLabels ? "center" : "flex-start" }}>
+      {!emptyLabels && (
         <Records>
           {labels.map((label: unknown, index: number) => (
             <Record
@@ -67,7 +69,7 @@ const Labels = (props: any) => {
           ))}
         </Records>
       )}
-      {labels.length === 0 && (
+      {emptyLabels && (
         <p className="mt-4 text-md text-gray-500 dark:text-gray-400 text-center">
           The service does not have any labels.
           <br />
