@@ -29,7 +29,8 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
         ...serviceConfigCanvasInitialValues()
       },
       serviceConfig: {
-        container_name: ""
+        container_name: "",
+        labels: []
       }
     },
     onSubmit: () => undefined
@@ -79,7 +80,7 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
       } as ICanvasConfig;
       formik.initialValues.serviceConfig = {
         ...selectedNode.serviceConfig
-      } as IService;
+      } as any; // as IService;
     }
   }, [selectedNode]);
 

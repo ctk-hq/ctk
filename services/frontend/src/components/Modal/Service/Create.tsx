@@ -23,7 +23,8 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
         ...serviceConfigCanvasInitialValues()
       },
       serviceConfig: {
-        container_name: ""
+        container_name: "",
+        labels: []
       },
       key: "service",
       type: "SERVICE",
