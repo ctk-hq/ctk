@@ -1,4 +1,4 @@
-import type { FunctionComponent, ReactElement } from "react";
+import { FunctionComponent, ReactElement, useCallback } from "react";
 import { styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
 import { MinusSmIcon } from "@heroicons/react/solid";
@@ -12,6 +12,8 @@ export interface IFieldType {
 export interface IRecordProps {
   formik: any;
   fields: IFieldType[];
+  index: number;
+  onRemove: (index: number) => void;
 }
 
 const Root = styled("div")`
@@ -27,7 +29,11 @@ const RemoveButton = styled(IconButton)``;
 const Record: FunctionComponent<IRecordProps> = (
   props: IRecordProps
 ): ReactElement => {
-  const { formik, fields } = props;
+  const { formik, fields, index, onRemove } = props;
+
+  const handleRemove = useCallback(() => {
+    onRemove(index);
+  }, [index, onRemove]);
 
   return (
     <Root>
@@ -44,7 +50,12 @@ const Record: FunctionComponent<IRecordProps> = (
           value={lodash.get(formik.values, name)}
         />
       ))}
-      <RemoveButton variant="soft" size="sm">
+      <RemoveButton
+        variant="soft"
+        size="sm"
+        color="danger"
+        onClick={handleRemove}
+      >
         <MinusSmIcon className="h-5 w-5" />
       </RemoveButton>
     </Root>

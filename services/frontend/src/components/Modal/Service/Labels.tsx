@@ -3,6 +3,7 @@ import Record from "../../Record";
 import { Button } from "@mui/joy";
 import { styled } from "@mui/joy";
 import { useCallback } from "react";
+import lodash from "lodash";
 
 const Root = styled("div")`
   display: flex;
@@ -32,6 +33,16 @@ const Labels = (props: any) => {
     });
   }, [formik]);
 
+  const handleRemoveLabel = useCallback(
+    (index: number) => {
+      const newLabels = labels.filter(
+        (_: unknown, currentIndex: number) => currentIndex != index
+      );
+      formik.setFieldValue(`serviceConfig.labels`, newLabels);
+    },
+    [formik]
+  );
+
   return (
     <Root sx={{ alignItems: labels.length > 0 ? "flex-start" : "center" }}>
       {labels.length > 0 && (
@@ -39,6 +50,7 @@ const Labels = (props: any) => {
           {labels.map((label: unknown, index: number) => (
             <Record
               key={index}
+              index={index}
               formik={formik}
               fields={[
                 {
@@ -50,6 +62,7 @@ const Labels = (props: any) => {
                   placeholder: "Value"
                 }
               ]}
+              onRemove={handleRemoveLabel}
             />
           ))}
         </Records>
