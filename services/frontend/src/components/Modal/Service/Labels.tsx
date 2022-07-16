@@ -3,7 +3,6 @@ import Record from "../../Record";
 import { Button } from "@mui/joy";
 import { styled } from "@mui/joy";
 import { useCallback } from "react";
-import lodash from "lodash";
 
 const Root = styled("div")`
   display: flex;
@@ -49,7 +48,7 @@ const Labels = (props: any) => {
     <Root sx={{ alignItems: emptyLabels ? "center" : "flex-start" }}>
       {!emptyLabels && (
         <Records>
-          {labels.map((label: unknown, index: number) => (
+          {labels.map((_: unknown, index: number) => (
             <Record
               key={index}
               index={index}

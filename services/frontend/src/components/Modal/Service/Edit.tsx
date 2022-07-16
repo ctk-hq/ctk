@@ -30,7 +30,8 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
       },
       serviceConfig: {
         container_name: "",
-        labels: []
+        labels: [],
+        environmentVariables: []
       }
     },
     onSubmit: () => undefined

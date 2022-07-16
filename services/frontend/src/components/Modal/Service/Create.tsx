@@ -24,7 +24,8 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
       },
       serviceConfig: {
         container_name: "",
-        labels: []
+        labels: [],
+        environmentVariables: []
       },
       key: "service",
       type: "SERVICE",
