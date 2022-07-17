@@ -1,6 +1,5 @@
-const Environment = (props: any) => {
-  const { formik } = props;
-
+const Environment = () => {
   return <></>;
 };
+
 export default Environment;
