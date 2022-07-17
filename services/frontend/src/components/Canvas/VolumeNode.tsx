@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DatabaseIcon } from "@heroicons/react/outline";
 import { truncateStr } from "../../utils";
 import { IVolumeNodeItem, CallbackFunction } from "../../types";
 import eventBus from "../../events/eventBus";
@@ -53,13 +54,15 @@ export default function VolumeNode(props: INodeProps) {
           }}
         ></Popover>
       )}
-      <div className="node-label w-full py-2 px-4">
+      <div className="relative node-label w-full py-2 px-4">
         <>
           {node.volumeConfig.name && (
             <div className="text-sm font-semibold overflow-x-hidden">
-              {truncateStr(node.volumeConfig.name, 10)}
+              {truncateStr(node.volumeConfig.name, 20)}
             </div>
           )}
+
+          <DatabaseIcon className="w-3 h-3 text-gray-600 absolute top-2 right-2" />
         </>
       </div>
     </div>
