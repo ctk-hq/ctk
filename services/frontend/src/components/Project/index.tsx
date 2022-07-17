@@ -245,9 +245,9 @@ export default function Project() {
 
     if (existingIndex !== -1) {
       _connections.splice(existingIndex, 1);
+      setConnections(_connections);
+      stateConnectionsRef.current = _connections;
     }
-
-    setConnections(_connections);
   };
 
   const onConnectionAttached = (data: any) => {

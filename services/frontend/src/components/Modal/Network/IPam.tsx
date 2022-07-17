@@ -1,6 +1,5 @@
-const IPam = (props: any) => {
-  const { formik } = props;
-
+const IPam = () => {
   return <></>;
 };
+
 export default IPam;
