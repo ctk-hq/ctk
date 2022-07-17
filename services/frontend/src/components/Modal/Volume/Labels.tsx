@@ -1,6 +1,4 @@
-const Labels = (props: any) => {
-  const { formik } = props;
-
+const Labels = () => {
   return <></>;
 };
 export default Labels;
