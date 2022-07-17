@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useFormik } from "formik";
+import { Formik } from "formik";
+import * as yup from "yup";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Environment from "./Environment";
@@ -16,24 +17,23 @@ interface IModalServiceProps {
 const ModalServiceCreate = (props: IModalServiceProps) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
-
-  const formik = useFormik({
-    initialValues: {
-      canvasConfig: {
-        ...serviceConfigCanvasInitialValues()
-      },
-      serviceConfig: {
-        container_name: "",
-        labels: [],
-        environmentVariables: []
-      },
-      key: "service",
-      type: "SERVICE",
-      inputs: ["op_source"],
-      outputs: [],
-      config: {}
-    },
-    onSubmit: () => undefined
+  const handleCreate = (values: any, formik: any) => {
+    onAddEndpoint(values);
+    formik.resetForm();
+  };
+  const validationSchema = yup.object({
+    canvasConfig: yup.object({
+      service_name: yup
+        .string()
+        .max(256, "service name should be 256 characters or less")
+        .required("service name is required")
+    }),
+    serviceConfig: yup.object({
+      container_name: yup
+        .string()
+        .max(256, "container name should be 256 characters or less")
+        .required("container name is required")
+    })
   });
   const tabs = [
     {
@@ -86,56 +86,77 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
               </button>
             </div>
 
-            <div>
-              <div className="hidden sm:block">
-                <div className="border-b border-gray-200 px-8">
-                  <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                    {tabs.map((tab) => (
-                      <a
-                        key={tab.name}
-                        href={tab.href}
-                        className={classNames(
-                          tab.name === openTab
-                            ? "border-indigo-500 text-indigo-600"
-                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-                          "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
-                          tab.hidden ? "hidden" : ""
-                        )}
-                        aria-current={tab.current ? "page" : undefined}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setOpenTab(tab.name);
-                        }}
-                      >
-                        {tab.name}
-                      </a>
-                    ))}
-                  </nav>
-                </div>
-              </div>
+            <Formik
+              initialValues={{
+                canvasConfig: {
+                  ...serviceConfigCanvasInitialValues()
+                },
+                serviceConfig: {
+                  container_name: ""
+                },
+                key: "service",
+                type: "SERVICE",
+                inputs: ["op_source"],
+                outputs: [],
+                config: {}
+              }}
+              enableReinitialize={true}
+              onSubmit={(values, formik) => {
+                handleCreate(values, formik);
+              }}
+              validationSchema={validationSchema}
+            >
+              {(formik) => (
+                <>
+                  <div className="hidden sm:block">
+                    <div className="border-b border-gray-200 px-8">
+                      <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                        {tabs.map((tab) => (
+                          <a
+                            key={tab.name}
+                            href={tab.href}
+                            className={classNames(
+                              tab.name === openTab
+                                ? "border-indigo-500 text-indigo-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+                              "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
+                              tab.hidden ? "hidden" : ""
+                            )}
+                            aria-current={tab.current ? "page" : undefined}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setOpenTab(tab.name);
+                            }}
+                          >
+                            {tab.name}
+                          </a>
+                        ))}
+                      </nav>
+                    </div>
+                  </div>
 
-              <div className="relative px-4 py-3 flex-auto">
-                <form onSubmit={formik.handleSubmit}>
-                  {openTab === "General" && <General formik={formik} />}
-                  {openTab === "Environment" && <Environment formik={formik} />}
-                  {openTab === "Volumes" && <Volumes formik={formik} />}
-                  {openTab === "Labels" && <Labels formik={formik} />}
-                </form>
-              </div>
-            </div>
+                  <div className="relative px-4 py-3 flex-auto">
+                    {openTab === "General" && <General />}
+                    {openTab === "Environment" && <Environment />}
+                    {openTab === "Volumes" && <Volumes />}
+                    {openTab === "Labels" && <Labels />}
+                  </div>
 
-            <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
-              <button
-                className="btn-util"
-                type="button"
-                onClick={() => {
-                  onAddEndpoint(formik.values);
-                  formik.resetForm();
-                }}
-              >
-                Add
-              </button>
-            </div>
+                  <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
+                    <button
+                      className="btn-util"
+                      type="button"
+                      onClick={() => {
+                        onAddEndpoint(formik.values);
+                        formik.resetForm();
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </>
+              )}
+            </Formik>
           </div>
         </div>
       </div>

@@ -1,6 +1,5 @@
-const Volumes = (props: any) => {
-  const { formik } = props;
-
+const Volumes = () => {
   return <></>;
 };
+
 export default Volumes;
