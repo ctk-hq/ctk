@@ -135,6 +135,7 @@ dmypy.json
 local_packages
 tmp
 *.lock
+!yarn.lock
 
 # AWS
 *.iml

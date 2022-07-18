@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
+import { CssVarsProvider } from "@mui/joy/styles";
 
 import { LOCAL_STORAGE } from "./constants";
 import { reducer, initialState } from "./reducers";
@@ -79,51 +80,53 @@ export default function App() {
   }, [dispatch, isAuthenticated]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div>
-        <Toaster />
-        <SideBar isAuthenticated={isAuthenticated} state={state} />
-        <Routes>
-          <Route path="/projects/:uuid" element={<Project />} />
+    <CssVarsProvider>
+      <QueryClientProvider client={queryClient}>
+        <div>
+          <Toaster />
+          <SideBar isAuthenticated={isAuthenticated} state={state} />
+          <Routes>
+            <Route path="/projects/:uuid" element={<Project />} />
 
-          <Route path="/projects/new" element={<Project />} />
+            <Route path="/projects/new" element={<Project />} />
 
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute
-                {...defaultProtectedRouteProps}
-                outlet={<Projects />}
-              />
-            }
-          />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute
+                  {...defaultProtectedRouteProps}
+                  outlet={<Projects />}
+                />
+              }
+            />
 
-          <Route
-            path="/projects/"
-            element={
-              <ProtectedRoute
-                {...defaultProtectedRouteProps}
-                outlet={<Projects />}
-              />
-            }
-          />
+            <Route
+              path="/projects/"
+              element={
+                <ProtectedRoute
+                  {...defaultProtectedRouteProps}
+                  outlet={<Projects />}
+                />
+              }
+            />
 
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute
-                {...defaultProtectedRouteProps}
-                outlet={<Profile dispatch={dispatch} state={state} />}
-              />
-            }
-          />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute
+                  {...defaultProtectedRouteProps}
+                  outlet={<Profile dispatch={dispatch} state={state} />}
+                />
+              }
+            />
 
-          <Route path="/signup" element={<Signup dispatch={dispatch} />} />
-          <Route path="/login" element={<Login dispatch={dispatch} />} />
-        </Routes>
-      </div>
+            <Route path="/signup" element={<Signup dispatch={dispatch} />} />
+            <Route path="/login" element={<Login dispatch={dispatch} />} />
+          </Routes>
+        </div>
 
-      <ReactQueryDevtools initialIsOpen={true} />
-    </QueryClientProvider>
+        <ReactQueryDevtools initialIsOpen={true} />
+      </QueryClientProvider>
+    </CssVarsProvider>
   );
 }

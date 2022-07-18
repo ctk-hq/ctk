@@ -6,7 +6,12 @@ import General from "./General";
 import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
-import { CallbackFunction, IServiceNodeItem } from "../../../types";
+import {
+  CallbackFunction,
+  ICanvasConfig,
+  IService,
+  IServiceNodeItem
+} from "../../../types";
 
 interface IModalServiceProps {
   node: IServiceNodeItem;
@@ -101,10 +106,10 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
                 initialValues={{
                   canvasConfig: {
                     ...selectedNode.canvasConfig
-                  },
+                  } as ICanvasConfig,
                   serviceConfig: {
                     ...selectedNode.serviceConfig
-                  }
+                  } as IService
                 }}
                 enableReinitialize={true}
                 onSubmit={(values) => {

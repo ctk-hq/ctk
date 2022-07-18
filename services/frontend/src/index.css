@@ -114,7 +114,7 @@ path,
     @apply text-white bg-indigo-500 hover:bg-indigo-500 focus:ring-indigo-500;
   }
   .input-util {
-    @apply shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md px-2 py-1 mt-1
+    @apply shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md px-2 py-1
   }
 }
 
