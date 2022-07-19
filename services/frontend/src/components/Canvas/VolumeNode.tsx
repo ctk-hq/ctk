@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { DatabaseIcon } from "@heroicons/react/outline";
 import { truncateStr } from "../../utils";
 import { IVolumeNodeItem, CallbackFunction } from "../../types";
 import eventBus from "../../events/eventBus";
 import { Popover } from "./Popover";
+import NodeIcon from "./NodeIcon";
 
 interface INodeProps {
   node: IVolumeNodeItem;
@@ -62,7 +62,7 @@ export default function VolumeNode(props: INodeProps) {
             </div>
           )}
 
-          <DatabaseIcon className="w-3 h-3 text-gray-600 absolute top-2 right-2" />
+          <NodeIcon nodeType={node.type} />
         </>
       </div>
     </div>

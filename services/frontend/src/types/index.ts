@@ -26,14 +26,6 @@ export interface IProject {
   modified_at: string;
 }
 
-export interface IContainer {
-  name: string;
-  args?: string[];
-  command?: string[];
-  image: string;
-  imagePullPolicy: string;
-}
-
 export interface INodeLibraryItem {
   id: number;
   name: string;
@@ -64,7 +56,8 @@ export interface IFlatConnection {
 }
 
 export interface ICanvasConfig {
-  service_name: string;
+  node_name?: string;
+  node_icon?: string;
 }
 
 export interface IGraphData {
@@ -321,12 +314,6 @@ export interface IService {
       };
   volumes_from: string[];
   working_dir: string;
-  tag: string;
-}
-
-export interface IDockerCompose {
-  version: string;
-  services: IService[];
 }
 
 export interface IServiceNodeItem extends INodeItem {
@@ -353,12 +340,6 @@ export interface IProjectPayload {
       nodes: any;
       connections: any;
     };
-    configs: [];
-    networks: [];
-    secrets: [];
-    services: any;
-    version: number;
-    volumes: [];
   };
 }
 

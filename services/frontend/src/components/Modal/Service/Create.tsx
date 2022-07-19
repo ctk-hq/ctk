@@ -7,7 +7,7 @@ import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
 import { serviceConfigCanvasInitialValues } from "../../../utils";
-import { CallbackFunction } from "../../../types";
+import { CallbackFunction, ICanvasConfig, IService } from "../../../types";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -18,12 +18,13 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
   const handleCreate = (values: any, formik: any) => {
+    console.log(values);
     onAddEndpoint(values);
     formik.resetForm();
   };
   const validationSchema = yup.object({
     canvasConfig: yup.object({
-      service_name: yup
+      node_name: yup
         .string()
         .max(256, "service name should be 256 characters or less")
         .required("service name is required")
@@ -102,6 +103,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
               }}
               enableReinitialize={true}
               onSubmit={(values, formik) => {
+                console.log(values);
                 handleCreate(values, formik);
               }}
               validationSchema={validationSchema}
@@ -147,8 +149,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                       className="btn-util"
                       type="button"
                       onClick={() => {
-                        onAddEndpoint(formik.values);
-                        formik.resetForm();
+                        formik.submitForm();
                       }}
                     >
                       Add

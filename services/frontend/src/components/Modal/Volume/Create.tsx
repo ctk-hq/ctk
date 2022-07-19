@@ -4,7 +4,10 @@ import * as yup from "yup";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Labels from "./Labels";
-import { topLevelVolumeConfigInitialValues } from "../../../utils";
+import {
+  topLevelVolumeConfigInitialValues,
+  volumeConfigCanvasInitialValues
+} from "../../../utils";
 import { CallbackFunction } from "../../../types";
 
 interface IModalVolumeCreate {
@@ -68,6 +71,9 @@ const ModalVolumeCreate = (props: IModalVolumeCreate) => {
 
             <Formik
               initialValues={{
+                canvasConfig: {
+                  ...volumeConfigCanvasInitialValues()
+                },
                 volumeConfig: {
                   ...topLevelVolumeConfigInitialValues()
                 },

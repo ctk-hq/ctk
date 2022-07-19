@@ -110,13 +110,7 @@ export default function Project() {
           position: canvasPosition,
           nodes: nodes,
           connections: connections
-        },
-        configs: [],
-        networks: [],
-        secrets: [],
-        services: nodes,
-        version: 3,
-        volumes: []
+        }
       }
     };
 

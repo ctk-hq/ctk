@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { ServerIcon } from "@heroicons/react/outline";
 import { truncateStr } from "../../utils";
 import { IServiceNodeItem, CallbackFunction } from "../../types";
 import eventBus from "../../events/eventBus";
 import { Popover } from "./Popover";
+import NodeIcon from "./NodeIcon";
 
 interface INodeProps {
   node: IServiceNodeItem;
@@ -56,9 +56,9 @@ export default function ServiceNode(props: INodeProps) {
       )}
       <div className="relative node-label w-full py-2 px-4">
         <>
-          {node.canvasConfig.service_name && (
+          {node.canvasConfig.node_name && (
             <div className="text-sm font-semibold overflow-x-hidden">
-              {truncateStr(node.canvasConfig.service_name, 12)}
+              {truncateStr(node.canvasConfig.node_name, 12)}
             </div>
           )}
 
@@ -68,7 +68,7 @@ export default function ServiceNode(props: INodeProps) {
             </div>
           )}
 
-          <ServerIcon className="w-3 h-3 text-gray-600 absolute top-2 right-2" />
+          <NodeIcon nodeType={node.type} />
         </>
       </div>
     </div>
