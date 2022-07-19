@@ -23,6 +23,7 @@ import { ProtectedRouteProps } from "./partials/ProtectedRoute";
 import ProtectedRoute from "./partials/ProtectedRoute";
 
 import "./index.css";
+import { lightTheme } from "./utils/theme";
 
 const queryClient = new QueryClient();
 
@@ -80,7 +81,7 @@ export default function App() {
   }, [dispatch, isAuthenticated]);
 
   return (
-    <CssVarsProvider>
+    <CssVarsProvider theme={lightTheme}>
       <QueryClientProvider client={queryClient}>
         <div>
           <Toaster />
