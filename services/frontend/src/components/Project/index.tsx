@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { debounce, Dictionary, omit } from "lodash";
 import YAML from "yaml";
-import { PlusIcon } from "@heroicons/react/solid";
+import { GlobeAltIcon, CubeIcon, FolderAddIcon } from "@heroicons/react/solid";
 import randomWords from "random-words";
 import {
   IProjectPayload,
@@ -460,8 +460,8 @@ export default function Project() {
                         type="button"
                         onClick={() => setShowModalCreateService(true)}
                       >
-                        <PlusIcon className="w-3" />
-                        <span>Service</span>
+                        <CubeIcon className="w-4" />
+                        <span>Add service</span>
                       </button>
 
                       <button
@@ -469,8 +469,8 @@ export default function Project() {
                         type="button"
                         onClick={() => setShowVolumesModal(true)}
                       >
-                        <PlusIcon className="w-3" />
-                        <span>Volume</span>
+                        <FolderAddIcon className="w-4" />
+                        <span>Add volume</span>
                       </button>
 
                       <button
@@ -478,7 +478,8 @@ export default function Project() {
                         type="button"
                         onClick={() => setShowNetworksModal(true)}
                       >
-                        <span>Networks</span>
+                        <GlobeAltIcon className="w-4" />
+                        <span>Add Network</span>
                       </button>
                     </div>
                   </div>
