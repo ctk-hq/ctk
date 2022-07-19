@@ -106,17 +106,10 @@ export const attachUUID = (key: string): string => {
   return key + "-" + uuidv4();
 };
 
-export const setNodeIcon = (nodeType: string) => {
-  switch (nodeType) {
-    case "service":
-      return "ServerIcon";
-    case "volume":
-      return "DatabaseIcon";
-    case "network":
-      return "ChipIcon";
-    default:
-      return "ServerIcon";
-  }
+export const iconByNodeType: Record<string, string> = {
+  service: "ServerIcon",
+  volume: "DatabaseIcon",
+  network: "ChipIcon"
 };
 
 export const getClientNodeItem = (
@@ -129,7 +122,8 @@ export const getClientNodeItem = (
     nodeItem.canvasConfig.node_icon &&
     nodeItem.canvasConfig.node_icon.length === 0
   ) {
-    nodeItem.canvasConfig.node_icon = setNodeIcon(nodeItem.type);
+    nodeItem.canvasConfig.node_icon =
+      iconByNodeType[nodeItem.type] || "ServerIcon";
   }
 
   return {

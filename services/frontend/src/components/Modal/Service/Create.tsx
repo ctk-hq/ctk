@@ -7,7 +7,7 @@ import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
 import { serviceConfigCanvasInitialValues } from "../../../utils";
-import { CallbackFunction, ICanvasConfig, IService } from "../../../types";
+import { CallbackFunction } from "../../../types";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -18,7 +18,6 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
   const handleCreate = (values: any, formik: any) => {
-    console.log(values);
     onAddEndpoint(values);
     formik.resetForm();
   };
@@ -103,7 +102,6 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
               }}
               enableReinitialize={true}
               onSubmit={(values, formik) => {
-                console.log(values);
                 handleCreate(values, formik);
               }}
               validationSchema={validationSchema}
@@ -148,9 +146,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                     <button
                       className="btn-util"
                       type="button"
-                      onClick={() => {
-                        formik.submitForm();
-                      }}
+                      onClick={formik.submitForm}
                     >
                       Add
                     </button>
