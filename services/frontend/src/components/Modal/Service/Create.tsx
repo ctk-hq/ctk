@@ -23,7 +23,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
   };
   const validationSchema = yup.object({
     canvasConfig: yup.object({
-      service_name: yup
+      node_name: yup
         .string()
         .max(256, "service name should be 256 characters or less")
         .required("service name is required")
@@ -146,10 +146,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                     <button
                       className="btn-util"
                       type="button"
-                      onClick={() => {
-                        onAddEndpoint(formik.values);
-                        formik.resetForm();
-                      }}
+                      onClick={formik.submitForm}
                     >
                       Add
                     </button>

@@ -32,7 +32,7 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
   };
   const validationSchema = yup.object({
     canvasConfig: yup.object({
-      service_name: yup
+      node_name: yup
         .string()
         .max(256, "service name should be 256 characters or less")
         .required("service name is required")

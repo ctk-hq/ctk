@@ -106,11 +106,25 @@ export const attachUUID = (key: string): string => {
   return key + "-" + uuidv4();
 };
 
+export const iconByNodeType: Record<string, string> = {
+  service: "ServerIcon",
+  volume: "DatabaseIcon",
+  network: "ChipIcon"
+};
+
 export const getClientNodeItem = (
   nodeItem: IServiceNodeItem,
   library: INodeLibraryItem
 ): IServiceNodeItem => {
   const uniqueKey = attachUUID(nodeItem.key);
+
+  if (
+    nodeItem.canvasConfig.node_icon &&
+    nodeItem.canvasConfig.node_icon.length === 0
+  ) {
+    nodeItem.canvasConfig.node_icon =
+      iconByNodeType[nodeItem.type] || "ServerIcon";
+  }
 
   return {
     ...nodeItem,
@@ -188,9 +202,16 @@ export const topLevelNetworkConfigInitialValues =
     };
   };
 
+export const volumeConfigCanvasInitialValues = (): ICanvasConfig => {
+  return {
+    node_icon: ""
+  };
+};
+
 export const serviceConfigCanvasInitialValues = (): ICanvasConfig => {
   return {
-    service_name: "unnamed"
+    node_name: "unnamed",
+    node_icon: ""
   };
 };
 
