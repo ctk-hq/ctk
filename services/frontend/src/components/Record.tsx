@@ -7,6 +7,7 @@ import lodash from "lodash";
 export interface IFieldType {
   name: string;
   placeholder: string;
+  required?: boolean;
 }
 
 export interface IRecordProps {
@@ -37,15 +38,16 @@ const Record: FunctionComponent<IRecordProps> = (
 
   return (
     <Root>
-      {fields.map(({ name, placeholder }) => (
+      {fields.map(({ name, placeholder, required }) => (
         <input
           key={name}
           id={name}
           name={name}
           type="text"
-          placeholder={placeholder}
+          placeholder={placeholder + (required ? "*" : "")}
           autoComplete="none"
           className="input-util"
+          required={required}
           onChange={formik.handleChange}
           value={lodash.get(formik.values, name)}
         />
