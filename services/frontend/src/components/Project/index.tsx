@@ -415,7 +415,7 @@ export default function Project() {
                     className="btn-util text-black bg-gray-200 hover:bg-gray-300 sm:w-auto"
                   >
                     <div className="flex justify-center items-center space-x-2 mx-auto">
-                      <span>New</span>
+                      <span>New project</span>
                     </div>
                   </button>
 
