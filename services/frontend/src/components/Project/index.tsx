@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { debounce, Dictionary, omit } from "lodash";
 import YAML from "yaml";
 import { PlusIcon } from "@heroicons/react/solid";
+import randomWords from "random-words";
 import {
   IProjectPayload,
   IServiceNodeItem,
@@ -70,7 +71,15 @@ export default function Project() {
   const [nodes, setNodes] = useState({});
   const [connections, setConnections] = useState<[[string, string]] | []>([]);
   const [networks, setNetworks] = useState<Record<string, any>>({});
-  const [projectName, setProjectName] = useState("Untitled");
+  const [projectName, setProjectName] = useState(
+    () =>
+      randomWords({
+        wordsPerString: 2,
+        exactly: 1,
+        separator: "-"
+      } as any)[0]
+  );
+
   const [canvasPosition, setCanvasPosition] = useState({
     top: 0,
     left: 0,
@@ -398,7 +407,7 @@ export default function Project() {
                   focus:ring-0
                 `}
                   type="text"
-                  placeholder="Untitled"
+                  placeholder="Project name"
                   autoComplete="off"
                   id="name"
                   name="name"
