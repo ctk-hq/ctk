@@ -204,6 +204,7 @@ export const topLevelNetworkConfigInitialValues =
 
 export const volumeConfigCanvasInitialValues = (): ICanvasConfig => {
   return {
+    node_name: "unnamed",
     node_icon: ""
   };
 };

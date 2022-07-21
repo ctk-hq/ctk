@@ -56,8 +56,14 @@ export default function VolumeNode(props: INodeProps) {
       )}
       <div className="relative node-label w-full py-2 px-4">
         <>
-          {node.volumeConfig.name && (
+          {node.canvasConfig.node_name && (
             <div className="text-sm font-semibold overflow-x-hidden">
+              {truncateStr(node.canvasConfig.node_name, 12)}
+            </div>
+          )}
+
+          {node.volumeConfig.name && (
+            <div className="text-xs text-gray-500 overflow-x-hidden">
               {truncateStr(node.volumeConfig.name, 20)}
             </div>
           )}

@@ -23,6 +23,12 @@ const ModalVolumeCreate = (props: IModalVolumeCreate) => {
     formik.resetForm();
   };
   const validationSchema = yup.object({
+    canvasConfig: yup.object({
+      node_name: yup
+        .string()
+        .max(256, "volume name should be 256 characters or less")
+        .required("volume name is required")
+    }),
     volumeConfig: yup.object({
       name: yup
         .string()
