@@ -9,7 +9,6 @@ volumes:
     name: ctk_django_static
 
 services:
-
   postgres:
     container_name: ctk-postgres
     image: postgres:11
@@ -52,15 +51,10 @@ services:
     links:
       - backend
     volumes:
-      # configs
-      - ${PWD}/services/frontend/configs/nginx/uwsgi_params:/home/config/uwsgi/uwsgi_params
-      - ${PWD}/services/frontend/configs/nginx/localhost.conf:/etc/nginx/conf.d/default.conf
-      - ${PWD}/services/frontend/configs/nginx/nginx.conf:/etc/nginx/nginx.conf
-
-      # serve django static stuff
+      - ./services/frontend/configs/nginx/uwsgi_params:/home/config/uwsgi/uwsgi_params
+      - ./services/frontend/configs/nginx/localhost.conf:/etc/nginx/conf.d/default.conf
+      - ./services/frontend/configs/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./services/frontend/build:/usr/share/nginx/html/
       - django-static:/home/server/static/
-
-      # serve composer built react app
-      - ${PWD}/services/frontend/build:/usr/share/nginx/html/
     ports:
       - "80:80"

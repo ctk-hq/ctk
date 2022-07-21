@@ -4,7 +4,12 @@ import * as yup from "yup";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Labels from "./Labels";
-import { CallbackFunction, IVolumeNodeItem } from "../../../types";
+import {
+  CallbackFunction,
+  ICanvasConfig,
+  IVolumeNodeItem,
+  IVolumeTopLevel
+} from "../../../types";
 
 interface IModalVolumeEdit {
   node: IVolumeNodeItem;
@@ -18,10 +23,17 @@ const ModalVolumeEdit = (props: IModalVolumeEdit) => {
   const [selectedNode, setSelectedNode] = useState<IVolumeNodeItem>();
   const handleUpdate = (values: any) => {
     const updated = { ...selectedNode };
+    updated.canvasConfig = values.canvasConfig;
     updated.volumeConfig = values.volumeConfig;
     onUpdateEndpoint(updated);
   };
   const validationSchema = yup.object({
+    canvasConfig: yup.object({
+      node_name: yup
+        .string()
+        .max(256, "volume name should be 256 characters or less")
+        .required("volume name is required")
+    }),
     volumeConfig: yup.object({
       name: yup
         .string()
@@ -79,9 +91,12 @@ const ModalVolumeEdit = (props: IModalVolumeEdit) => {
             {selectedNode && (
               <Formik
                 initialValues={{
+                  canvasConfig: {
+                    ...selectedNode.canvasConfig
+                  } as ICanvasConfig,
                   volumeConfig: {
                     ...selectedNode.volumeConfig
-                  }
+                  } as IVolumeTopLevel
                 }}
                 enableReinitialize={true}
                 onSubmit={(values) => {

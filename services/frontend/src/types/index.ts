@@ -343,16 +343,11 @@ export interface IProjectPayload {
   };
 }
 
-export interface ISaturatedService extends Partial<IService>, ICanvasConfig {}
-
 export interface IGeneratePayload {
   data: {
-    configs: [];
-    networks: [];
-    secrets: [];
-    services: ISaturatedService[];
-    connections: [[string, string]];
     version: number;
-    volumes: [];
+    networks: Partial<INetworkTopLevel>[];
+    services: Record<string, Partial<IService>>;
+    volumes: Record<string, Partial<IVolumeTopLevel>>;
   };
 }
