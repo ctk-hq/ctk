@@ -209,6 +209,12 @@ export const volumeConfigCanvasInitialValues = (): ICanvasConfig => {
   };
 };
 
+export const networkConfigCanvasInitialValues = (): ICanvasConfig => {
+  return {
+    node_name: "unnamed"
+  };
+};
+
 export const serviceConfigCanvasInitialValues = (): ICanvasConfig => {
   return {
     node_name: "unnamed",

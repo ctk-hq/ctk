@@ -339,6 +339,7 @@ export interface IProjectPayload {
       };
       nodes: any;
       connections: any;
+      networks: any;
     };
   };
 }
@@ -346,7 +347,7 @@ export interface IProjectPayload {
 export interface IGeneratePayload {
   data: {
     version: number;
-    networks: Partial<INetworkTopLevel>[];
+    networks: Record<string, Partial<INetworkTopLevel>>;
     services: Record<string, Partial<IService>>;
     volumes: Record<string, Partial<IVolumeTopLevel>>;
   };

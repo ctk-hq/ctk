@@ -1,11 +1,12 @@
 import { IGeneratePayload } from "../types";
 
-export const flattenGraphData = (graphData: any): IGeneratePayload => {
-  const nodes = graphData["nodes"];
+export const generatePayload = (data: any): IGeneratePayload => {
+  const nodes = data["nodes"];
+  const networks = data["networks"] || {};
   const base: IGeneratePayload = {
     data: {
       version: 3,
-      networks: [],
+      networks: {},
       services: {},
       volumes: {}
     }
@@ -21,6 +22,11 @@ export const flattenGraphData = (graphData: any): IGeneratePayload => {
       base.data.volumes[nodes[key].canvasConfig.node_name] =
         nodes[key].volumeConfig;
     }
+  });
+
+  Object.keys(networks).forEach((key) => {
+    base.data.networks[networks[key].canvasConfig.node_name] =
+      networks[key].networkConfig;
   });
 
   return base;

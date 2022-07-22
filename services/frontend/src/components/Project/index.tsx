@@ -8,7 +8,8 @@ import {
   IServiceNodeItem,
   IVolumeNodeItem,
   IServiceNodePosition,
-  IProject
+  IProject,
+  INetworkTopLevel
 } from "../../types";
 import eventBus from "../../events/eventBus";
 import { useMutation } from "react-query";
@@ -18,7 +19,7 @@ import {
   createProject
 } from "../../hooks/useProject";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
-import { flattenGraphData } from "../../utils/generators";
+import { generatePayload } from "../../utils/generators";
 import { nodeLibraries } from "../../utils/data/libraries";
 import {
   getClientNodeItem,
@@ -46,6 +47,7 @@ export default function Project() {
   const stateNodesRef =
     useRef<Dictionary<IServiceNodeItem | IVolumeNodeItem>>();
   const stateConnectionsRef = useRef<[[string, string]] | []>();
+  const stateNetworksRef = useRef({});
 
   const [generatedCode, setGeneratedCode] = useState<string>();
   const [formattedCode, setFormattedCode] = useState<string>("");
@@ -67,6 +69,7 @@ export default function Project() {
   const [copyText, setCopyText] = useState("Copy");
   const [nodes, setNodes] = useState({});
   const [connections, setConnections] = useState<[[string, string]] | []>([]);
+  const [networks, setNetworks] = useState<Record<string, any>>({});
   const [projectName, setProjectName] = useState("Untitled");
   const [canvasPosition, setCanvasPosition] = useState({
     top: 0,
@@ -87,6 +90,7 @@ export default function Project() {
 
   stateNodesRef.current = nodes;
   stateConnectionsRef.current = connections;
+  stateNetworksRef.current = networks;
 
   const handleNameChange = (e: any) => {
     setProjectName(e.target.value);
@@ -109,7 +113,8 @@ export default function Project() {
         canvas: {
           position: canvasPosition,
           nodes: nodes,
-          connections: connections
+          connections: connections,
+          networks: networks
         }
       }
     };
@@ -152,6 +157,7 @@ export default function Project() {
     setProjectName(data.name);
     setNodes(clientNodeItems);
     setConnections(canvasData.canvas.connections);
+    setNetworks(canvasData.canvas.networks);
     setCanvasPosition(canvasData.canvas.position);
   }, [data]);
 
@@ -166,7 +172,8 @@ export default function Project() {
   const debouncedOnGraphUpdate = useMemo(
     () =>
       debounce((graphData) => {
-        const flatData = flattenGraphData(graphData);
+        graphData.networks = stateNetworksRef.current;
+        const flatData = generatePayload(graphData);
         generateHttp(flatData)
           .then(checkHttpStatus)
           .then((data) => {
@@ -218,6 +225,26 @@ export default function Project() {
     );
     clientNodeItem.position = { left: 60, top: 30 };
     setNodes({ ...nodes, [clientNodeItem.key]: clientNodeItem });
+  };
+
+  const onCreateNetwork = (values: any) => {
+    setNetworks({ ...networks, [values.key]: values });
+  };
+
+  const onUpdateNetwork = (values: any) => {
+    setNetworks({ ...networks, [values.key]: values });
+  };
+
+  const onDeleteNetwork = (uuid: string) => {
+    const _networks = Object.keys(networks).reduce((ret: any, key) => {
+      if (networks[key].key !== uuid) {
+        ret[key] = networks[key];
+      }
+
+      return ret;
+    }, {});
+
+    setNetworks({ ..._networks });
   };
 
   const onUpdateEndpoint = (nodeItem: IServiceNodeItem) => {
@@ -283,7 +310,13 @@ export default function Project() {
       return (
         <>
           {showNetworksModal ? (
-            <ModalNetwork onHide={() => setShowNetworksModal(false)} />
+            <ModalNetwork
+              networks={networks}
+              onHide={() => setShowNetworksModal(false)}
+              onCreateNetwork={(values: any) => onCreateNetwork(values)}
+              onUpdateNetwork={(values: any) => onUpdateNetwork(values)}
+              onDeleteNetwork={(uuid: string) => onDeleteNetwork(uuid)}
+            />
           ) : null}
 
           {showVolumesModal ? (
