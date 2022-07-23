@@ -3,7 +3,7 @@ import { PlusIcon } from "@heroicons/react/outline";
 import { Button, styled } from "@mui/joy";
 import { useFormikContext } from "formik";
 import Record from "../../Record";
-import { IService } from "../../../types";
+import { IEditServiceForm, IService } from "../../../types";
 
 const Root = styled("div")`
   display: flex;
@@ -30,13 +30,11 @@ const Description = styled("p")`
 `;
 
 const Labels = () => {
-  const formik = useFormikContext<{
-    serviceConfig: IService;
-  }>();
-  const labels = (formik.values.serviceConfig.labels as []) || [];
+  const formik = useFormikContext<IEditServiceForm>();
+  const { labels } = formik.values;
 
   const handleNewLabel = useCallback(() => {
-    formik.setFieldValue(`serviceConfig.labels[${labels.length}]`, {
+    formik.setFieldValue(`labels[${labels.length}]`, {
       key: "",
       value: ""
     });
@@ -47,7 +45,7 @@ const Labels = () => {
       const newLabels = labels.filter(
         (_: unknown, currentIndex: number) => currentIndex != index
       );
-      formik.setFieldValue(`serviceConfig.labels`, newLabels);
+      formik.setFieldValue(`labels`, newLabels);
     },
     [formik]
   );
@@ -62,15 +60,16 @@ const Labels = () => {
             <Record
               key={index}
               index={index}
-              formik={formik}
               fields={[
                 {
-                  name: `serviceConfig.labels[${index}].key`,
-                  placeholder: "Key"
+                  name: `labels[${index}].key`,
+                  placeholder: "Key",
+                  required: true
                 },
                 {
-                  name: `serviceConfig.labels[${index}].value`,
-                  placeholder: "Value"
+                  name: `labels[${index}].value`,
+                  placeholder: "Value",
+                  required: true
                 }
               ]}
               onRemove={handleRemoveLabel}

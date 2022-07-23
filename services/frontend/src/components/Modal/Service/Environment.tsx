@@ -3,7 +3,7 @@ import { PlusIcon } from "@heroicons/react/outline";
 import { Button, styled } from "@mui/joy";
 import { useFormikContext } from "formik";
 import Record from "../../Record";
-import { IService } from "../../../types";
+import { IEditServiceForm } from "../../../types";
 
 const Root = styled("div")`
   display: flex;
@@ -30,51 +30,50 @@ const Description = styled("p")`
 `;
 
 const Environment = () => {
-  const formik = useFormikContext<{
-    serviceConfig: IService;
-  }>();
-  const environment = (formik.values.serviceConfig.environment as []) || [];
+  const formik = useFormikContext<IEditServiceForm>();
+  const { environmentVariables } = formik.values;
 
   const handleNewEnvironmentVariable = useCallback(() => {
-    formik.setFieldValue(`serviceConfig.environment[${environment.length}]`, {
-      key: "",
-      value: ""
-    });
+    formik.setFieldValue(
+      `environmentVariables[${environmentVariables.length}]`,
+      {
+        key: "",
+        value: ""
+      }
+    );
   }, [formik]);
 
   const handleRemoveEnvironmentVariable = useCallback(
     (index: number) => {
-      const newEnvironmentVariables = environment.filter(
+      const newEnvironmentVariables = environmentVariables.filter(
         (_: unknown, currentIndex: number) => currentIndex != index
       );
-      formik.setFieldValue(
-        `serviceConfig.environment`,
-        newEnvironmentVariables
-      );
+      formik.setFieldValue("environmentVariables", newEnvironmentVariables);
     },
     [formik]
   );
 
   const emptyEnvironmentVariables =
-    environment && environment.length === 0 ? true : false;
+    environmentVariables && environmentVariables.length === 0 ? true : false;
 
   return (
     <Root>
       {!emptyEnvironmentVariables && (
         <Records>
-          {environment.map((_: unknown, index: number) => (
+          {environmentVariables.map((_: unknown, index: number) => (
             <Record
               key={index}
               index={index}
-              formik={formik}
               fields={[
                 {
-                  name: `serviceConfig.environment[${index}].key`,
-                  placeholder: "Key"
+                  name: `environmentVariables[${index}].key`,
+                  placeholder: "Key",
+                  required: true
                 },
                 {
-                  name: `serviceConfig.environment[${index}].value`,
-                  placeholder: "Value"
+                  name: `environmentVariables[${index}].value`,
+                  placeholder: "Value",
+                  required: true
                 }
               ]}
               onRemove={handleRemoveEnvironmentVariable}

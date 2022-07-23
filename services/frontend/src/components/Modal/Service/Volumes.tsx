@@ -3,7 +3,7 @@ import { PlusIcon } from "@heroicons/react/outline";
 import { Button, styled } from "@mui/joy";
 import { useFormikContext } from "formik";
 import Record from "../../Record";
-import { IService } from "../../../types";
+import { IEditServiceForm } from "../../../types";
 
 const Root = styled("div")`
   display: flex;
@@ -30,13 +30,11 @@ const Description = styled("p")`
 `;
 
 const Volumes = () => {
-  const formik = useFormikContext<{
-    serviceConfig: IService;
-  }>();
-  const volumes = (formik.values.serviceConfig.volumes as []) || [];
+  const formik = useFormikContext<IEditServiceForm>();
+  const { volumes } = formik.values;
 
   const handleNewVolume = useCallback(() => {
-    formik.setFieldValue(`serviceConfig.volumes[${volumes.length}]`, {
+    formik.setFieldValue(`volumes[${volumes.length}]`, {
       key: "",
       value: ""
     });
@@ -47,7 +45,7 @@ const Volumes = () => {
       const newVolumes = volumes.filter(
         (_: unknown, currentIndex: number) => currentIndex != index
       );
-      formik.setFieldValue(`serviceConfig.volumes`, newVolumes);
+      formik.setFieldValue(`volumes`, newVolumes);
     },
     [formik]
   );
@@ -62,19 +60,18 @@ const Volumes = () => {
             <Record
               key={index}
               index={index}
-              formik={formik}
               fields={[
                 {
-                  name: `serviceConfig.volumes[${index}].name`,
+                  name: `volumes[${index}].name`,
                   placeholder: "Name",
                   required: true
                 },
                 {
-                  name: `serviceConfig.volumes[${index}].key`,
+                  name: `volumes[${index}].key`,
                   placeholder: "Container path"
                 },
                 {
-                  name: `serviceConfig.volumes[${index}].value`,
+                  name: `volumes[${index}].value`,
                   placeholder: "Access mode"
                 }
               ]}

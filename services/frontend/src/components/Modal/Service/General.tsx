@@ -4,7 +4,7 @@ import { PlusIcon } from "@heroicons/react/outline";
 import { Button, styled } from "@mui/joy";
 import { useFormikContext } from "formik";
 import Record from "../../Record";
-import { IService } from "../../../types";
+import { IEditServiceForm } from "../../../types";
 
 const Root = styled("div")`
   display: flex;
@@ -38,66 +38,63 @@ const GroupTitle = styled("h5")`
 `;
 
 const General = () => {
-  const formik = useFormikContext<{
-    serviceConfig: IService;
-  }>();
-  const labels = (formik.values.serviceConfig.labels as []) || [];
+  const formik = useFormikContext<IEditServiceForm>();
+  const { ports } = formik.values;
 
-  const handleNewLabel = useCallback(() => {
-    formik.setFieldValue(`serviceConfig.labels[${labels.length}]`, {
+  const handleNewPort = useCallback(() => {
+    formik.setFieldValue(`ports[${ports.length}]`, {
       key: "",
       value: ""
     });
   }, [formik]);
 
-  const handleRemoveLabel = useCallback(
+  const handleRemovePort = useCallback(
     (index: number) => {
-      const newLabels = labels.filter(
+      const newPorts = ports.filter(
         (_: unknown, currentIndex: number) => currentIndex != index
       );
-      formik.setFieldValue(`serviceConfig.labels`, newLabels);
+      formik.setFieldValue(`ports`, newPorts);
     },
     [formik]
   );
 
-  const emptyLabels = labels && labels.length === 0 ? true : false;
+  const emptyPorts = ports && ports.length === 0 ? true : false;
 
   return (
     <>
-      <TextField label="Service name" name="canvasConfig.node_name" />
-      <TextField label="Container name" name="serviceConfig.container_name" />
+      <TextField label="Service name" name="serviceName" required={true} />
+      <TextField label="Container name" name="containerName" required={true} />
 
       <GroupTitle>Ports</GroupTitle>
 
       <Root>
-        {!emptyLabels && (
+        {!emptyPorts && (
           <Records>
-            {labels.map((_: unknown, index: number) => (
+            {ports.map((_: unknown, index: number) => (
               <Record
                 key={index}
                 index={index}
-                formik={formik}
                 fields={[
                   {
-                    name: `serviceConfig.ports[${index}].hostPort`,
+                    name: `ports[${index}].hostPort`,
                     placeholder: "Host Port",
                     required: true
                   },
                   {
-                    name: `serviceConfig.ports[${index}].containerPort`,
+                    name: `ports[${index}].containerPort`,
                     placeholder: "Container Port"
                   },
                   {
-                    name: `serviceConfig.ports[${index}].protocol`,
+                    name: `ports[${index}].protocol`,
                     placeholder: "Protocol"
                   }
                 ]}
-                onRemove={handleRemoveLabel}
+                onRemove={handleRemovePort}
               />
             ))}
           </Records>
         )}
-        {emptyLabels && (
+        {emptyPorts && (
           <Description>
             This service does not have any ports.
             <br />
@@ -105,7 +102,7 @@ const General = () => {
           </Description>
         )}
 
-        <AddButton size="sm" variant="plain" onClick={handleNewLabel}>
+        <AddButton size="sm" variant="plain" onClick={handleNewPort}>
           <PlusIcon className="h-4 w-4 mr-2" />
           New port
         </AddButton>
