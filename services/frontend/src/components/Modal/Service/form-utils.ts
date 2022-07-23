@@ -1,5 +1,6 @@
-import { IEditServiceForm, IServiceNodeItem } from "../../../types";
+import type { IEditServiceForm, IServiceNodeItem } from "../../../types";
 import * as yup from "yup";
+import lodash from "lodash";
 
 const initialValues: IEditServiceForm = {
   serviceName: "",
@@ -9,14 +10,6 @@ const initialValues: IEditServiceForm = {
   volumes: [],
   labels: []
 };
-
-export const getInitialValues = (
-  node?: IServiceNodeItem
-): IEditServiceForm => ({
-  ...initialValues,
-  serviceName: node?.canvasConfig.node_name || "",
-  containerName: node?.serviceConfig.container_name || ""
-});
 
 export const validationSchema = yup.object({
   serviceName: yup
@@ -56,3 +49,53 @@ export const validationSchema = yup.object({
     })
   )
 });
+
+export const getInitialValues = (
+  node?: IServiceNodeItem
+): IEditServiceForm => ({
+  ...initialValues,
+  serviceName: node?.canvasConfig.node_name || "",
+  containerName: node?.serviceConfig.container_name || ""
+});
+
+export const transform = (
+  values: IEditServiceForm,
+  previous?: IServiceNodeItem
+): IServiceNodeItem => {
+  const { environmentVariables, ports, volumes, labels } = values;
+
+  return lodash.merge(
+    lodash.cloneDeep(previous) || {
+      key: "service",
+      type: "SERVICE",
+      inputs: ["op_source"],
+      outputs: [],
+      config: {}
+    },
+    {
+      canvasConfig: {
+        node_name: values.serviceName,
+        node_icon: ""
+      },
+      serviceConfig: {
+        container_name: values.containerName,
+        environment: environmentVariables.map(
+          (variable) => `${variable.key}:${variable.value}`
+        ),
+        volumes: volumes.map(
+          (volume) =>
+            volume.name +
+            (volume.containerPath ? `:${volume.containerPath}` : "") +
+            (volume.accessMode ? `:${volume.accessMode}` : "")
+        ),
+        ports: ports.map(
+          (port) =>
+            port.hostPort +
+            (port.containerPort ? `:${port.containerPort}` : "") +
+            (port.protocol ? `/${port.protocol}` : "")
+        ),
+        labels: labels.map((label) => `${label.key}:${label.value}`)
+      }
+    }
+  ) as any;
+};
