@@ -12,6 +12,13 @@ const Fields = styled("div")`
   row-gap: ${({ theme }) => theme.spacing(1)};
 `;
 
+const ImageNameGroup = styled("div")`
+  display: flex;
+  flex-direction: row;
+  column-gap: ${({ theme }) => theme.spacing(1)};
+  width: 100%;
+`;
+
 const Group = styled("div")`
   display: flex;
   flex-direction: column;
@@ -71,6 +78,15 @@ const General = () => {
     <>
       <Fields>
         <TextField label="Service name" name="serviceName" required={true} />
+        <ImageNameGroup>
+          <TextField
+            label="Image name"
+            name="imageName"
+            required={true}
+            style={{ minWidth: 400 }}
+          />
+          <TextField label="Image tag" name="imageTag" />
+        </ImageNameGroup>
         <TextField
           label="Container name"
           name="containerName"

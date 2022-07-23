@@ -3,6 +3,8 @@ import * as yup from "yup";
 import lodash from "lodash";
 
 const initialValues: IEditServiceForm = {
+  imageName: "",
+  imageTag: "",
   serviceName: "",
   containerName: "",
   ports: [],
@@ -16,6 +18,11 @@ export const validationSchema = yup.object({
     .string()
     .max(256, "Service name should be 256 characters or less")
     .required("Service name is required"),
+  imageName: yup
+    .string()
+    .max(256, "Image name should be 256 characters or less")
+    .required("Image name is required"),
+  imageTag: yup.string().max(256, "Image tag should be 256 characters or less"),
   containerName: yup
     .string()
     .max(256, "Container name should be 256 characters or less")
@@ -60,6 +67,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const { canvasConfig, serviceConfig } = node;
   const { node_name = "" } = canvasConfig;
   const {
+    image,
     container_name = "",
     environment,
     volumes,
@@ -80,9 +88,12 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const volumes0: string[] = checkArray(volumes, "volumes");
   const ports0: string[] = checkArray(ports, "ports");
   const labels0: string[] = checkArray(labels, "labels");
+  const [imageName, imageTag] = (image ?? ":").split(":");
 
   return {
     ...initialValues,
+    imageName,
+    imageTag,
     serviceName: node_name,
     containerName: container_name,
     environmentVariables: environment0.map((variable) => {
@@ -144,6 +155,7 @@ export const getFinalValues = (
         node_name: values.serviceName
       },
       serviceConfig: {
+        image: `${values.imageName}:${values.imageTag}`,
         container_name: values.containerName,
         environment: environmentVariables.map(
           (variable) => `${variable.key}:${variable.value}`

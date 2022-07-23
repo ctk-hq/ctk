@@ -355,6 +355,8 @@ export interface IGeneratePayload {
 
 export interface IEditServiceForm {
   serviceName: string;
+  imageName: string;
+  imageTag: string;
   containerName: string;
   ports: {
     hostPort: string;
