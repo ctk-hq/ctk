@@ -2,7 +2,7 @@ import { FunctionComponent, ReactElement, useCallback } from "react";
 import { styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
 import { MinusSmIcon } from "@heroicons/react/solid";
-import lodash from "lodash";
+import TextField from "./global/FormElements/InputField";
 
 export interface IFieldType {
   name: string;
@@ -11,7 +11,6 @@ export interface IFieldType {
 }
 
 export interface IRecordProps {
-  formik: any;
   fields: IFieldType[];
   index: number;
   onRemove: (index: number) => void;
@@ -30,7 +29,7 @@ const RemoveButton = styled(IconButton)``;
 const Record: FunctionComponent<IRecordProps> = (
   props: IRecordProps
 ): ReactElement => {
-  const { formik, fields, index, onRemove } = props;
+  const { fields, index, onRemove } = props;
 
   const handleRemove = useCallback(() => {
     onRemove(index);
@@ -39,17 +38,12 @@ const Record: FunctionComponent<IRecordProps> = (
   return (
     <Root>
       {fields.map(({ name, placeholder, required }) => (
-        <input
+        <TextField
           key={name}
           id={name}
           name={name}
-          type="text"
           placeholder={placeholder + (required ? "*" : "")}
-          autoComplete="none"
-          className="input-util"
           required={required}
-          onChange={formik.handleChange}
-          value={lodash.get(formik.values, name)}
         />
       ))}
       <RemoveButton
