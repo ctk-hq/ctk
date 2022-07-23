@@ -50,15 +50,82 @@ export const validationSchema = yup.object({
   )
 });
 
-export const getInitialValues = (
-  node?: IServiceNodeItem
-): IEditServiceForm => ({
-  ...initialValues,
-  serviceName: node?.canvasConfig.node_name || "",
-  containerName: node?.serviceConfig.container_name || ""
-});
+export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
+  if (!node) {
+    return {
+      ...initialValues
+    };
+  }
 
-export const transform = (
+  const { canvasConfig, serviceConfig } = node;
+  const { node_name = "" } = canvasConfig;
+  const {
+    container_name = "",
+    environment,
+    volumes,
+    ports,
+    labels
+  } = serviceConfig;
+
+  const checkArray = <T>(array: any, name: string): T => {
+    if (!Array.isArray(array)) {
+      throw new Error(
+        `Looks like we encountered a bug. The current implementation expects "${name}" to be an array.`
+      );
+    }
+    return array as unknown as T;
+  };
+
+  const environment0: string[] = checkArray(environment, "environment");
+  const volumes0: string[] = checkArray(volumes, "volumes");
+  const ports0: string[] = checkArray(ports, "ports");
+  const labels0: string[] = checkArray(labels, "labels");
+
+  return {
+    ...initialValues,
+    serviceName: node_name,
+    containerName: container_name,
+    environmentVariables: environment0.map((variable) => {
+      const [key, value] = variable.split(":");
+      return {
+        key,
+        value
+      };
+    }),
+    volumes: volumes0.map((volume) => {
+      const [name, containerPath, accessMode] = volume.split(":");
+      return {
+        name,
+        containerPath,
+        accessMode
+      };
+    }),
+    ports: ports0.map((port) => {
+      const slashIndex = port.lastIndexOf("/");
+      const protocol = slashIndex >= 0 ? port.substring(slashIndex + 1) : "";
+      const [hostPort, containerPort] = port
+        .substring(0, slashIndex)
+        .split(":");
+
+      if (!["tcp", "udp"].includes(protocol)) {
+        throw new Error(
+          `Invalid protocol "${protocol}" found while deserializing.`
+        );
+      }
+
+      return { hostPort, containerPort, protocol } as any;
+    }),
+    labels: labels0.map((label) => {
+      const [key, value] = label.split(":");
+      return {
+        key,
+        value
+      };
+    })
+  };
+};
+
+export const getFinalValues = (
   values: IEditServiceForm,
   previous?: IServiceNodeItem
 ): IServiceNodeItem => {
@@ -74,8 +141,7 @@ export const transform = (
     },
     {
       canvasConfig: {
-        node_name: values.serviceName,
-        node_icon: ""
+        node_name: values.serviceName
       },
       serviceConfig: {
         container_name: values.containerName,

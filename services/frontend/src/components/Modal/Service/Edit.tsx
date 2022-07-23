@@ -7,7 +7,11 @@ import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
 import type { CallbackFunction, IServiceNodeItem } from "../../../types";
-import { getInitialValues, transform, validationSchema } from "./form-utils";
+import {
+  getInitialValues,
+  getFinalValues,
+  validationSchema
+} from "./form-utils";
 
 export interface IModalServiceProps {
   node: IServiceNodeItem;
@@ -48,7 +52,7 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
   const [selectedNode, setSelectedNode] = useState<IServiceNodeItem>();
 
   const handleUpdate = (values: any) => {
-    onUpdateEndpoint(transform(values, selectedNode));
+    onUpdateEndpoint(getFinalValues(values, selectedNode));
   };
 
   const initialValues = useMemo(

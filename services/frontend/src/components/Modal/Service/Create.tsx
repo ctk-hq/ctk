@@ -6,7 +6,11 @@ import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
 import { CallbackFunction } from "../../../types";
-import { getInitialValues, transform, validationSchema } from "./form-utils";
+import {
+  getInitialValues,
+  getFinalValues,
+  validationSchema
+} from "./form-utils";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -45,7 +49,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
   const [openTab, setOpenTab] = useState("General");
   const handleCreate = (values: any, formik: any) => {
     // TODO: This modal should not be aware of endpoints. Seperation of concerns.
-    onAddEndpoint(transform(values));
+    onAddEndpoint(getFinalValues(values));
     formik.resetForm();
   };
 
