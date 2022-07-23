@@ -7,7 +7,7 @@ import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
 import type { CallbackFunction, IServiceNodeItem } from "../../../types";
-import { getInitialValues, validationSchema } from "./form-utils";
+import { getInitialValues, transform, validationSchema } from "./form-utils";
 
 export interface IModalServiceProps {
   node: IServiceNodeItem;
@@ -15,45 +15,41 @@ export interface IModalServiceProps {
   onUpdateEndpoint: CallbackFunction;
 }
 
+const tabs = [
+  {
+    name: "General",
+    href: "#",
+    current: true,
+    hidden: false
+  },
+  {
+    name: "Environment",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
+    name: "Volumes",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
+    name: "Labels",
+    href: "#",
+    current: false,
+    hidden: false
+  }
+];
+
 const ModalServiceEdit = (props: IModalServiceProps) => {
   const { node, onHide, onUpdateEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
   const [selectedNode, setSelectedNode] = useState<IServiceNodeItem>();
 
   const handleUpdate = (values: any) => {
-    // TODO
-    const updated = { ...selectedNode };
-    updated.canvasConfig = values.canvasConfig;
-    updated.serviceConfig = values.serviceConfig;
-    onUpdateEndpoint(updated);
+    onUpdateEndpoint(transform(values, selectedNode));
   };
-
-  const tabs = [
-    {
-      name: "General",
-      href: "#",
-      current: true,
-      hidden: false
-    },
-    {
-      name: "Environment",
-      href: "#",
-      current: false,
-      hidden: false
-    },
-    {
-      name: "Volumes",
-      href: "#",
-      current: false,
-      hidden: false
-    },
-    {
-      name: "Labels",
-      href: "#",
-      current: false,
-      hidden: false
-    }
-  ];
 
   const initialValues = useMemo(
     () => getInitialValues(selectedNode),

@@ -6,7 +6,7 @@ import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
 import { CallbackFunction } from "../../../types";
-import { getInitialValues, validationSchema } from "./form-utils";
+import { getInitialValues, transform, validationSchema } from "./form-utils";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -45,20 +45,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
   const [openTab, setOpenTab] = useState("General");
   const handleCreate = (values: any, formik: any) => {
     // TODO: This modal should not be aware of endpoints. Seperation of concerns.
-    onAddEndpoint({
-      canvasConfig: {
-        node_name: values.serviceName,
-        node_icon: ""
-      },
-      serviceConfig: {
-        container_name: values.containerName
-      },
-      key: "service",
-      type: "SERVICE",
-      inputs: ["op_source"],
-      outputs: [],
-      config: {}
-    });
+    onAddEndpoint(transform(values));
     formik.resetForm();
   };
 
