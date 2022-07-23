@@ -32,8 +32,9 @@ const Description = styled("p")`
 `;
 
 const GroupTitle = styled("h5")`
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 0.75rem;
+  color: #374151;
+  font-weight: 500;
 `;
 
 const General = () => {
