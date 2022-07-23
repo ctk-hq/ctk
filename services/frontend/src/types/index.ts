@@ -352,3 +352,26 @@ export interface IGeneratePayload {
     volumes: Record<string, Partial<IVolumeTopLevel>>;
   };
 }
+
+export interface IEditServiceForm {
+  serviceName: string;
+  containerName: string;
+  ports: {
+    hostPort: string;
+    containerPort: string;
+    protocol: "tcp" | "udp";
+  }[];
+  environmentVariables: {
+    key: string;
+    value: string;
+  }[];
+  volumes: {
+    name: string;
+    containerPath: string;
+    accessMode: string;
+  }[];
+  labels: {
+    key: string;
+    value: string;
+  }[];
+}
