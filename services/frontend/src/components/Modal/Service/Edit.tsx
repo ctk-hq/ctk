@@ -1,19 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Formik } from "formik";
-import * as yup from "yup";
+
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
-import {
-  CallbackFunction,
-  ICanvasConfig,
-  IService,
-  IServiceNodeItem
-} from "../../../types";
+import type { CallbackFunction, IServiceNodeItem } from "../../../types";
+import { getInitialValues, validationSchema } from "./form-utils";
 
-interface IModalServiceProps {
+export interface IModalServiceProps {
   node: IServiceNodeItem;
   onHide: CallbackFunction;
   onUpdateEndpoint: CallbackFunction;
@@ -25,25 +21,13 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
   const [selectedNode, setSelectedNode] = useState<IServiceNodeItem>();
 
   const handleUpdate = (values: any) => {
+    // TODO
     const updated = { ...selectedNode };
     updated.canvasConfig = values.canvasConfig;
     updated.serviceConfig = values.serviceConfig;
     onUpdateEndpoint(updated);
   };
-  const validationSchema = yup.object({
-    canvasConfig: yup.object({
-      node_name: yup
-        .string()
-        .max(256, "service name should be 256 characters or less")
-        .required("service name is required")
-    }),
-    serviceConfig: yup.object({
-      container_name: yup
-        .string()
-        .max(256, "container name should be 256 characters or less")
-        .required("container name is required")
-    })
-  });
+
   const tabs = [
     {
       name: "General",
@@ -70,6 +54,12 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
       hidden: false
     }
   ];
+
+  const initialValues = useMemo(
+    () => getInitialValues(selectedNode),
+    [selectedNode]
+  );
+
   const classNames = (...classes: string[]) => {
     return classes.filter(Boolean).join(" ");
   };
@@ -103,18 +93,9 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
 
             {selectedNode && (
               <Formik
-                initialValues={{
-                  canvasConfig: {
-                    ...selectedNode.canvasConfig
-                  } as ICanvasConfig,
-                  serviceConfig: {
-                    ...selectedNode.serviceConfig
-                  } as IService
-                }}
+                initialValues={initialValues}
                 enableReinitialize={true}
-                onSubmit={(values) => {
-                  handleUpdate(values);
-                }}
+                onSubmit={handleUpdate}
                 validationSchema={validationSchema}
               >
                 {(formik) => (
