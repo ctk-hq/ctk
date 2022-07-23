@@ -1,51 +1,50 @@
 import { useState } from "react";
-import { Formik } from "formik";
-import * as yup from "yup";
 import { XIcon } from "@heroicons/react/outline";
-import General from "./General";
-import IPam from "./IPam";
-import Labels from "./Labels";
-import { topLevelNetworkConfigInitialValues } from "../../../utils";
+import NetworkCreate from "./Create";
 import { CallbackFunction } from "../../../types";
+import NetworkEdit from "./Edit";
+import { attachUUID } from "../../../utils";
 
 interface IModalNetworkProps {
+  networks: Record<string, any>;
+  onCreateNetwork: CallbackFunction;
+  onUpdateNetwork: CallbackFunction;
+  onDeleteNetwork: CallbackFunction;
   onHide: CallbackFunction;
 }
 
 const ModalNetwork = (props: IModalNetworkProps) => {
-  const { onHide } = props;
-  const [openTab, setOpenTab] = useState("General");
-  const handleCreate = (values: any, formik: any) => {
-    formik.resetForm();
+  const {
+    networks,
+    onCreateNetwork,
+    onUpdateNetwork,
+    onDeleteNetwork,
+    onHide
+  } = props;
+  const [selectedNetwork, setSelectedNetwork] = useState<any | null>();
+  const handleCreate = (values: any) => {
+    const uniqueKey = attachUUID(values.key);
+    const network = {
+      ...values,
+      key: uniqueKey
+    };
+    onCreateNetwork(network);
+    setSelectedNetwork(network);
   };
-  const validationSchema = yup.object({
-    name: yup
-      .string()
-      .max(256, "name should be 256 characters or less")
-      .required("name is required")
-  });
-  const tabs = [
-    {
-      name: "General",
-      href: "#",
-      current: true,
-      hidden: false
-    },
-    {
-      name: "Ipam",
-      href: "#",
-      current: false,
-      hidden: false
-    },
-    {
-      name: "Labels",
-      href: "#",
-      current: false,
-      hidden: false
-    }
-  ];
-  const classNames = (...classes: string[]) => {
-    return classes.filter(Boolean).join(" ");
+  const handleUpdate = (values: any) => {
+    onUpdateNetwork(values);
+    setSelectedNetwork(values);
+  };
+  const handleDelete = () => {
+    onDeleteNetwork(selectedNetwork.key);
+    setSelectedNetwork(null);
+  };
+  const handleNew = () => {
+    setSelectedNetwork(null);
+  };
+  const onNetworkSelect = (e: any) => {
+    const networkUuid = e.target.value;
+    setSelectedNetwork(networks[networkUuid]);
   };
 
   return (
@@ -69,70 +68,46 @@ const ModalNetwork = (props: IModalNetworkProps) => {
               </button>
             </div>
 
-            <Formik
-              initialValues={{
-                ...topLevelNetworkConfigInitialValues(),
-                key: "volume",
-                type: "VOLUME",
-                inputs: [],
-                outputs: [],
-                config: {}
-              }}
-              enableReinitialize={true}
-              onSubmit={(values, formik) => {
-                handleCreate(values, formik);
-              }}
-              validationSchema={validationSchema}
-            >
-              {(formik) => (
-                <>
-                  <div className="hidden sm:block">
-                    <div className="border-b border-gray-200 px-8">
-                      <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                        {tabs.map((tab) => (
-                          <a
-                            key={tab.name}
-                            href={tab.href}
-                            className={classNames(
-                              tab.name === openTab
-                                ? "border-indigo-500 text-indigo-600"
-                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-                              "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
-                              tab.hidden ? "hidden" : ""
-                            )}
-                            aria-current={tab.current ? "page" : undefined}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setOpenTab(tab.name);
-                            }}
-                          >
-                            {tab.name}
-                          </a>
-                        ))}
-                      </nav>
-                    </div>
-                  </div>
+            {networks && Object.keys(networks).length > 0 && (
+              <div className="flex flex-row space-x-1 mx-4 mt-2">
+                <select
+                  id="network"
+                  name="network"
+                  className="input-util"
+                  value={selectedNetwork ? selectedNetwork.key : ""}
+                  onChange={onNetworkSelect}
+                >
+                  <option>select network to edit</option>
+                  {Object.keys(networks).map((networkUuid: string) => (
+                    <option value={networkUuid} key={networkUuid}>
+                      {networks[networkUuid].canvasConfig.node_name}
+                    </option>
+                  ))}
+                </select>
 
-                  <div className="relative px-4 py-3 flex-auto">
-                    {openTab === "General" && <General />}
-                    {openTab === "IPam" && <IPam />}
-                    {openTab === "Labels" && <Labels />}
-                  </div>
+                {selectedNetwork && (
+                  <button
+                    className="btn-util"
+                    type="button"
+                    onClick={handleNew}
+                  >
+                    New
+                  </button>
+                )}
+              </div>
+            )}
 
-                  <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
-                    <button
-                      className="btn-util"
-                      type="button"
-                      onClick={() => {
-                        formik.submitForm();
-                      }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                </>
-              )}
-            </Formik>
+            {!selectedNetwork && (
+              <NetworkCreate onCreateNetwork={handleCreate} />
+            )}
+
+            {selectedNetwork && (
+              <NetworkEdit
+                network={selectedNetwork}
+                onUpdateNetwork={handleUpdate}
+                onDeleteNetwork={handleDelete}
+              />
+            )}
           </div>
         </div>
       </div>
