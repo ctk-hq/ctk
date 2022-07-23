@@ -67,11 +67,11 @@ const Volumes = () => {
                   required: true
                 },
                 {
-                  name: `volumes[${index}].key`,
+                  name: `volumes[${index}].containerPath`,
                   placeholder: "Container path"
                 },
                 {
-                  name: `volumes[${index}].value`,
+                  name: `volumes[${index}].accessMode`,
                   placeholder: "Access mode"
                 }
               ]}
