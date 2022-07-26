@@ -1,66 +1,60 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Formik } from "formik";
-import * as yup from "yup";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
-import { serviceConfigCanvasInitialValues } from "../../../utils";
 import { CallbackFunction } from "../../../types";
+import {
+  getInitialValues,
+  getFinalValues,
+  validationSchema
+} from "./form-utils";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
   onAddEndpoint: CallbackFunction;
 }
 
+const tabs = [
+  {
+    name: "General",
+    href: "#",
+    current: true,
+    hidden: false
+  },
+  {
+    name: "Environment",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
+    name: "Volumes",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
+    name: "Labels",
+    href: "#",
+    current: false,
+    hidden: false
+  }
+];
+
 const ModalServiceCreate = (props: IModalServiceProps) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
   const handleCreate = (values: any, formik: any) => {
-    onAddEndpoint(values);
+    // TODO: This modal should not be aware of endpoints. Seperation of concerns.
+    onAddEndpoint(getFinalValues(values));
     formik.resetForm();
   };
-  const validationSchema = yup.object({
-    canvasConfig: yup.object({
-      node_name: yup
-        .string()
-        .max(256, "service name should be 256 characters or less")
-        .required("service name is required")
-    }),
-    serviceConfig: yup.object({
-      container_name: yup
-        .string()
-        .max(256, "container name should be 256 characters or less")
-        .required("container name is required")
-    })
-  });
-  const tabs = [
-    {
-      name: "General",
-      href: "#",
-      current: true,
-      hidden: false
-    },
-    {
-      name: "Environment",
-      href: "#",
-      current: false,
-      hidden: false
-    },
-    {
-      name: "Volumes",
-      href: "#",
-      current: false,
-      hidden: false
-    },
-    {
-      name: "Labels",
-      href: "#",
-      current: false,
-      hidden: false
-    }
-  ];
+
+  const initialValues = useMemo(() => getInitialValues(), []);
+
   const classNames = (...classes: string[]) => {
     return classes.filter(Boolean).join(" ");
   };
@@ -87,19 +81,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
             </div>
 
             <Formik
-              initialValues={{
-                canvasConfig: {
-                  ...serviceConfigCanvasInitialValues()
-                },
-                serviceConfig: {
-                  container_name: ""
-                },
-                key: "service",
-                type: "SERVICE",
-                inputs: ["op_source"],
-                outputs: [],
-                config: {}
-              }}
+              initialValues={initialValues}
               enableReinitialize={true}
               onSubmit={(values, formik) => {
                 handleCreate(values, formik);

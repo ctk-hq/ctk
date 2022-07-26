@@ -1,16 +1,22 @@
-import { FunctionComponent, ReactElement, useCallback } from "react";
+import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
 import { styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
 import { MinusSmIcon } from "@heroicons/react/solid";
-import lodash from "lodash";
+import TextField from "./global/FormElements/TextField";
+import Toggle from "./global/FormElements/Toggle";
 
 export interface IFieldType {
   name: string;
   placeholder: string;
+  required?: boolean;
+  type: "text" | "toggle";
+  options?: {
+    text: string;
+    value: string;
+  }[];
 }
 
 export interface IRecordProps {
-  formik: any;
   fields: IFieldType[];
   index: number;
   onRemove: (index: number) => void;
@@ -20,7 +26,7 @@ const Root = styled("div")`
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
   column-gap: ${({ theme }) => theme.spacing(2)};
 `;
 
@@ -29,7 +35,7 @@ const RemoveButton = styled(IconButton)``;
 const Record: FunctionComponent<IRecordProps> = (
   props: IRecordProps
 ): ReactElement => {
-  const { formik, fields, index, onRemove } = props;
+  const { fields, index, onRemove } = props;
 
   const handleRemove = useCallback(() => {
     onRemove(index);
@@ -37,18 +43,20 @@ const Record: FunctionComponent<IRecordProps> = (
 
   return (
     <Root>
-      {fields.map(({ name, placeholder }) => (
-        <input
-          key={name}
-          id={name}
-          name={name}
-          type="text"
-          placeholder={placeholder}
-          autoComplete="none"
-          className="input-util"
-          onChange={formik.handleChange}
-          value={lodash.get(formik.values, name)}
-        />
+      {fields.map(({ type, name, placeholder, required, options }) => (
+        <Fragment key={name}>
+          {type === "text" && (
+            <TextField
+              id={name}
+              name={name}
+              placeholder={placeholder + (required ? "*" : "")}
+              required={required}
+            />
+          )}
+          {type === "toggle" && (
+            <Toggle name={name} label={placeholder} options={options || []} />
+          )}
+        </Fragment>
       ))}
       <RemoveButton
         variant="soft"

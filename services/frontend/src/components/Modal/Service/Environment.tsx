@@ -1,13 +1,14 @@
 import { useCallback } from "react";
 import { PlusIcon } from "@heroicons/react/outline";
-import { styled } from "@mui/joy";
+import { Button, styled } from "@mui/joy";
 import { useFormikContext } from "formik";
 import Record from "../../Record";
-import { IService } from "../../../types";
+import { IEditServiceForm } from "../../../types";
 
 const Root = styled("div")`
   display: flex;
   flex-direction: column;
+  align-items: center;
 `;
 
 const Records = styled("div")`
@@ -16,77 +17,90 @@ const Records = styled("div")`
   row-gap: ${({ theme }: { theme: any }) => theme.spacing(1)};
 `;
 
+const AddButton = styled(Button)`
+  width: 140px;
+  margin-top: ${({ theme }) => theme.spacing(2)};
+`;
+
+const Description = styled("p")`
+  margin-top: ${({ theme }) => theme.spacing(2)};
+  text-align: center;
+  color: #7a7a7a;
+  font-size: 14px;
+`;
+
 const Environment = () => {
-  const formik = useFormikContext<{
-    serviceConfig: IService;
-  }>();
-  const environment = (formik.values.serviceConfig.environment as []) || [];
+  const formik = useFormikContext<IEditServiceForm>();
+  const { environmentVariables } = formik.values;
 
   const handleNewEnvironmentVariable = useCallback(() => {
-    formik.setFieldValue(`serviceConfig.environment[${environment.length}]`, {
-      key: "",
-      value: ""
-    });
+    formik.setFieldValue(
+      `environmentVariables[${environmentVariables.length}]`,
+      {
+        key: "",
+        value: ""
+      }
+    );
   }, [formik]);
 
   const handleRemoveEnvironmentVariable = useCallback(
     (index: number) => {
-      const newEnvironmentVariables = environment.filter(
+      const newEnvironmentVariables = environmentVariables.filter(
         (_: unknown, currentIndex: number) => currentIndex != index
       );
-      formik.setFieldValue(
-        `serviceConfig.environment`,
-        newEnvironmentVariables
-      );
+      formik.setFieldValue("environmentVariables", newEnvironmentVariables);
     },
     [formik]
   );
 
   const emptyEnvironmentVariables =
-    environment && environment.length === 0 ? true : false;
+    environmentVariables && environmentVariables.length === 0 ? true : false;
 
   return (
-    <>
-      <Root
-        sx={{ alignItems: emptyEnvironmentVariables ? "center" : "flex-start" }}
+    <Root>
+      {!emptyEnvironmentVariables && (
+        <Records>
+          {environmentVariables.map((_: unknown, index: number) => (
+            <Record
+              key={index}
+              index={index}
+              fields={[
+                {
+                  name: `environmentVariables[${index}].key`,
+                  placeholder: "Key",
+                  required: true,
+                  type: "text"
+                },
+                {
+                  name: `environmentVariables[${index}].value`,
+                  placeholder: "Value",
+                  required: true,
+                  type: "text"
+                }
+              ]}
+              onRemove={handleRemoveEnvironmentVariable}
+            />
+          ))}
+        </Records>
+      )}
+
+      {emptyEnvironmentVariables && (
+        <Description>
+          This service does not have any environment variables.
+          <br />
+          Click "+ New variable" to add a new environment variable.
+        </Description>
+      )}
+
+      <AddButton
+        size="sm"
+        variant="plain"
+        onClick={handleNewEnvironmentVariable}
       >
-        {!emptyEnvironmentVariables && (
-          <Records>
-            {environment.map((_: unknown, index: number) => (
-              <Record
-                key={index}
-                index={index}
-                formik={formik}
-                fields={[
-                  {
-                    name: `serviceConfig.environment[${index}].key`,
-                    placeholder: "Key"
-                  },
-                  {
-                    name: `serviceConfig.environment[${index}].value`,
-                    placeholder: "Value"
-                  }
-                ]}
-                onRemove={handleRemoveEnvironmentVariable}
-              />
-            ))}
-          </Records>
-        )}
-
-        {emptyEnvironmentVariables && (
-          <p className="mt-4 text-md text-gray-500 dark:text-gray-400 text-center">
-            add environment variables
-          </p>
-        )}
-      </Root>
-
-      <div className="flex justify-end pt-2">
-        <button className="btn-util" onClick={handleNewEnvironmentVariable}>
-          <PlusIcon className="h-4 w-4 mr-1" />
-          New Variable
-        </button>
-      </div>
-    </>
+        <PlusIcon className="h-4 w-4 mr-2" />
+        New variable
+      </AddButton>
+    </Root>
   );
 };
 export default Environment;

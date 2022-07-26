@@ -2,7 +2,8 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { debounce, Dictionary, omit } from "lodash";
 import YAML from "yaml";
-import { PlusIcon } from "@heroicons/react/solid";
+import { GlobeAltIcon, CubeIcon, FolderAddIcon } from "@heroicons/react/solid";
+import randomWords from "random-words";
 import {
   IProjectPayload,
   IServiceNodeItem,
@@ -70,7 +71,15 @@ export default function Project() {
   const [nodes, setNodes] = useState({});
   const [connections, setConnections] = useState<[[string, string]] | []>([]);
   const [networks, setNetworks] = useState<Record<string, any>>({});
-  const [projectName, setProjectName] = useState("Untitled");
+  const [projectName, setProjectName] = useState(
+    () =>
+      randomWords({
+        wordsPerString: 2,
+        exactly: 1,
+        separator: "-"
+      } as any)[0]
+  );
+
   const [canvasPosition, setCanvasPosition] = useState({
     top: 0,
     left: 0,
@@ -398,7 +407,7 @@ export default function Project() {
                   focus:ring-0
                 `}
                   type="text"
-                  placeholder="Untitled"
+                  placeholder="Project name"
                   autoComplete="off"
                   id="name"
                   name="name"
@@ -415,7 +424,7 @@ export default function Project() {
                     className="btn-util text-black bg-gray-200 hover:bg-gray-300 sm:w-auto"
                   >
                     <div className="flex justify-center items-center space-x-2 mx-auto">
-                      <span>New</span>
+                      <span>New project</span>
                     </div>
                   </button>
 
@@ -451,8 +460,8 @@ export default function Project() {
                         type="button"
                         onClick={() => setShowModalCreateService(true)}
                       >
-                        <PlusIcon className="w-3" />
-                        <span>Service</span>
+                        <CubeIcon className="w-4" />
+                        <span>Add service</span>
                       </button>
 
                       <button
@@ -460,8 +469,8 @@ export default function Project() {
                         type="button"
                         onClick={() => setShowVolumesModal(true)}
                       >
-                        <PlusIcon className="w-3" />
-                        <span>Volume</span>
+                        <FolderAddIcon className="w-4" />
+                        <span>Add volume</span>
                       </button>
 
                       <button
@@ -469,7 +478,8 @@ export default function Project() {
                         type="button"
                         onClick={() => setShowNetworksModal(true)}
                       >
-                        <span>Networks</span>
+                        <GlobeAltIcon className="w-4" />
+                        <span>Add Network</span>
                       </button>
                     </div>
                   </div>

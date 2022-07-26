@@ -1,13 +1,14 @@
 import { useCallback } from "react";
 import { PlusIcon } from "@heroicons/react/outline";
-import { styled } from "@mui/joy";
+import { Button, styled } from "@mui/joy";
 import { useFormikContext } from "formik";
 import Record from "../../Record";
-import { IService } from "../../../types";
+import { IEditServiceForm, IService } from "../../../types";
 
 const Root = styled("div")`
   display: flex;
   flex-direction: column;
+  align-items: center;
 `;
 
 const Records = styled("div")`
@@ -16,14 +17,24 @@ const Records = styled("div")`
   row-gap: ${({ theme }) => theme.spacing(1)};
 `;
 
+const AddButton = styled(Button)`
+  width: 140px;
+  margin-top: ${({ theme }) => theme.spacing(2)};
+`;
+
+const Description = styled("p")`
+  margin-top: ${({ theme }) => theme.spacing(2)};
+  text-align: center;
+  color: #7a7a7a;
+  font-size: 14px;
+`;
+
 const Labels = () => {
-  const formik = useFormikContext<{
-    serviceConfig: IService;
-  }>();
-  const labels = (formik.values.serviceConfig.labels as []) || [];
+  const formik = useFormikContext<IEditServiceForm>();
+  const { labels } = formik.values;
 
   const handleNewLabel = useCallback(() => {
-    formik.setFieldValue(`serviceConfig.labels[${labels.length}]`, {
+    formik.setFieldValue(`labels[${labels.length}]`, {
       key: "",
       value: ""
     });
@@ -34,7 +45,7 @@ const Labels = () => {
       const newLabels = labels.filter(
         (_: unknown, currentIndex: number) => currentIndex != index
       );
-      formik.setFieldValue(`serviceConfig.labels`, newLabels);
+      formik.setFieldValue(`labels`, newLabels);
     },
     [formik]
   );
@@ -42,44 +53,45 @@ const Labels = () => {
   const emptyLabels = labels && labels.length === 0 ? true : false;
 
   return (
-    <>
-      <Root sx={{ alignItems: emptyLabels ? "center" : "flex-start" }}>
-        {!emptyLabels && (
-          <Records>
-            {labels.map((_: unknown, index: number) => (
-              <Record
-                key={index}
-                index={index}
-                formik={formik}
-                fields={[
-                  {
-                    name: `serviceConfig.labels[${index}].key`,
-                    placeholder: "Key"
-                  },
-                  {
-                    name: `serviceConfig.labels[${index}].value`,
-                    placeholder: "Value"
-                  }
-                ]}
-                onRemove={handleRemoveLabel}
-              />
-            ))}
-          </Records>
-        )}
-        {emptyLabels && (
-          <p className="mt-4 text-md text-gray-500 dark:text-gray-400 text-center">
-            add labels
-          </p>
-        )}
-      </Root>
+    <Root>
+      {!emptyLabels && (
+        <Records>
+          {labels.map((_: unknown, index: number) => (
+            <Record
+              key={index}
+              index={index}
+              fields={[
+                {
+                  name: `labels[${index}].key`,
+                  placeholder: "Key",
+                  required: true,
+                  type: "text"
+                },
+                {
+                  name: `labels[${index}].value`,
+                  placeholder: "Value",
+                  required: true,
+                  type: "text"
+                }
+              ]}
+              onRemove={handleRemoveLabel}
+            />
+          ))}
+        </Records>
+      )}
+      {emptyLabels && (
+        <Description>
+          This service does not have any labels.
+          <br />
+          Click "+ New label" to add a new label.
+        </Description>
+      )}
 
-      <div className="flex justify-end pt-2">
-        <button className="btn-util" onClick={handleNewLabel}>
-          <PlusIcon className="h-4 w-4 mr-1" />
-          New Labels
-        </button>
-      </div>
-    </>
+      <AddButton size="sm" variant="plain" onClick={handleNewLabel}>
+        <PlusIcon className="h-4 w-4 mr-2" />
+        New label
+      </AddButton>
+    </Root>
   );
 };
 
