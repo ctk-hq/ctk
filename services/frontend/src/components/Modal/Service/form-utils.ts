@@ -13,6 +13,23 @@ const initialValues: IEditServiceForm = {
   labels: []
 };
 
+yup.addMethod<yup.StringSchema>(yup.string, "port", function (message) {
+  return this.test("test-port", message, function (value):
+    | boolean
+    | yup.ValidationError {
+    const { path, createError } = this;
+
+    if (value) {
+      const result = parseInt(value, 10);
+      if (isNaN(result) || result < 0 || result > 65535) {
+        return createError({ path, message });
+      }
+    }
+
+    return true;
+  });
+});
+
 export const validationSchema = yup.object({
   serviceName: yup
     .string()
@@ -29,8 +46,12 @@ export const validationSchema = yup.object({
     .required("Container name is required"),
   ports: yup.array(
     yup.object({
-      hostPort: yup.string().required("Host port is required"),
-      containerPort: yup.string(),
+      hostPort: (yup.string().required("Host port is required") as any).port(
+        "Host port should be an integer in the range 0-65535"
+      ),
+      containerPort: (yup.string() as any).port(
+        "Container port should be an integer in the range 0-65535"
+      ),
       protocol: yup
         .string()
         .oneOf(["tcp", "udp"], "Protocol should be tcp or udp")
