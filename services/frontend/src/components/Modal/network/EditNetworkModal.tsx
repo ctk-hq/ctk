@@ -11,13 +11,13 @@ import {
   INetworkTopLevel
 } from "../../../types";
 
-interface INetworkEditProps {
+interface IEditNetworkModalProps {
   onUpdateNetwork: CallbackFunction;
   onDeleteNetwork: CallbackFunction;
   network: any;
 }
 
-const NetworkEdit = (props: INetworkEditProps) => {
+const EditNetworkModal = (props: IEditNetworkModalProps) => {
   const { onUpdateNetwork, onDeleteNetwork, network } = props;
   const [openTab, setOpenTab] = useState("General");
   const handleUpdate = (values: any) => {
@@ -141,4 +141,4 @@ const NetworkEdit = (props: INetworkEditProps) => {
   );
 };
 
-export default NetworkEdit;
+export default EditNetworkModal;

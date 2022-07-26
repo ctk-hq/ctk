@@ -2,7 +2,7 @@ import { useState } from "react";
 import { XIcon } from "@heroicons/react/outline";
 import CreateNetworkModal from "./CreateNetworkModal";
 import { CallbackFunction } from "../../../types";
-import NetworkEdit from "./Edit";
+import EditNetworkModal from "./EditNetworkModal";
 import { attachUUID } from "../../../utils";
 
 interface IModalNetworkProps {
@@ -102,7 +102,7 @@ const ModalNetwork = (props: IModalNetworkProps) => {
             )}
 
             {selectedNetwork && (
-              <NetworkEdit
+              <EditNetworkModal
                 network={selectedNetwork}
                 onUpdateNetwork={handleUpdate}
                 onDeleteNetwork={handleDelete}
