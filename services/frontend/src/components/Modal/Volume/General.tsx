@@ -1,4 +1,4 @@
-import TextField from "../../global/FormElements/InputField";
+import TextField from "../../global/FormElements/TextField";
 
 const General = () => {
   return (

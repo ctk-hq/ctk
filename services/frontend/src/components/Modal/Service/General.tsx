@@ -1,4 +1,4 @@
-import TextField from "../../global/FormElements/InputField";
+import TextField from "../../global/FormElements/TextField";
 import { useCallback } from "react";
 import { PlusIcon } from "@heroicons/react/outline";
 import { Button, styled } from "@mui/joy";

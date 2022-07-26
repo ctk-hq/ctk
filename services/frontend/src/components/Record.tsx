@@ -2,7 +2,7 @@ import { FunctionComponent, ReactElement, useCallback } from "react";
 import { styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
 import { MinusSmIcon } from "@heroicons/react/solid";
-import TextField from "./global/FormElements/InputField";
+import TextField from "./global/FormElements/TextField";
 
 export interface IFieldType {
   name: string;
