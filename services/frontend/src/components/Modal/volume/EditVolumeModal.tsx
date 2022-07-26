@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Formik } from "formik";
-import * as yup from "yup";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Labels from "./Labels";
+import type { CallbackFunction, IVolumeNodeItem } from "../../../types";
 import {
-  CallbackFunction,
-  ICanvasConfig,
-  IVolumeNodeItem,
-  IVolumeTopLevel
-} from "../../../types";
+  getFinalValues,
+  getInitialValues,
+  tabs,
+  validationSchema
+} from "./form-utils";
 
 interface IEditVolumeModal {
   node: IVolumeNodeItem;
@@ -17,53 +17,26 @@ interface IEditVolumeModal {
   onUpdateEndpoint: CallbackFunction;
 }
 
+const classNames = (...classes: string[]) => {
+  return classes.filter(Boolean).join(" ");
+};
+
 const EditVolumeModal = (props: IEditVolumeModal) => {
   const { node, onHide, onUpdateEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
   const [selectedNode, setSelectedNode] = useState<IVolumeNodeItem>();
-  const handleUpdate = (values: any) => {
-    const updated = { ...selectedNode };
-    updated.canvasConfig = values.canvasConfig;
-    updated.volumeConfig = values.volumeConfig;
-    onUpdateEndpoint(updated);
-  };
-  const validationSchema = yup.object({
-    canvasConfig: yup.object({
-      node_name: yup
-        .string()
-        .max(256, "volume name should be 256 characters or less")
-        .required("volume name is required")
-    }),
-    volumeConfig: yup.object({
-      name: yup
-        .string()
-        .max(256, "name should be 256 characters or less")
-        .required("name is required")
-    })
-  });
-  const tabs = [
-    {
-      name: "General",
-      href: "#",
-      current: true,
-      hidden: false
-    },
-    {
-      name: "Labels",
-      href: "#",
-      current: false,
-      hidden: false
-    }
-  ];
-  const classNames = (...classes: string[]) => {
-    return classes.filter(Boolean).join(" ");
-  };
 
   useEffect(() => {
     if (node) {
       setSelectedNode(node);
     }
   }, [node]);
+
+  const handleUpdate = (values: any) => {
+    onUpdateEndpoint(getFinalValues(values, selectedNode));
+  };
+
+  const initialValues = useMemo(() => getInitialValues(), []);
 
   return (
     <div className="fixed z-50 inset-0 overflow-y-auto">
@@ -75,9 +48,7 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
         <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
             <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
-              <h3 className="text-sm font-semibold">
-                Update top level volumes
-              </h3>
+              <h3 className="text-sm font-semibold">Edit top level volumes</h3>
               <button
                 className="p-1 ml-auto text-black float-right outline-none focus:outline-none"
                 onClick={onHide}
@@ -90,18 +61,9 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
 
             {selectedNode && (
               <Formik
-                initialValues={{
-                  canvasConfig: {
-                    ...selectedNode.canvasConfig
-                  } as ICanvasConfig,
-                  volumeConfig: {
-                    ...selectedNode.volumeConfig
-                  } as IVolumeTopLevel
-                }}
+                initialValues={initialValues}
                 enableReinitialize={true}
-                onSubmit={(values) => {
-                  handleUpdate(values);
-                }}
+                onSubmit={handleUpdate}
                 validationSchema={validationSchema}
               >
                 {(formik) => (
@@ -149,7 +111,7 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
                           formik.submitForm();
                         }}
                       >
-                        Update
+                        Save
                       </button>
                     </div>
                   </>
