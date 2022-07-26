@@ -1,12 +1,18 @@
 import lodash from "lodash";
 import { useFormikContext } from "formik";
 import { FunctionComponent, ReactElement } from "react";
+import { styled } from "@mui/joy";
 
 export interface ITextFieldProps {
   name: string;
   help?: string;
   [key: string]: any;
 }
+
+const Root = styled("div")`
+  display: flex;
+  flex-direction: column;
+`;
 
 const TextField: FunctionComponent<ITextFieldProps> = (
   props: ITextFieldProps
@@ -17,7 +23,7 @@ const TextField: FunctionComponent<ITextFieldProps> = (
     lodash.get(formik.touched, name) && lodash.get(formik.errors, name);
 
   return (
-    <div>
+    <Root>
       {label && (
         <label
           htmlFor={name}
@@ -44,7 +50,7 @@ const TextField: FunctionComponent<ITextFieldProps> = (
         {error && <span className="caption">{error}</span>}
         {!error && help}
       </div>
-    </div>
+    </Root>
   );
 };
 

@@ -20,7 +20,7 @@ const Root = styled("div")`
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
   column-gap: ${({ theme }) => theme.spacing(2)};
 `;
 
