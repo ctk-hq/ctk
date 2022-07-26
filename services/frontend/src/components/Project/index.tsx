@@ -9,8 +9,7 @@ import {
   IServiceNodeItem,
   IVolumeNodeItem,
   IServiceNodePosition,
-  IProject,
-  INetworkTopLevel
+  IProject
 } from "../../types";
 import eventBus from "../../events/eventBus";
 import { useMutation } from "react-query";
@@ -37,8 +36,8 @@ import ModalConfirmDelete from "../Modal/ConfirmDelete";
 import ModalServiceCreate from "../Modal/Service/Create";
 import ModalServiceEdit from "../Modal/Service/Edit";
 import ModalNetwork from "../Modal/Network";
-import ModalVolumeCreate from "../Modal/Volume/Create";
-import ModalVolumeEdit from "../Modal/Volume/Edit";
+import CreateVolumeModal from "../Modal/volume/CreateVolumeModal";
+import EditVolumeModal from "../Modal/volume/EditVolumeModal";
 import CodeEditor from "../CodeEditor";
 
 export default function Project() {
@@ -329,7 +328,7 @@ export default function Project() {
           ) : null}
 
           {showVolumesModal ? (
-            <ModalVolumeCreate
+            <CreateVolumeModal
               onHide={() => setShowVolumesModal(false)}
               onAddEndpoint={(values: any) => onAddEndpoint(values)}
             />
@@ -361,7 +360,7 @@ export default function Project() {
           ) : null}
 
           {volumeToEdit ? (
-            <ModalVolumeEdit
+            <EditVolumeModal
               node={volumeToEdit}
               onHide={() => setVolumeToEdit(null)}
               onUpdateEndpoint={(values: any) => onUpdateEndpoint(values)}

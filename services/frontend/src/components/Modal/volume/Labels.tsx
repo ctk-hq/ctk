@@ -81,7 +81,7 @@ const Labels = () => {
       )}
       {emptyLabels && (
         <Description>
-          This service does not have any labels.
+          This volume does not have any labels.
           <br />
           Click "+ New label" to add a new label.
         </Description>

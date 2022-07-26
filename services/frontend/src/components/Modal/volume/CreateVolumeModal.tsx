@@ -1,58 +1,34 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Formik } from "formik";
-import * as yup from "yup";
 import { XIcon } from "@heroicons/react/outline";
+
+import {
+  getFinalValues,
+  getInitialValues,
+  tabs,
+  validationSchema
+} from "./form-utils";
 import General from "./General";
 import Labels from "./Labels";
-import {
-  topLevelVolumeConfigInitialValues,
-  volumeConfigCanvasInitialValues
-} from "../../../utils";
 import { CallbackFunction } from "../../../types";
 
-interface IModalVolumeCreate {
+interface ICreateVolumeModalProps {
   onHide: CallbackFunction;
   onAddEndpoint: CallbackFunction;
 }
 
-const ModalVolumeCreate = (props: IModalVolumeCreate) => {
+const classNames = (...classes: string[]) => classes.filter(Boolean).join(" ");
+
+const CreateVolumeModal = (props: ICreateVolumeModalProps) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
-  const handleCreate = (values: any, formik: any) => {
-    onAddEndpoint(values);
+
+  const handleCreate = useCallback((values: any, formik: any) => {
+    onAddEndpoint(getFinalValues(values));
     formik.resetForm();
-  };
-  const validationSchema = yup.object({
-    canvasConfig: yup.object({
-      node_name: yup
-        .string()
-        .max(256, "volume name should be 256 characters or less")
-        .required("volume name is required")
-    }),
-    volumeConfig: yup.object({
-      name: yup
-        .string()
-        .max(256, "name should be 256 characters or less")
-        .required("name is required")
-    })
-  });
-  const tabs = [
-    {
-      name: "General",
-      href: "#",
-      current: true,
-      hidden: false
-    },
-    {
-      name: "Labels",
-      href: "#",
-      current: false,
-      hidden: false
-    }
-  ];
-  const classNames = (...classes: string[]) => {
-    return classes.filter(Boolean).join(" ");
-  };
+  }, []);
+
+  const initialValues = useMemo(() => getInitialValues(), []);
 
   return (
     <div className="fixed z-50 inset-0 overflow-y-auto">
@@ -64,7 +40,7 @@ const ModalVolumeCreate = (props: IModalVolumeCreate) => {
         <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
             <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
-              <h3 className="text-sm font-semibold">Create top level volume</h3>
+              <h3 className="text-sm font-semibold">Add top level volume</h3>
               <button
                 className="p-1 ml-auto text-black float-right outline-none focus:outline-none"
                 onClick={onHide}
@@ -76,23 +52,9 @@ const ModalVolumeCreate = (props: IModalVolumeCreate) => {
             </div>
 
             <Formik
-              initialValues={{
-                canvasConfig: {
-                  ...volumeConfigCanvasInitialValues()
-                },
-                volumeConfig: {
-                  ...topLevelVolumeConfigInitialValues()
-                },
-                key: "volume",
-                type: "VOLUME",
-                inputs: [],
-                outputs: [],
-                config: {}
-              }}
+              initialValues={initialValues}
               enableReinitialize={true}
-              onSubmit={(values, formik) => {
-                handleCreate(values, formik);
-              }}
+              onSubmit={handleCreate}
               validationSchema={validationSchema}
             >
               {(formik) => (
@@ -133,9 +95,7 @@ const ModalVolumeCreate = (props: IModalVolumeCreate) => {
                     <button
                       className="btn-util"
                       type="button"
-                      onClick={() => {
-                        formik.submitForm();
-                      }}
+                      onClick={formik.submitForm}
                     >
                       Add
                     </button>
@@ -150,4 +110,4 @@ const ModalVolumeCreate = (props: IModalVolumeCreate) => {
   );
 };
 
-export default ModalVolumeCreate;
+export default CreateVolumeModal;

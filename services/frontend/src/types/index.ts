@@ -377,3 +377,12 @@ export interface IEditServiceForm {
     value: string;
   }[];
 }
+
+export interface IEditVolumeForm {
+  entryName: string;
+  volumeName: string;
+  labels: {
+    key: string;
+    value: string;
+  }[];
+}

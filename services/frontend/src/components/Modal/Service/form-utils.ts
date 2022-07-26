@@ -1,6 +1,7 @@
 import type { IEditServiceForm, IServiceNodeItem } from "../../../types";
 import * as yup from "yup";
 import lodash from "lodash";
+import { checkArray } from "../../../utils/forms";
 
 const initialValues: IEditServiceForm = {
   imageName: "",
@@ -95,15 +96,6 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     ports,
     labels
   } = serviceConfig;
-
-  const checkArray = <T>(array: any, name: string): T => {
-    if (!Array.isArray(array)) {
-      throw new Error(
-        `Looks like we encountered a bug. The current implementation expects "${name}" to be an array.`
-      );
-    }
-    return array as unknown as T;
-  };
 
   const environment0: string[] = checkArray(environment, "environment");
   const volumes0: string[] = checkArray(volumes, "volumes");
