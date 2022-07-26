@@ -11,13 +11,13 @@ import {
   IVolumeTopLevel
 } from "../../../types";
 
-interface IModalVolumeEdit {
+interface IEditVolumeModal {
   node: IVolumeNodeItem;
   onHide: CallbackFunction;
   onUpdateEndpoint: CallbackFunction;
 }
 
-const ModalVolumeEdit = (props: IModalVolumeEdit) => {
+const EditVolumeModal = (props: IEditVolumeModal) => {
   const { node, onHide, onUpdateEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
   const [selectedNode, setSelectedNode] = useState<IVolumeNodeItem>();
@@ -163,4 +163,4 @@ const ModalVolumeEdit = (props: IModalVolumeEdit) => {
   );
 };
 
-export default ModalVolumeEdit;
+export default EditVolumeModal;
