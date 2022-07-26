@@ -57,8 +57,9 @@ const General = () => {
 
   const handleNewPort = useCallback(() => {
     formik.setFieldValue(`ports[${ports.length}]`, {
-      key: "",
-      value: ""
+      hostPort: "",
+      containerPort: "",
+      protocol: ""
     });
   }, [formik]);
 
