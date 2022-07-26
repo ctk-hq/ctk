@@ -35,7 +35,7 @@ import Spinner from "../global/Spinner";
 import ModalConfirmDelete from "../Modal/ConfirmDelete";
 import ModalServiceCreate from "../Modal/service/Create";
 import ModalServiceEdit from "../Modal/service/Edit";
-import ModalNetwork from "../Modal/Network";
+import ModalNetwork from "../Modal/network";
 import CreateVolumeModal from "../Modal/volume/CreateVolumeModal";
 import EditVolumeModal from "../Modal/volume/EditVolumeModal";
 import CodeEditor from "../CodeEditor";
