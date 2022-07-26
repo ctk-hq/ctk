@@ -37,7 +37,7 @@ import ModalConfirmDelete from "../Modal/ConfirmDelete";
 import ModalServiceCreate from "../Modal/Service/Create";
 import ModalServiceEdit from "../Modal/Service/Edit";
 import ModalNetwork from "../Modal/Network";
-import CreateVolumeModal from "../Modal/volume/Create";
+import CreateVolumeModal from "../Modal/volume/CreateVolumeModal";
 import ModalVolumeEdit from "../Modal/volume/Edit";
 import CodeEditor from "../CodeEditor";
 
