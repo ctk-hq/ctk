@@ -5,6 +5,7 @@ import { XIcon } from "@heroicons/react/outline";
 import {
   getFinalValues,
   getInitialValues,
+  tabs,
   validationSchema
 } from "./form-utils";
 import General from "./General";
@@ -15,21 +16,6 @@ interface ICreateVolumeModalProps {
   onHide: CallbackFunction;
   onAddEndpoint: CallbackFunction;
 }
-
-const tabs = [
-  {
-    name: "General",
-    href: "#",
-    current: true,
-    hidden: false
-  },
-  {
-    name: "Labels",
-    href: "#",
-    current: false,
-    hidden: false
-  }
-];
 
 const classNames = (...classes: string[]) => classes.filter(Boolean).join(" ");
 

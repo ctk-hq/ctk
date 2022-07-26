@@ -78,3 +78,18 @@ export const getFinalValues = (
     }
   ) as any;
 };
+
+export const tabs = [
+  {
+    name: "General",
+    href: "#",
+    current: true,
+    hidden: false
+  },
+  {
+    name: "Labels",
+    href: "#",
+    current: false,
+    hidden: false
+  }
+];
