@@ -37,8 +37,8 @@ import ModalConfirmDelete from "../Modal/ConfirmDelete";
 import ModalServiceCreate from "../Modal/Service/Create";
 import ModalServiceEdit from "../Modal/Service/Edit";
 import ModalNetwork from "../Modal/Network";
-import ModalVolumeCreate from "../Modal/Volume/Create";
-import ModalVolumeEdit from "../Modal/Volume/Edit";
+import CreateVolumeModal from "../Modal/volume/Create";
+import ModalVolumeEdit from "../Modal/volume/Edit";
 import CodeEditor from "../CodeEditor";
 
 export default function Project() {
@@ -329,7 +329,7 @@ export default function Project() {
           ) : null}
 
           {showVolumesModal ? (
-            <ModalVolumeCreate
+            <CreateVolumeModal
               onHide={() => setShowVolumesModal(false)}
               onAddEndpoint={(values: any) => onAddEndpoint(values)}
             />

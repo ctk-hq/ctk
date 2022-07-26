@@ -10,12 +10,12 @@ import {
 } from "../../../utils";
 import { CallbackFunction } from "../../../types";
 
-interface IModalVolumeCreate {
+interface ICreateVolumeModal {
   onHide: CallbackFunction;
   onAddEndpoint: CallbackFunction;
 }
 
-const ModalVolumeCreate = (props: IModalVolumeCreate) => {
+const CreateVolumeModal = (props: ICreateVolumeModal) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
   const handleCreate = (values: any, formik: any) => {
@@ -150,4 +150,4 @@ const ModalVolumeCreate = (props: IModalVolumeCreate) => {
   );
 };
 
-export default ModalVolumeCreate;
+export default CreateVolumeModal;
