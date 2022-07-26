@@ -36,7 +36,10 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
     onUpdateEndpoint(getFinalValues(values, selectedNode));
   };
 
-  const initialValues = useMemo(() => getInitialValues(), []);
+  const initialValues = useMemo(
+    () => getInitialValues(selectedNode),
+    [selectedNode]
+  );
 
   return (
     <div className="fixed z-50 inset-0 overflow-y-auto">
@@ -107,9 +110,7 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
                       <button
                         className="btn-util"
                         type="button"
-                        onClick={() => {
-                          formik.submitForm();
-                        }}
+                        onClick={formik.submitForm}
                       >
                         Save
                       </button>
