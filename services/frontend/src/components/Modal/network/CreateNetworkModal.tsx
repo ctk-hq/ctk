@@ -14,7 +14,7 @@ interface INetworkCreateProps {
   onCreateNetwork: CallbackFunction;
 }
 
-const NetworkCreate = (props: INetworkCreateProps) => {
+const CreateNetworkModal = (props: INetworkCreateProps) => {
   const { onCreateNetwork } = props;
   const [openTab, setOpenTab] = useState("General");
   const handleCreate = (values: any, formik: any) => {
@@ -130,4 +130,4 @@ const NetworkCreate = (props: INetworkCreateProps) => {
   );
 };
 
-export default NetworkCreate;
+export default CreateNetworkModal;

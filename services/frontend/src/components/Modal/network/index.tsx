@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { XIcon } from "@heroicons/react/outline";
-import NetworkCreate from "./Create";
+import CreateNetworkModal from "./CreateNetworkModal";
 import { CallbackFunction } from "../../../types";
 import NetworkEdit from "./Edit";
 import { attachUUID } from "../../../utils";
@@ -98,7 +98,7 @@ const ModalNetwork = (props: IModalNetworkProps) => {
             )}
 
             {!selectedNetwork && (
-              <NetworkCreate onCreateNetwork={handleCreate} />
+              <CreateNetworkModal onCreateNetwork={handleCreate} />
             )}
 
             {selectedNetwork && (
