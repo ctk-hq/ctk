@@ -64,12 +64,14 @@ const Labels = () => {
                 {
                   name: `labels[${index}].key`,
                   placeholder: "Key",
-                  required: true
+                  required: true,
+                  type: "text"
                 },
                 {
                   name: `labels[${index}].value`,
                   placeholder: "Value",
-                  required: true
+                  required: true,
+                  type: "text"
                 }
               ]}
               onRemove={handleRemoveLabel}

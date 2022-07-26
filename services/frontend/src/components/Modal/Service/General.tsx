@@ -59,7 +59,7 @@ const General = () => {
     formik.setFieldValue(`ports[${ports.length}]`, {
       hostPort: "",
       containerPort: "",
-      protocol: ""
+      protocol: "tcp"
     });
   }, [formik]);
 
@@ -105,15 +105,28 @@ const General = () => {
                     {
                       name: `ports[${index}].hostPort`,
                       placeholder: "Host Port",
-                      required: true
+                      required: true,
+                      type: "text"
                     },
                     {
                       name: `ports[${index}].containerPort`,
-                      placeholder: "Container Port"
+                      placeholder: "Container Port",
+                      type: "text"
                     },
                     {
                       name: `ports[${index}].protocol`,
-                      placeholder: "Protocol"
+                      placeholder: "Protocol",
+                      type: "toggle",
+                      options: [
+                        {
+                          value: "tcp",
+                          text: "TCP"
+                        },
+                        {
+                          value: "udp",
+                          text: "UDP"
+                        }
+                      ]
                     }
                   ]}
                   onRemove={handleRemovePort}

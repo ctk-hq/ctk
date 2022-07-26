@@ -65,15 +65,18 @@ const Volumes = () => {
                 {
                   name: `volumes[${index}].name`,
                   placeholder: "Name",
-                  required: true
+                  required: true,
+                  type: "text"
                 },
                 {
                   name: `volumes[${index}].containerPath`,
-                  placeholder: "Container path"
+                  placeholder: "Container path",
+                  type: "text"
                 },
                 {
                   name: `volumes[${index}].accessMode`,
-                  placeholder: "Access mode"
+                  placeholder: "Access mode",
+                  type: "text"
                 }
               ]}
               onRemove={handleRemoveVolume}

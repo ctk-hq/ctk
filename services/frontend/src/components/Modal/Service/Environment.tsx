@@ -68,12 +68,14 @@ const Environment = () => {
                 {
                   name: `environmentVariables[${index}].key`,
                   placeholder: "Key",
-                  required: true
+                  required: true,
+                  type: "text"
                 },
                 {
                   name: `environmentVariables[${index}].value`,
                   placeholder: "Value",
-                  required: true
+                  required: true,
+                  type: "text"
                 }
               ]}
               onRemove={handleRemoveEnvironmentVariable}

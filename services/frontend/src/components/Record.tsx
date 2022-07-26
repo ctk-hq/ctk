@@ -1,13 +1,19 @@
-import { FunctionComponent, ReactElement, useCallback } from "react";
+import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
 import { styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
 import { MinusSmIcon } from "@heroicons/react/solid";
 import TextField from "./global/FormElements/TextField";
+import Toggle from "./global/FormElements/Toggle";
 
 export interface IFieldType {
   name: string;
   placeholder: string;
   required?: boolean;
+  type: "text" | "toggle";
+  options?: {
+    text: string;
+    value: string;
+  }[];
 }
 
 export interface IRecordProps {
@@ -37,14 +43,20 @@ const Record: FunctionComponent<IRecordProps> = (
 
   return (
     <Root>
-      {fields.map(({ name, placeholder, required }) => (
-        <TextField
-          key={name}
-          id={name}
-          name={name}
-          placeholder={placeholder + (required ? "*" : "")}
-          required={required}
-        />
+      {fields.map(({ type, name, placeholder, required, options }) => (
+        <Fragment key={name}>
+          {type === "text" && (
+            <TextField
+              id={name}
+              name={name}
+              placeholder={placeholder + (required ? "*" : "")}
+              required={required}
+            />
+          )}
+          {type === "toggle" && (
+            <Toggle name={name} label={placeholder} options={options || []} />
+          )}
+        </Fragment>
       ))}
       <RemoveButton
         variant="soft"
