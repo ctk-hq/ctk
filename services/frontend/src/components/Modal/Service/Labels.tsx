@@ -3,7 +3,7 @@ import { PlusIcon } from "@heroicons/react/outline";
 import { Button, styled } from "@mui/joy";
 import { useFormikContext } from "formik";
 import Record from "../../Record";
-import { IEditServiceForm, IService } from "../../../types";
+import { IEditServiceForm } from "../../../types";
 
 const Root = styled("div")`
   display: flex;
