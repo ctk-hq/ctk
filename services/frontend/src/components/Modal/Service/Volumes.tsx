@@ -35,8 +35,9 @@ const Volumes = () => {
 
   const handleNewVolume = useCallback(() => {
     formik.setFieldValue(`volumes[${volumes.length}]`, {
-      key: "",
-      value: ""
+      name: "",
+      containerPath: "",
+      accessMode: ""
     });
   }, [formik]);
 
