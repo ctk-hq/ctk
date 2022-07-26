@@ -80,7 +80,7 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
         <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
             <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
-              <h3 className="text-sm font-semibold">Update service</h3>
+              <h3 className="text-sm font-semibold">Edit service</h3>
               <button
                 className="p-1 ml-auto text-black float-right outline-none focus:outline-none"
                 onClick={onHide}
@@ -145,7 +145,7 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
                           formik.submitForm();
                         }}
                       >
-                        Update
+                        Save
                       </button>
                     </div>
                   </>
