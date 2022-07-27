@@ -3,8 +3,8 @@ import TextField from "../../global/FormElements/TextField";
 const General = () => {
   return (
     <>
-      <TextField label="Network name" name="canvasConfig.node_name" />
-      <TextField label="Name" name="networkConfig.name" />
+      <TextField label="Entry name" name="entryName" />
+      <TextField label="Network name" name="networkName" />
     </>
   );
 };
