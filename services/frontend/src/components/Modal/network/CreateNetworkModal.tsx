@@ -1,80 +1,34 @@
-import { useState } from "react";
+import { FunctionComponent, ReactElement, useMemo, useState } from "react";
 import { Formik } from "formik";
-import * as yup from "yup";
-import {
-  topLevelNetworkConfigInitialValues,
-  networkConfigCanvasInitialValues
-} from "../../../utils";
 import General from "./General";
 import IPam from "./IPam";
 import Labels from "./Labels";
 import { CallbackFunction } from "../../../types";
+import { getInitialValues, tabs, validationSchema } from "./form-utils";
+import { classNames } from "../../../utils/styles";
 
-interface INetworkCreateProps {
+interface ICreateNetworkModalProps {
   onCreateNetwork: CallbackFunction;
 }
 
-const CreateNetworkModal = (props: INetworkCreateProps) => {
+const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
+  props: ICreateNetworkModalProps
+): ReactElement => {
   const { onCreateNetwork } = props;
   const [openTab, setOpenTab] = useState("General");
+
   const handleCreate = (values: any, formik: any) => {
     onCreateNetwork(values);
     formik.resetForm();
   };
-  const validationSchema = yup.object({
-    canvasConfig: yup.object({
-      node_name: yup
-        .string()
-        .max(256, "network name should be 256 characters or less")
-        .required("network name is required")
-    }),
-    networkConfig: yup.object({
-      name: yup
-        .string()
-        .max(256, "name should be 256 characters or less")
-        .required("name is required")
-    })
-  });
-  const tabs = [
-    {
-      name: "General",
-      href: "#",
-      current: true,
-      hidden: false
-    },
-    {
-      name: "Ipam",
-      href: "#",
-      current: false,
-      hidden: false
-    },
-    {
-      name: "Labels",
-      href: "#",
-      current: false,
-      hidden: false
-    }
-  ];
-  const classNames = (...classes: string[]) => {
-    return classes.filter(Boolean).join(" ");
-  };
+
+  const initialValues = useMemo(() => getInitialValues(), []);
 
   return (
     <Formik
-      initialValues={{
-        canvasConfig: {
-          ...networkConfigCanvasInitialValues()
-        },
-        networkConfig: {
-          ...topLevelNetworkConfigInitialValues()
-        },
-        key: "network",
-        type: "NETWORK"
-      }}
+      initialValues={initialValues}
       enableReinitialize={true}
-      onSubmit={(values, formik) => {
-        handleCreate(values, formik);
-      }}
+      onSubmit={handleCreate}
       validationSchema={validationSchema}
     >
       {(formik) => (
@@ -109,7 +63,7 @@ const CreateNetworkModal = (props: INetworkCreateProps) => {
 
           <div className="relative px-4 py-3 flex-auto">
             {openTab === "General" && <General />}
-            {openTab === "IPam" && <IPam />}
+            {openTab === "IPAM" && <IPam />}
             {openTab === "Labels" && <Labels />}
           </div>
 
@@ -117,11 +71,9 @@ const CreateNetworkModal = (props: INetworkCreateProps) => {
             <button
               className="btn-util"
               type="button"
-              onClick={() => {
-                formik.submitForm();
-              }}
+              onClick={formik.submitForm}
             >
-              Create
+              Add
             </button>
           </div>
         </>
