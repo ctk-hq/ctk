@@ -231,7 +231,10 @@ export default function Project() {
       values,
       ensure(sections.find((l) => l.type === values.type))
     );
-    clientNodeItem.position = { left: 60, top: 30 };
+    clientNodeItem.position = {
+      left: 60 - canvasPosition.left,
+      top: 30 - canvasPosition.top
+    };
     setNodes({ ...nodes, [clientNodeItem.key]: clientNodeItem });
   };
 
