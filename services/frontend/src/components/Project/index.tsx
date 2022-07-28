@@ -449,7 +449,7 @@ export default function Project() {
               </form>
             </div>
 
-            <div className="flex flex-grow relative flex-col md:flex-row">
+            <div className="flex flex-grow relative">
               <div
                 className="w-full overflow-hidden md:w-2/3 z-40"
                 style={{ height: height - 64 }}
@@ -518,7 +518,8 @@ export default function Project() {
                   />
                 </div>
               </div>
-              <div className="relative group code-column w-full md:w-1/3">
+
+              <div className="group code-column w-1/2 md:w-1/3 absolute top-0 right-0 sm:relative z-40 md:z-30">
                 <div
                   className={`absolute top-0 left-0 right-0 z-10 flex justify-end p-1 space-x-2 group-hover:visible invisible`}
                 >
@@ -558,8 +559,28 @@ export default function Project() {
           </div>
         </>
       );
-    } else {
-      return <>Something went wrong</>;
+    }
+
+    if (error) {
+      return (
+        <div
+          className="text-center"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "calc(100vh - 120px)"
+          }}
+        >
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            Something went wrong...
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Either this project does not exist, or the link is wrong.
+          </p>
+        </div>
+      );
     }
   }
 
