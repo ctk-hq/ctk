@@ -6,6 +6,7 @@ import IPam from "./IPam";
 import Labels from "./Labels";
 import { CallbackFunction } from "../../../types";
 import { getInitialValues, tabs, validationSchema } from "./form-utils";
+import { classNames } from "../../../utils/styles";
 
 interface IEditNetworkModalProps {
   onUpdateNetwork: CallbackFunction;
@@ -16,9 +17,6 @@ interface IEditNetworkModalProps {
 const EditNetworkModal = (props: IEditNetworkModalProps) => {
   const { onUpdateNetwork, onDeleteNetwork, network } = props;
   const [openTab, setOpenTab] = useState("General");
-  const classNames = (...classes: string[]) => {
-    return classes.filter(Boolean).join(" ");
-  };
   const initialValues = useMemo(() => getInitialValues(network), [network]);
 
   return (
@@ -60,7 +58,7 @@ const EditNetworkModal = (props: IEditNetworkModalProps) => {
 
           <div className="relative px-4 py-3 flex-auto">
             {openTab === "General" && <General />}
-            {openTab === "IPam" && <IPam />}
+            {openTab === "IPAM" && <IPam />}
             {openTab === "Labels" && <Labels />}
           </div>
 
