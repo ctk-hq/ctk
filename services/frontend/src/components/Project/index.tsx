@@ -182,7 +182,7 @@ export default function Project() {
       debounce((graphData) => {
         graphData.networks = stateNetworksRef.current;
         const flatData = generatePayload(graphData);
-        generateHttp(flatData)
+        generateHttp(JSON.stringify(flatData))
           .then(checkHttpStatus)
           .then((data) => {
             if (data["code"].length) {

@@ -71,6 +71,7 @@ def generate(services, volumes, networks, version="3", return_format='yaml'):
     s = io.StringIO()
     ret_yaml = YAML()
     ret_yaml.indent(mapping=2, sequence=4, offset=2)
+    ret_yaml.preserve_quotes = True
     ret_yaml.explicit_start = True
     specified_version = get_version(version)
     base_version = int(specified_version)
