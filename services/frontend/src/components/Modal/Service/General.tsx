@@ -15,6 +15,9 @@ const Fields = styled("div")`
 const ImageNameGroup = styled("div")`
   display: flex;
   flex-direction: row;
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
   column-gap: ${({ theme }) => theme.spacing(1)};
   width: 100%;
 `;
@@ -31,6 +34,7 @@ const GroupTitle = styled("h5")`
   font-weight: 500;
   width: 100%;
   text-align: left;
+  margin-bottom: 0.25em;
 `;
 
 const Records = styled("div")`
@@ -80,12 +84,7 @@ const General = () => {
       <Fields>
         <TextField label="Service name" name="serviceName" required={true} />
         <ImageNameGroup>
-          <TextField
-            label="Image name"
-            name="imageName"
-            required={true}
-            style={{ minWidth: 400 }}
-          />
+          <TextField label="Image name" name="imageName" required={true} />
           <TextField label="Image tag" name="imageTag" />
         </ImageNameGroup>
         <TextField

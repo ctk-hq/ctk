@@ -28,6 +28,9 @@ const Root = styled("div")`
   justify-content: flex-start;
   align-items: flex-start;
   column-gap: ${({ theme }) => theme.spacing(2)};
+  @media (max-width: 768px) {
+    column-gap: ${({ theme }) => theme.spacing(1)};
+  }
 `;
 
 const RemoveButton = styled(IconButton)``;

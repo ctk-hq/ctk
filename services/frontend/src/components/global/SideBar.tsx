@@ -29,15 +29,15 @@ export default function SideBar(props: ISideBarProps) {
   return (
     <>
       <div className="md:flex md:w-16 md:flex-col md:fixed md:inset-y-0">
-        <div className="flex flex-col flex-grow pt-5 bg-blue-700 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 mx-auto">
+        <div className="flex justify-between flex-col sm:flex-row md:flex-col md:flex-grow md:pt-5 bg-blue-700 overflow-y-auto">
+          <div className="flex items-center flex-shrink-0 mx-auto p-2 ">
             <Link to={isAuthenticated ? "/" : "projects/new"}>
               <Logo />
             </Link>
           </div>
 
-          <div className="mt-5 flex-1 flex flex-col">
-            <nav className="flex-1 px-2 pb-4 space-y-1">
+          <div className="md:mt-5 flex-1 flex flex-col items-center sm:flex-row md:flex-col justify-end">
+            <nav className="md:flex-1 space-y-1">
               {navigation.map((item) => (
                 <a
                   key={item.name}
@@ -46,23 +46,23 @@ export default function SideBar(props: ISideBarProps) {
                     item.current
                       ? "bg-blue-800 text-white"
                       : "text-blue-100 hover:bg-blue-600",
-                    "group flex items-center justify-center px-2 py-2 text-sm font-medium rounded-md"
+                    "group flex items-center justify-center p-2 text-sm font-medium rounded-md"
                   )}
                 >
                   <item.icon
-                    className="mr-3 md:mr-0 flex-shrink-0 h-5 w-5"
+                    className="mr-3 sm:mr-0 flex-shrink-0 h-5 w-5"
                     aria-hidden="true"
                   />
-                  <span className="md:hidden">{item.name}</span>
+                  <span className="sm:hidden">{item.name}</span>
                 </a>
               ))}
             </nav>
-          </div>
 
-          <UserMenu
-            username={userName}
-            current={pathname.includes("profile")}
-          />
+            <UserMenu
+              username={userName}
+              current={pathname.includes("profile")}
+            />
+          </div>
         </div>
       </div>
     </>

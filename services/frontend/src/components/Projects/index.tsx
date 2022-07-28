@@ -5,6 +5,7 @@ import { IProject } from "../../types";
 import Spinner from "../../components/global/Spinner";
 import PreviewBlock from "./PreviewBlock";
 import { useProjects } from "../../hooks/useProjects";
+import { PlusIcon } from "@heroicons/react/outline";
 
 const Projects = () => {
   const [limit] = useState(PROJECTS_FETCH_LIMIT);
@@ -22,22 +23,24 @@ const Projects = () => {
                 Projects
               </h1>
 
-              <Link
-                className="btn-util text-white bg-blue-600 hover:bg-blue-700 sm:w-auto"
-                to="/projects/new"
-              >
-                <span>Create new project</span>
-              </Link>
+              {data && data.results.length > 0 && (
+                <Link
+                  className="btn-util text-white bg-blue-600 hover:bg-blue-700 sm:w-auto"
+                  to="/projects/new"
+                >
+                  <span>Create new project</span>
+                </Link>
+              )}
             </div>
 
             <div className="px-4 sm:px-6 md:px-8">
-              {isFetching && (
+              {(isFetching || isLoading) && (
                 <div className="flex justify-center items-center mx-auto mt-10">
                   <Spinner className="w-6 h-6 text-blue-600" />
                 </div>
               )}
 
-              {!isFetching && (
+              {!isFetching && !isLoading && (
                 <>
                   <div className="py-4">
                     {error && (
@@ -70,22 +73,23 @@ const Projects = () => {
                           minHeight: "calc(100vh - 120px)"
                         }}
                       >
-                        <img
-                          style={{
-                            width: 400,
-                            height: "auto"
-                          }}
-                          src="https://res.cloudinary.com/hypertool/image/upload/v1657816359/hypertool-assets/empty-projects_fdcxtk.svg"
-                        />
-                        <p className="mt-4 text-md text-gray-500 dark:text-gray-400">
-                          We tried our best, but could not find any projects.
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">
+                          No projects
+                        </h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Get started by creating a new project.
                         </p>
-                        <Link
-                          className="btn-util text-white bg-blue-600 hover:bg-blue-700 sm:w-auto mt-3"
-                          to="/projects/new"
-                        >
-                          <span>Create new project</span>
-                        </Link>
+                        <div className="mt-6">
+                          <Link to="/projects/new" className="btn-util">
+                            <span className="flex space-x-1 items-center">
+                              <PlusIcon
+                                className="h-3 w-3"
+                                aria-hidden="true"
+                              />
+                              <span>New Project</span>
+                            </span>
+                          </Link>
+                        </div>
                       </div>
                     )}
                   </div>

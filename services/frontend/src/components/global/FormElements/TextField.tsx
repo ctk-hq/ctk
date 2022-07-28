@@ -12,6 +12,7 @@ export interface ITextFieldProps {
 const Root = styled("div")`
   display: flex;
   flex-direction: column;
+  width: 100%;
 `;
 
 const TextField: FunctionComponent<ITextFieldProps> = (
@@ -25,10 +26,7 @@ const TextField: FunctionComponent<ITextFieldProps> = (
   return (
     <Root>
       {label && (
-        <label
-          htmlFor={name}
-          className="block text-xs font-medium text-gray-700"
-        >
+        <label htmlFor={name} className="lbl-util">
           {label + (required ? "*" : "")}
         </label>
       )}
@@ -38,7 +36,7 @@ const TextField: FunctionComponent<ITextFieldProps> = (
         name={name}
         type="text"
         autoComplete="none"
-        className="input-util mt-1"
+        className="input-util"
         required={required}
         onBlur={formik.handleBlur}
         onChange={formik.handleChange}

@@ -19,17 +19,14 @@ export default function UserMenu(props: IUserMenuProps) {
         ${
           current ? "bg-blue-800 text-white" : "text-blue-100 hover:bg-blue-600"
         },
-        flex border-t border-blue-800 p-4 w-full hover:cursor-pointer hover:bg-blue-600
+        flex md:border-t md:border-blue-800 p-4 md:w-full hover:cursor-pointer hover:bg-blue-600
       `}
     >
       <div className="flex items-center mx-auto">
         <UserCircleIcon className="inline-block h-8 w-8 rounded-full text-white" />
-        <div className="ml-3 md:ml-0">
-          <p className="text-base font-medium text-white md:hidden">
+        <div className="ml-3 sm:ml-0">
+          <p className="text-sm font-medium text-white sm:hidden">
             {username ? <>{username}</> : <>Log in</>}
-          </p>
-          <p className="text-sm font-medium text-indigo-200 group-hover:text-white md:hidden">
-            View profile
           </p>
         </div>
       </div>
