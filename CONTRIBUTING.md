@@ -2,11 +2,6 @@
 
 :heart: Thanks for taking the time and for your help improving this project!
 
-## Getting Help ##
-
-If you have a question about nuxx or have encountered problems using it,
-start by asking a question on [slack][slack]
-
 ## Submitting a Pull Request ##
 
 Do you have an improvement?
@@ -24,8 +19,3 @@ Squash or rebase commits so that all changes from a branch are
 committed to master as a single commit. All pull requests are squashed when
 merged, but rebasing prior to merge gives you better control over the commit
 message.
-
-
-<!----variables---->
-
-[slack]: https://join.slack.com/t/nuxxapp/shared_invite/zt-fkgoyz5h-CYo5tqAT0CwRZMpuOJYAJA

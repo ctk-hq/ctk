@@ -16,7 +16,7 @@ const Search = (props: ISearchProps) => {
         action=""
       >
         <input
-          autoComplete="false"
+          autoComplete="off"
           name="hidden"
           type="text"
           className="hidden"

@@ -12,6 +12,11 @@ export const generatePayload = (data: any): IGeneratePayload => {
     }
   };
 
+  Object.keys(networks).forEach((key) => {
+    base.data.networks[networks[key].canvasConfig.node_name] =
+      networks[key].networkConfig;
+  });
+
   Object.keys(nodes).forEach((key) => {
     if (nodes[key].type === "SERVICE") {
       base.data.services[nodes[key].canvasConfig.node_name] =
@@ -22,11 +27,6 @@ export const generatePayload = (data: any): IGeneratePayload => {
       base.data.volumes[nodes[key].canvasConfig.node_name] =
         nodes[key].volumeConfig;
     }
-  });
-
-  Object.keys(networks).forEach((key) => {
-    base.data.networks[networks[key].canvasConfig.node_name] =
-      networks[key].networkConfig;
   });
 
   return base;

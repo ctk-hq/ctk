@@ -1,3 +1,4 @@
+import json
 from rest_framework import generics, status
 from rest_framework.response import Response
 
@@ -11,7 +12,7 @@ class GenerateGenericAPIView(generics.GenericAPIView):
         return Response({}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, format=None):
-        request_data = request.data
+        request_data = json.loads(request.data)
         version = request_data['data'].get('version', '3')
         services = request_data['data'].get('services', None)
         volumes = request_data['data'].get('volumes', None)

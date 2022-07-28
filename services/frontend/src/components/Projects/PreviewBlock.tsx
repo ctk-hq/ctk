@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PencilIcon, TrashIcon } from "@heroicons/react/outline";
 import { truncateStr } from "../../utils";
 import { IProject } from "../../types";
@@ -15,6 +15,7 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
   const [isHovering, setIsHovering] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const mutation = useDeleteProject(project.uuid);
+  const navigate = useNavigate();
 
   const handleMouseOver = () => {
     setIsHovering(true);
@@ -24,7 +25,12 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
     setIsHovering(false);
   };
 
-  const onDelete = () => {
+  const handleClick = (e: any) => {
+    navigate(`/projects/${project.uuid}`);
+  };
+
+  const onDelete = (e: any) => {
+    e.stopPropagation();
     setShowDeleteConfirmModal(true);
   };
 
@@ -37,8 +43,10 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
       <div
         onMouseOver={handleMouseOver}
         onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
         key={project.id}
         className={`
+          cursor-pointer
           relative
           rounded-lg
           dark:bg-gray-900
@@ -49,7 +57,7 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
           flex
           items-center
           space-x-3
-          hover:border-gray-400
+          hover:bg-gray-200
         `}
       >
         <div className="flex-1 min-w-0">{truncateStr(project.name, 25)}</div>
@@ -57,18 +65,11 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
         {isHovering && (
           <div className="flex space-x-1 absolute top-2 right-2">
             <button
-              onClick={() => onDelete()}
+              onClick={onDelete}
               className="flex justify-center items-center p-2 hover:bg-gray-100 shadow bg-white rounded-md"
             >
               <TrashIcon className="w-3 h-3 text-red-500 hover:text-red-600" />
             </button>
-
-            <Link
-              to={`/projects/${project.uuid}`}
-              className="flex justify-center items-center p-2 hover:bg-gray-100 shadow bg-white rounded-md"
-            >
-              <PencilIcon className="w-3 h-3 text-gray-500 hover:text-gray-600" />
-            </Link>
           </div>
         )}
       </div>

@@ -8,7 +8,7 @@ const Logo = () => {
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
     >
-      <title>Nuxx</title>
+      <title>CTK</title>
       <g
         id="Page-1"
         stroke="none"
@@ -17,9 +17,9 @@ const Logo = () => {
         fillRule="evenodd"
       >
         <g id="Logo" transform="translate(-179.000000, -225.000000)">
-          <g id="nuxx-logo-copy" transform="translate(167.000000, 200.000000)">
+          <g id="ctk-logo-copy" transform="translate(167.000000, 200.000000)">
             <g
-              id="nuxx-logo"
+              id="ctk-logo"
               transform="translate(98.500000, 95.000000) rotate(-60.000000) translate(-98.500000, -95.000000) translate(33.000000, 20.000000)"
             >
               <polygon

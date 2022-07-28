@@ -60,8 +60,7 @@ export const validationSchema = yup.object({
   ),
   environmentVariables: yup.array(
     yup.object({
-      key: yup.string().required("Key is required"),
-      value: yup.string().required("Value is required")
+      key: yup.string().required("Key is required")
     })
   ),
   volumes: yup.array(
@@ -73,8 +72,7 @@ export const validationSchema = yup.object({
   ),
   labels: yup.array(
     yup.object({
-      key: yup.string().required("Key is required"),
-      value: yup.string().required("Value is required")
+      key: yup.string().required("Key is required")
     })
   )
 });
@@ -110,10 +108,10 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     serviceName: node_name,
     containerName: container_name,
     environmentVariables: environment0.map((variable) => {
-      const [key, value] = variable.split(":");
+      const [key, value] = variable.split("=");
       return {
         key,
-        value
+        value: value ? value : ""
       };
     }),
     volumes: volumes0.map((volume) => {
@@ -140,7 +138,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
       return { hostPort, containerPort, protocol } as any;
     }),
     labels: labels0.map((label) => {
-      const [key, value] = label.split(":");
+      const [key, value] = label.split("=");
       return {
         key,
         value
@@ -155,7 +153,7 @@ export const getFinalValues = (
 ): IServiceNodeItem => {
   const { environmentVariables, ports, volumes, labels } = values;
 
-  return lodash.merge(
+  return lodash.mergeWith(
     lodash.cloneDeep(previous) || {
       key: "service",
       type: "SERVICE",
@@ -168,25 +166,38 @@ export const getFinalValues = (
         node_name: values.serviceName
       },
       serviceConfig: {
-        image: `${values.imageName}:${values.imageTag}`,
+        image: `${values.imageName}${
+          values.imageTag ? `:${values.imageTag}` : ""
+        }`,
         container_name: values.containerName,
         environment: environmentVariables.map(
-          (variable) => `${variable.key}:${variable.value}`
+          (variable) =>
+            `${variable.key}${variable.value ? `=${variable.value}` : ""}`
         ),
-        volumes: volumes.map(
-          (volume) =>
-            volume.name +
-            (volume.containerPath ? `:${volume.containerPath}` : "") +
-            (volume.accessMode ? `:${volume.accessMode}` : "")
-        ),
+        volumes: volumes.length
+          ? volumes.map(
+              (volume) =>
+                volume.name +
+                (volume.containerPath ? `:${volume.containerPath}` : "") +
+                (volume.accessMode ? `:${volume.accessMode}` : "")
+            )
+          : [],
         ports: ports.map(
           (port) =>
             port.hostPort +
             (port.containerPort ? `:${port.containerPort}` : "") +
             (port.protocol ? `/${port.protocol}` : "")
         ),
-        labels: labels.map((label) => `${label.key}:${label.value}`)
+        labels: labels.map(
+          (label) => `${label.key}${label.value ? `=${label.value}` : ""}`
+        )
       }
+    },
+    (obj, src) => {
+      if (!lodash.isNil(src)) {
+        return src;
+      }
+      return obj;
     }
   ) as any;
 };
