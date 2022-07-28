@@ -78,38 +78,43 @@ export const Canvas: FC<ICanvasProps> = (props) => {
     }
   };
 
-  const onCanvasMouseUpLeave = (e: any) => {
-    if (dragging) {
-      const left = _left + e.pageX - _initX;
-      const top = _top + e.pageY - _initY;
-
-      _setLeft(left);
-      _setTop(top);
-      setDragging(false);
-      onCanvasUpdate({
-        left: left,
-        top: top
-      });
-    }
-  };
-
   const onCanvasMouseMove = (e: any) => {
     if (!dragging) {
       return;
     }
 
-    const styles = {
-      left: _left + e.pageX - _initX + "px",
-      top: _top + e.pageY - _initY + "px"
-    };
+    if (e.pageX && e.pageY) {
+      const styles = {
+        left: _left + e.pageX - _initX + "px",
+        top: _top + e.pageY - _initY + "px"
+      };
+      setStyle(styles);
+    }
+  };
 
-    setStyle(styles);
+  const onCanvasMouseUpLeave = (e: any) => {
+    if (dragging) {
+      if (e.pageX && e.pageY) {
+        const left = _left + e.pageX - _initX;
+        const top = _top + e.pageY - _initY;
+
+        _setLeft(left);
+        _setTop(top);
+        setDragging(false);
+        onCanvasUpdate({
+          left: left,
+          top: top
+        });
+      }
+    }
   };
 
   const onCanvasMouseDown = (e: any) => {
-    _setInitX(e.pageX);
-    _setInitY(e.pageY);
-    setDragging(true);
+    if (e.pageX && e.pageY) {
+      _setInitX(e.pageX);
+      _setInitY(e.pageY);
+      setDragging(true);
+    }
   };
 
   useEffect(() => {
@@ -166,7 +171,7 @@ export const Canvas: FC<ICanvasProps> = (props) => {
           <div
             id={CANVAS_ID}
             ref={containerCallbackRef}
-            className="canvas h-full w-full"
+            className="canvas"
             style={{
               transformOrigin: "0px 0px 0px",
               transform: `translate(${translateWidth}px, ${translateHeight}px) scale(${_scale})`
