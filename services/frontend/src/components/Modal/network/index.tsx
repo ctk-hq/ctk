@@ -4,6 +4,7 @@ import CreateNetworkModal from "./CreateNetworkModal";
 import { CallbackFunction } from "../../../types";
 import EditNetworkModal from "./EditNetworkModal";
 import { attachUUID } from "../../../utils";
+import { getFinalValues } from "./form-utils";
 
 interface IModalNetworkProps {
   networks: Record<string, any>;
@@ -23,17 +24,19 @@ const ModalNetwork = (props: IModalNetworkProps) => {
   } = props;
   const [selectedNetwork, setSelectedNetwork] = useState<any | null>();
   const handleCreate = (values: any) => {
-    const uniqueKey = attachUUID(values.key);
+    const finalValues = getFinalValues(values);
+    const uniqueKey = attachUUID(finalValues.key);
     const network = {
-      ...values,
+      ...finalValues,
       key: uniqueKey
     };
     onCreateNetwork(network);
     setSelectedNetwork(network);
   };
   const handleUpdate = (values: any) => {
-    onUpdateNetwork(values);
-    setSelectedNetwork(values);
+    const finalValues = getFinalValues(values, selectedNetwork);
+    onUpdateNetwork(finalValues);
+    setSelectedNetwork(finalValues);
   };
   const handleDelete = () => {
     onDeleteNetwork(selectedNetwork.key);

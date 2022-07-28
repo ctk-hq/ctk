@@ -16,19 +16,13 @@ const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
 ): ReactElement => {
   const { onCreateNetwork } = props;
   const [openTab, setOpenTab] = useState("General");
-
-  const handleCreate = (values: any, formik: any) => {
-    onCreateNetwork(values);
-    formik.resetForm();
-  };
-
   const initialValues = useMemo(() => getInitialValues(), []);
 
   return (
     <Formik
       initialValues={initialValues}
       enableReinitialize={true}
-      onSubmit={handleCreate}
+      onSubmit={onCreateNetwork}
       validationSchema={validationSchema}
     >
       {(formik) => (

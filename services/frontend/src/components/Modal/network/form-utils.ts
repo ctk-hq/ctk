@@ -1,6 +1,7 @@
 import lodash from "lodash";
 import * as yup from "yup";
 import { IEditNetworkForm, INetworkNodeItem } from "../../../types";
+import { checkArray } from "../../../utils/forms";
 
 export const validationSchema = yup.object({
   entryName: yup
@@ -86,7 +87,8 @@ export const getInitialValues = (node?: INetworkNodeItem): IEditNetworkForm => {
 
   const { canvasConfig, networkConfig } = node;
   const { node_name = "" } = canvasConfig;
-  const { name = "", ipam } = networkConfig;
+  const { name = "", ipam, labels } = networkConfig;
+  const labels0: string[] = checkArray(labels, "labels");
 
   return {
     ...initialValues,
@@ -100,6 +102,13 @@ export const getInitialValues = (node?: INetworkNodeItem): IEditNetworkForm => {
         key,
         value: ipam.options[key].toString()
       };
+    }),
+    labels: labels0.map((label) => {
+      const [key, value] = label.split(":");
+      return {
+        key,
+        value
+      };
     })
   };
 };
@@ -108,6 +117,8 @@ export const getFinalValues = (
   values: IEditNetworkForm,
   previous?: INetworkNodeItem
 ): INetworkNodeItem => {
+  const { labels } = values;
+
   return lodash.merge(
     lodash.cloneDeep(previous) || {
       key: "network",
@@ -121,7 +132,8 @@ export const getFinalValues = (
         node_name: values.entryName
       },
       networkConfig: {
-        name: values.networkName
+        name: values.networkName,
+        labels: labels.map((label) => `${label.key}:${label.value}`)
       }
     }
   ) as any;

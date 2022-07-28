@@ -1,15 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Formik } from "formik";
-import * as yup from "yup";
 import { TrashIcon } from "@heroicons/react/outline";
 import General from "./General";
 import IPam from "./IPam";
 import Labels from "./Labels";
-import {
-  CallbackFunction,
-  ICanvasConfig,
-  INetworkTopLevel
-} from "../../../types";
+import { CallbackFunction } from "../../../types";
+import { getInitialValues, tabs, validationSchema } from "./form-utils";
 
 interface IEditNetworkModalProps {
   onUpdateNetwork: CallbackFunction;
@@ -20,64 +16,16 @@ interface IEditNetworkModalProps {
 const EditNetworkModal = (props: IEditNetworkModalProps) => {
   const { onUpdateNetwork, onDeleteNetwork, network } = props;
   const [openTab, setOpenTab] = useState("General");
-  const handleUpdate = (values: any) => {
-    const updated = { ...network };
-    updated.canvasConfig = values.canvasConfig;
-    updated.networkConfig = values.networkConfig;
-    onUpdateNetwork(updated);
-  };
-  const validationSchema = yup.object({
-    canvasConfig: yup.object({
-      node_name: yup
-        .string()
-        .max(256, "network name should be 256 characters or less")
-        .required("network name is required")
-    }),
-    networkConfig: yup.object({
-      name: yup
-        .string()
-        .max(256, "name should be 256 characters or less")
-        .required("name is required")
-    })
-  });
-  const tabs = [
-    {
-      name: "General",
-      href: "#",
-      current: true,
-      hidden: false
-    },
-    {
-      name: "Ipam",
-      href: "#",
-      current: false,
-      hidden: false
-    },
-    {
-      name: "Labels",
-      href: "#",
-      current: false,
-      hidden: false
-    }
-  ];
   const classNames = (...classes: string[]) => {
     return classes.filter(Boolean).join(" ");
   };
+  const initialValues = useMemo(() => getInitialValues(network), [network]);
 
   return (
     <Formik
-      initialValues={{
-        canvasConfig: {
-          ...network.canvasConfig
-        } as ICanvasConfig,
-        networkConfig: {
-          ...network.networkConfig
-        } as INetworkTopLevel
-      }}
+      initialValues={initialValues}
       enableReinitialize={true}
-      onSubmit={(values) => {
-        handleUpdate(values);
-      }}
+      onSubmit={onUpdateNetwork}
       validationSchema={validationSchema}
     >
       {(formik) => (
