@@ -489,7 +489,7 @@ export default function Project() {
                         onClick={() => setShowNetworksModal(true)}
                       >
                         <GlobeAltIcon className="w-4" />
-                        <span>Add Network</span>
+                        <span>Networks</span>
                       </button>
                     </div>
                   </div>
