@@ -7,8 +7,8 @@ import Volumes from "./Volumes";
 import Labels from "./Labels";
 import { CallbackFunction } from "../../../types";
 import {
-  getInitialValues,
   getFinalValues,
+  getInitialValues,
   validationSchema
 } from "./form-utils";
 
@@ -48,9 +48,9 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
   const handleCreate = (values: any, formik: any) => {
-    // TODO: This modal should not be aware of endpoints. Seperation of concerns.
     onAddEndpoint(getFinalValues(values));
     formik.resetForm();
+    onHide();
   };
 
   const initialValues = useMemo(() => getInitialValues(), []);
@@ -83,9 +83,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
             <Formik
               initialValues={initialValues}
               enableReinitialize={true}
-              onSubmit={(values, formik) => {
-                handleCreate(values, formik);
-              }}
+              onSubmit={handleCreate}
               validationSchema={validationSchema}
             >
               {(formik) => (
