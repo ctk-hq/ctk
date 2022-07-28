@@ -74,7 +74,7 @@ const Environment = () => {
                 {
                   name: `environmentVariables[${index}].value`,
                   placeholder: "Value",
-                  required: true,
+                  required: false,
                   type: "text"
                 }
               ]}
