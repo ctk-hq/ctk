@@ -236,6 +236,14 @@ export default function Project() {
       top: 30 - canvasPosition.top
     };
     setNodes({ ...nodes, [clientNodeItem.key]: clientNodeItem });
+
+    if (clientNodeItem.type === "VOLUME") {
+      setVolumeToEdit(clientNodeItem as unknown as IVolumeNodeItem);
+    }
+
+    if (clientNodeItem.type === "SERVICE") {
+      setServiceToEdit(clientNodeItem as unknown as IServiceNodeItem);
+    }
   };
 
   const onCreateNetwork = (values: any) => {
