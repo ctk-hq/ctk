@@ -1,7 +1,6 @@
 import lodash from "lodash";
 import * as yup from "yup";
 import { IEditNetworkForm, INetworkNodeItem } from "../../../types";
-import { checkArray } from "../../../utils/forms";
 
 export const validationSchema = yup.object({
   entryName: yup
@@ -88,12 +87,24 @@ export const getInitialValues = (node?: INetworkNodeItem): IEditNetworkForm => {
   const { canvasConfig, networkConfig } = node;
   const { node_name = "" } = canvasConfig;
   const { name = "", ipam, labels } = networkConfig;
-  const labels0: string[] = checkArray(labels, "labels");
 
   return {
     ...initialValues,
     entryName: node_name,
     networkName: name,
+    driver: ipam?.driver ?? "",
+    configurations:
+      ipam?.config.map((item) => ({
+        subnet: item.subnet,
+        ipRange: item.ip_range,
+        gateway: item.gateway,
+        auxAddresses: Object.entries(item.aux_addresses).map(
+          ([hostName, ipAddress]) => ({
+            hostName,
+            ipAddress
+          })
+        )
+      })) ?? [],
     options: Object.keys(ipam?.options || {}).map((key) => {
       if (!ipam) {
         throw new Error("Control should not reach here.");
@@ -103,13 +114,10 @@ export const getInitialValues = (node?: INetworkNodeItem): IEditNetworkForm => {
         value: ipam.options[key].toString()
       };
     }),
-    labels: labels0.map((label) => {
-      const [key, value] = label.split(":");
-      return {
-        key,
-        value
-      };
-    })
+    labels: Object.entries(labels as any).map(([key, value]: any) => ({
+      key,
+      value
+    }))
   };
 };
 
@@ -117,7 +125,7 @@ export const getFinalValues = (
   values: IEditNetworkForm,
   previous?: INetworkNodeItem
 ): INetworkNodeItem => {
-  const { labels } = values;
+  const { labels, driver, configurations, options } = values;
 
   return lodash.merge(
     lodash.cloneDeep(previous) || {
@@ -133,7 +141,26 @@ export const getFinalValues = (
       },
       networkConfig: {
         name: values.networkName,
-        labels: labels.map((label) => `${label.key}:${label.value}`)
+        ipam: {
+          driver,
+          config: configurations.map((configuration) => ({
+            subnet: configuration.subnet,
+            ip_range: configuration.ipRange,
+            gateway: configuration.gateway,
+            aux_addresses: Object.fromEntries(
+              configuration.auxAddresses.map((auxAddress) => [
+                auxAddress.hostName,
+                auxAddress.ipAddress
+              ])
+            )
+          })),
+          options: Object.fromEntries(
+            options.map((option) => [option.key, option.value])
+          )
+        },
+        labels: Object.fromEntries(
+          labels.map((label) => [label.key, label.value])
+        )
       }
     }
   ) as any;
