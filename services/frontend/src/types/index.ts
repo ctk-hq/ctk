@@ -82,6 +82,13 @@ export interface IVolumeTopLevel {
   name: string;
 }
 
+export interface IPAMConfig {
+  subnet?: string;
+  ip_range?: string;
+  gateway?: string;
+  aux_addresses?: Record<string, string>;
+}
+
 export interface INetworkTopLevel {
   driver: string;
   driver_opts: KeyValPair;
@@ -89,12 +96,7 @@ export interface INetworkTopLevel {
   enable_ipv6: boolean;
   ipam?: {
     driver?: string;
-    config?: {
-      subnet?: string;
-      ip_range?: string;
-      gateway?: string;
-      aux_addresses?: Record<string, string>;
-    }[];
+    config?: IPAMConfig[];
     options?: Record<string, string>;
   };
   internal: boolean;
