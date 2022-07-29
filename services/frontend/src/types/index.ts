@@ -89,16 +89,18 @@ export interface IPAMConfig {
   aux_addresses?: Record<string, string>;
 }
 
+export interface IIPAM {
+  driver?: string;
+  config?: IPAMConfig[];
+  options?: Record<string, string>;
+}
+
 export interface INetworkTopLevel {
   driver: string;
   driver_opts: KeyValPair;
   attachable: boolean;
   enable_ipv6: boolean;
-  ipam?: {
-    driver?: string;
-    config?: IPAMConfig[];
-    options?: Record<string, string>;
-  };
+  ipam?: IIPAM;
   internal: boolean;
   labels: string[] | KeyValPair;
   external: boolean;
