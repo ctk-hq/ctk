@@ -97,7 +97,6 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const environment0: string[] = checkArray(environment, "environment");
   const volumes0: string[] = checkArray(volumes, "volumes");
   const ports0: string[] = checkArray(ports, "ports");
-  const labels0: string[] = checkArray(labels, "labels");
   const [imageName, imageTag] = (image ?? ":").split(":");
 
   return {

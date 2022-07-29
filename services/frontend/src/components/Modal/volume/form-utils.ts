@@ -54,9 +54,12 @@ export const getFinalValues = (
   return {
     key: previous?.key ?? "volume",
     type: "VOLUME",
+    position: {
+      left: 0,
+      top: 0
+    },
     inputs: previous?.inputs ?? [],
     outputs: previous?.outputs ?? [],
-    config: (previous as any)?.config ?? {},
     canvasConfig: {
       node_name: values.entryName
     },
@@ -66,7 +69,7 @@ export const getFinalValues = (
         labels.map((label) => [label.key, label.value])
       )
     }
-  } as any;
+  };
 };
 
 export const tabs = [
