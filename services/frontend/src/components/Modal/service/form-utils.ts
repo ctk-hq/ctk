@@ -1,6 +1,5 @@
 import type { IEditServiceForm, IServiceNodeItem } from "../../../types";
 import * as yup from "yup";
-import lodash from "lodash";
 import { checkArray } from "../../../utils/forms";
 
 const initialValues: IEditServiceForm = {
@@ -153,51 +152,41 @@ export const getFinalValues = (
 ): IServiceNodeItem => {
   const { environmentVariables, ports, volumes, labels } = values;
 
-  return lodash.mergeWith(
-    lodash.cloneDeep(previous) || {
-      key: "service",
-      type: "SERVICE",
-      inputs: ["op_source"],
-      outputs: [],
-      config: {}
+  return {
+    key: previous?.key ?? "service",
+    type: "SERVICE",
+    inputs: previous?.inputs ?? ["op_source"],
+    outputs: previous?.outputs ?? [],
+    config: (previous as any)?.config ?? {},
+    canvasConfig: {
+      node_name: values.serviceName
     },
-    {
-      canvasConfig: {
-        node_name: values.serviceName
-      },
-      serviceConfig: {
-        image: `${values.imageName}${
-          values.imageTag ? `:${values.imageTag}` : ""
-        }`,
-        container_name: values.containerName,
-        environment: environmentVariables.map(
-          (variable) =>
-            `${variable.key}${variable.value ? `=${variable.value}` : ""}`
-        ),
-        volumes: volumes.length
-          ? volumes.map(
-              (volume) =>
-                volume.name +
-                (volume.containerPath ? `:${volume.containerPath}` : "") +
-                (volume.accessMode ? `:${volume.accessMode}` : "")
-            )
-          : [],
-        ports: ports.map(
-          (port) =>
-            port.hostPort +
-            (port.containerPort ? `:${port.containerPort}` : "") +
-            (port.protocol ? `/${port.protocol}` : "")
-        ),
-        labels: labels.map(
-          (label) => `${label.key}${label.value ? `=${label.value}` : ""}`
-        )
-      }
-    },
-    (obj, src) => {
-      if (!lodash.isNil(src)) {
-        return src;
-      }
-      return obj;
+    serviceConfig: {
+      image: `${values.imageName}${
+        values.imageTag ? `:${values.imageTag}` : ""
+      }`,
+      container_name: values.containerName,
+      environment: environmentVariables.map(
+        (variable) =>
+          `${variable.key}${variable.value ? `=${variable.value}` : ""}`
+      ),
+      volumes: volumes.length
+        ? volumes.map(
+            (volume) =>
+              volume.name +
+              (volume.containerPath ? `:${volume.containerPath}` : "") +
+              (volume.accessMode ? `:${volume.accessMode}` : "")
+          )
+        : [],
+      ports: ports.map(
+        (port) =>
+          port.hostPort +
+          (port.containerPort ? `:${port.containerPort}` : "") +
+          (port.protocol ? `/${port.protocol}` : "")
+      ),
+      labels: labels.map(
+        (label) => `${label.key}${label.value ? `=${label.value}` : ""}`
+      )
     }
-  ) as any;
+  } as any;
 };
