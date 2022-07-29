@@ -39,6 +39,7 @@ import ModalNetwork from "../Modal/network";
 import CreateVolumeModal from "../Modal/volume/CreateVolumeModal";
 import EditVolumeModal from "../Modal/volume/EditVolumeModal";
 import CodeEditor from "../CodeEditor";
+import { useTitle } from "../../hooks";
 
 export default function Project() {
   const { uuid } = useParams<{ uuid: string }>();
@@ -94,6 +95,13 @@ export default function Project() {
         window.location.replace(`/projects/${project.uuid}`);
       }
     }
+  );
+
+  useTitle(
+    [
+      isFetching ? "" : data ? data.name : "New project",
+      "Container Toolkit"
+    ].join(" | ")
   );
 
   stateNodesRef.current = nodes;
