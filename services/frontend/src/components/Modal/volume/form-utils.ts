@@ -1,7 +1,5 @@
-import lodash from "lodash";
 import * as yup from "yup";
 import { IEditVolumeForm, IVolumeNodeItem } from "../../../types";
-import { checkArray } from "../../../utils/forms";
 
 export const validationSchema = yup.object({
   entryName: yup
@@ -36,19 +34,14 @@ export const getInitialValues = (node?: IVolumeNodeItem): IEditVolumeForm => {
   const { node_name = "" } = canvasConfig;
   const { name = "", labels } = volumeConfig;
 
-  const labels0: string[] = checkArray(labels, "labels");
-
   return {
     ...initialValues,
     entryName: node_name,
     volumeName: name,
-    labels: labels0.map((label) => {
-      const [key, value] = label.split("=");
-      return {
-        key,
-        value
-      };
-    })
+    labels: Object.entries(labels as any).map(([key, value]: any) => ({
+      key,
+      value
+    }))
   };
 };
 
@@ -69,8 +62,8 @@ export const getFinalValues = (
     },
     volumeConfig: {
       name: values.volumeName,
-      labels: labels.map(
-        (label) => `${label.key}${label.value ? `=${label.value}` : ""}`
+      labels: Object.fromEntries(
+        labels.map((label) => [label.key, label.value])
       )
     }
   } as any;
