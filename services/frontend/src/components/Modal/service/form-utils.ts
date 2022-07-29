@@ -129,7 +129,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
         .substring(0, slashIndex)
         .split(":");
 
-      if (!["tcp", "udp"].includes(protocol)) {
+      if (!["", "tcp", "udp"].includes(protocol)) {
         throw new Error(
           `Invalid protocol "${protocol}" found while deserializing.`
         );
