@@ -58,32 +58,22 @@ export const getFinalValues = (
 ): IVolumeNodeItem => {
   const { labels } = values;
 
-  return lodash.mergeWith(
-    lodash.cloneDeep(previous) || {
-      key: "volume",
-      type: "VOLUME",
-      inputs: [],
-      outputs: [],
-      config: {}
+  return {
+    key: previous?.key ?? "volume",
+    type: "VOLUME",
+    inputs: previous?.inputs ?? [],
+    outputs: previous?.outputs ?? [],
+    config: (previous as any)?.config ?? {},
+    canvasConfig: {
+      node_name: values.entryName
     },
-    {
-      canvasConfig: {
-        node_name: values.entryName
-      },
-      volumeConfig: {
-        name: values.volumeName,
-        labels: labels.map(
-          (label) => `${label.key}${label.value ? `=${label.value}` : ""}`
-        )
-      }
-    },
-    (obj, src) => {
-      if (!lodash.isNil(src)) {
-        return src;
-      }
-      return obj;
+    volumeConfig: {
+      name: values.volumeName,
+      labels: labels.map(
+        (label) => `${label.key}${label.value ? `=${label.value}` : ""}`
+      )
     }
-  ) as any;
+  } as any;
 };
 
 export const tabs = [
