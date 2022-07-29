@@ -1,6 +1,6 @@
 import lodash from "lodash";
 import { useFormikContext } from "formik";
-import { FunctionComponent, ReactElement, useCallback } from "react";
+import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
 import { Button, styled } from "@mui/joy";
 
 export interface IToggleProps {
@@ -53,7 +53,7 @@ const Toggle: FunctionComponent<IToggleProps> = (
   return (
     <Root>
       {options.map((option, index) => (
-        <>
+        <Fragment key={option.value}>
           <ToggleButton
             variant={value === option.value ? "solid" : "soft"}
             size="sm"
@@ -65,7 +65,7 @@ const Toggle: FunctionComponent<IToggleProps> = (
             {option.text}
           </ToggleButton>
           {index + 1 < options.length && <ButtonBorder />}
-        </>
+        </Fragment>
       ))}
 
       <div className="mt-1 text-xs text-red-600">
