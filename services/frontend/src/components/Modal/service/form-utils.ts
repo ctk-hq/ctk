@@ -136,13 +136,10 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
 
       return { hostPort, containerPort, protocol } as any;
     }),
-    labels: labels0.map((label) => {
-      const [key, value] = label.split("=");
-      return {
-        key,
-        value
-      };
-    })
+    labels: Object.entries(labels as any).map(([key, value]: any) => ({
+      key,
+      value
+    }))
   };
 };
 
@@ -184,8 +181,8 @@ export const getFinalValues = (
           (port.containerPort ? `:${port.containerPort}` : "") +
           (port.protocol ? `/${port.protocol}` : "")
       ),
-      labels: labels.map(
-        (label) => `${label.key}${label.value ? `=${label.value}` : ""}`
+      labels: Object.fromEntries(
+        labels.map((label) => [label.key, label.value])
       )
     }
   } as any;
