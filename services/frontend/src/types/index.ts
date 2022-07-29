@@ -78,8 +78,21 @@ export interface IVolumeTopLevel {
     device: string;
   };
   external: boolean;
-  labels: string[] | KeyValuePair;
+  labels?: string[] | KeyValuePair;
   name: string;
+}
+
+export interface IPAMConfig {
+  subnet?: string;
+  ip_range?: string;
+  gateway?: string;
+  aux_addresses?: Record<string, string>;
+}
+
+export interface IIPAM {
+  driver?: string;
+  config?: IPAMConfig[];
+  options?: Record<string, string>;
 }
 
 export interface INetworkTopLevel {
@@ -87,22 +100,9 @@ export interface INetworkTopLevel {
   driver_opts: KeyValPair;
   attachable: boolean;
   enable_ipv6: boolean;
-  ipam: {
-    driver: string;
-    config: {
-      subnet: string;
-      ip_range: string;
-      gateway: string;
-      aux_addresses: {
-        host1: string;
-        host2: string;
-        host3: string;
-      };
-    }[];
-    options: KeyValPair;
-  };
+  ipam?: IIPAM;
   internal: boolean;
-  labels: string[] | KeyValPair;
+  labels?: string[] | KeyValPair;
   external: boolean;
   name: string;
 }

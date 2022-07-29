@@ -1,7 +1,6 @@
-import lodash from "lodash";
 import * as yup from "yup";
 import { IEditVolumeForm, IVolumeNodeItem } from "../../../types";
-import { checkArray } from "../../../utils/forms";
+import { pruneObject } from "../../../utils/forms";
 
 export const validationSchema = yup.object({
   entryName: yup
@@ -36,19 +35,16 @@ export const getInitialValues = (node?: IVolumeNodeItem): IEditVolumeForm => {
   const { node_name = "" } = canvasConfig;
   const { name = "", labels } = volumeConfig;
 
-  const labels0: string[] = checkArray(labels, "labels");
-
   return {
     ...initialValues,
     entryName: node_name,
     volumeName: name,
-    labels: labels0.map((label) => {
-      const [key, value] = label.split("=");
-      return {
-        key,
-        value
-      };
-    })
+    labels: labels
+      ? Object.entries(labels as any).map(([key, value]: any) => ({
+          key,
+          value
+        }))
+      : []
   };
 };
 
@@ -58,32 +54,22 @@ export const getFinalValues = (
 ): IVolumeNodeItem => {
   const { labels } = values;
 
-  return lodash.mergeWith(
-    lodash.cloneDeep(previous) || {
-      key: "volume",
-      type: "VOLUME",
-      inputs: [],
-      outputs: [],
-      config: {}
+  return {
+    key: previous?.key ?? "volume",
+    type: "VOLUME",
+    position: previous?.position ?? { left: 0, top: 0 },
+    inputs: previous?.inputs ?? [],
+    outputs: previous?.outputs ?? [],
+    canvasConfig: {
+      node_name: values.entryName
     },
-    {
-      canvasConfig: {
-        node_name: values.entryName
-      },
-      volumeConfig: {
-        name: values.volumeName,
-        labels: labels.map(
-          (label) => `${label.key}${label.value ? `=${label.value}` : ""}`
-        )
-      }
-    },
-    (obj, src) => {
-      if (!lodash.isNil(src)) {
-        return src;
-      }
-      return obj;
+    volumeConfig: {
+      name: values.volumeName,
+      labels: pruneObject(
+        Object.fromEntries(labels.map((label) => [label.key, label.value]))
+      ) as Record<string, string>
     }
-  ) as any;
+  };
 };
 
 export const tabs = [
