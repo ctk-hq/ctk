@@ -1,6 +1,6 @@
 import type { IEditServiceForm, IServiceNodeItem } from "../../../types";
 import * as yup from "yup";
-import { checkArray, pruneObject } from "../../../utils/forms";
+import { checkArray, pruneArray, pruneObject } from "../../../utils/forms";
 
 const initialValues: IEditServiceForm = {
   imageName: "",
@@ -94,7 +94,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     labels
   } = serviceConfig;
 
-  const environment0: string[] = checkArray(environment, "environment");
+  const environment0: string[] = checkArray(environment || [], "environment");
   const volumes0: string[] = checkArray(volumes, "volumes");
   const ports0: string[] = checkArray(ports, "ports");
   const [imageName, imageTag] = (image ?? ":").split(":");
@@ -165,9 +165,11 @@ export const getFinalValues = (
         values.imageTag ? `:${values.imageTag}` : ""
       }`,
       container_name: values.containerName,
-      environment: environmentVariables.map(
-        (variable) =>
-          `${variable.key}${variable.value ? `=${variable.value}` : ""}`
+      environment: pruneArray(
+        environmentVariables.map(
+          (variable) =>
+            `${variable.key}${variable.value ? `=${variable.value}` : ""}`
+        )
       ),
       volumes: volumes.length
         ? volumes.map(
