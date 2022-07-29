@@ -13,10 +13,7 @@ export const validationSchema = yup.object({
     .max(256, "Network name should be 256 characters or less")
     .required("Network name is required"),
 
-  driver: yup
-    .string()
-    .max(256, "Driver should be 256 characters or less")
-    .default("default"),
+  driver: yup.string().max(256, "Driver should be 256 characters or less"),
 
   configurations: yup.array(
     yup.object({
@@ -71,7 +68,7 @@ export const tabs = [
 export const initialValues: IEditNetworkForm = {
   entryName: "",
   networkName: "",
-  driver: "default",
+  driver: "",
   configurations: [],
   options: [],
   labels: []
