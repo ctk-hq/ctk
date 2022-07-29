@@ -153,7 +153,7 @@ export const getFinalValues = (
   return {
     key: previous?.key ?? "service",
     type: "SERVICE",
-    position: { left: 0, top: 0 },
+    position: previous?.position ?? { left: 0, top: 0 },
     inputs: previous?.inputs ?? ["op_source"],
     outputs: previous?.outputs ?? [],
     config: (previous as any)?.config ?? {},

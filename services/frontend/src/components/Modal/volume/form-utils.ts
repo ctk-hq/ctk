@@ -57,10 +57,7 @@ export const getFinalValues = (
   return {
     key: previous?.key ?? "volume",
     type: "VOLUME",
-    position: {
-      left: 0,
-      top: 0
-    },
+    position: previous?.position ?? { left: 0, top: 0 },
     inputs: previous?.inputs ?? [],
     outputs: previous?.outputs ?? [],
     canvasConfig: {
