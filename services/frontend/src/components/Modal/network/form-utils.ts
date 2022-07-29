@@ -1,5 +1,10 @@
 import * as yup from "yup";
-import { IEditNetworkForm, INetworkNodeItem, IPAMConfig } from "../../../types";
+import {
+  IEditNetworkForm,
+  IIPAM,
+  INetworkNodeItem,
+  IPAMConfig
+} from "../../../types";
 import { pruneArray, pruneObject } from "../../../utils/forms";
 
 export const validationSchema = yup.object({
@@ -135,7 +140,7 @@ export const getFinalValues = (
     },
     networkConfig: {
       name: values.networkName,
-      ipam: {
+      ipam: pruneObject({
         driver: driver ? driver : undefined,
         config: pruneArray(
           configurations.map((configuration) =>
@@ -177,7 +182,7 @@ export const getFinalValues = (
             options.map((option) => [option.key, option.value])
           );
         })()
-      },
+      }) as IIPAM,
       labels: Object.fromEntries(
         labels.map((label) => [label.key, label.value])
       )
