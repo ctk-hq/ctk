@@ -328,6 +328,12 @@ export interface IVolumeNodeItem extends INodeItem {
   volumeConfig: Partial<IVolumeTopLevel>;
 }
 
+export interface INetworkNodeItem extends INodeItem {
+  outputs: string[];
+  canvasConfig: ICanvasConfig;
+  networkConfig: Partial<INetworkTopLevel>;
+}
+
 export interface IProjectPayload {
   name: string;
   data: {
@@ -381,6 +387,29 @@ export interface IEditServiceForm {
 export interface IEditVolumeForm {
   entryName: string;
   volumeName: string;
+  labels: {
+    key: string;
+    value: string;
+  }[];
+}
+
+export interface IEditNetworkForm {
+  entryName: string;
+  networkName: string;
+  driver: string;
+  configurations: {
+    subnet: string;
+    ipRange: string;
+    gateway: string;
+    auxAddresses: {
+      hostName: string;
+      ipAddress: string;
+    }[];
+  }[];
+  options: {
+    key: string;
+    value: string;
+  }[];
   labels: {
     key: string;
     value: string;

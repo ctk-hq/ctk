@@ -33,9 +33,9 @@ import { generateHttp } from "../../services/generate";
 import { Canvas } from "../Canvas";
 import Spinner from "../global/Spinner";
 import ModalConfirmDelete from "../Modal/ConfirmDelete";
-import ModalServiceCreate from "../Modal/Service/Create";
-import ModalServiceEdit from "../Modal/Service/Edit";
-import ModalNetwork from "../Modal/Network";
+import ModalServiceCreate from "../Modal/service/Create";
+import ModalServiceEdit from "../Modal/service/Edit";
+import ModalNetwork from "../Modal/network";
 import CreateVolumeModal from "../Modal/volume/CreateVolumeModal";
 import EditVolumeModal from "../Modal/volume/EditVolumeModal";
 import CodeEditor from "../CodeEditor";
@@ -489,7 +489,7 @@ export default function Project() {
                         onClick={() => setShowNetworksModal(true)}
                       >
                         <GlobeAltIcon className="w-4" />
-                        <span>Add Network</span>
+                        <span>Networks</span>
                       </button>
                     </div>
                   </div>

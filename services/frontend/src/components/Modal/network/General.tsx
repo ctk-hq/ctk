@@ -1,5 +1,4 @@
 import { styled } from "@mui/joy";
-
 import TextField from "../../global/FormElements/TextField";
 
 const Root = styled("div")`
@@ -11,8 +10,8 @@ const Root = styled("div")`
 const General = () => {
   return (
     <Root>
-      <TextField label="Entry name" name="entryName" required={true} />
-      <TextField label="Volume name" name="volumeName" required={true} />
+      <TextField label="Entry name" name="entryName" />
+      <TextField label="Network name" name="networkName" />
     </Root>
   );
 };

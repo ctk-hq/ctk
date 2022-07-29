@@ -11,14 +11,7 @@ import {
   values
 } from "lodash";
 import { LOCAL_STORAGE } from "../constants";
-import {
-  IServiceNodeItem,
-  INodeLibraryItem,
-  INodeGroup,
-  ICanvasConfig,
-  INetworkTopLevel,
-  IVolumeTopLevel
-} from "../types";
+import { IServiceNodeItem, INodeLibraryItem, INodeGroup } from "../types";
 
 export function ensure<T>(
   argument: T | undefined | null,
@@ -186,40 +179,6 @@ export const getClientNodesAndConnections = (
 export const getNodeKeyFromConnectionId = (uuid: string) => {
   const key = uuid.substr(uuid.lastIndexOf("_") + 1);
   return key;
-};
-
-export const topLevelVolumeConfigInitialValues =
-  (): Partial<IVolumeTopLevel> => {
-    return {
-      name: "unnamed"
-    };
-  };
-
-export const topLevelNetworkConfigInitialValues =
-  (): Partial<INetworkTopLevel> => {
-    return {
-      name: "unnamed"
-    };
-  };
-
-export const volumeConfigCanvasInitialValues = (): ICanvasConfig => {
-  return {
-    node_name: "unnamed",
-    node_icon: ""
-  };
-};
-
-export const networkConfigCanvasInitialValues = (): ICanvasConfig => {
-  return {
-    node_name: "unnamed"
-  };
-};
-
-export const serviceConfigCanvasInitialValues = (): ICanvasConfig => {
-  return {
-    node_name: "unnamed",
-    node_icon: ""
-  };
 };
 
 export const toaster = (message: string, type: string) => {

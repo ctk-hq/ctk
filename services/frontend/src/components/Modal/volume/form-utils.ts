@@ -20,8 +20,8 @@ export const validationSchema = yup.object({
 });
 
 const initialValues: IEditVolumeForm = {
-  entryName: "unknown",
-  volumeName: "unknown",
+  entryName: "",
+  volumeName: "",
   labels: []
 };
 
