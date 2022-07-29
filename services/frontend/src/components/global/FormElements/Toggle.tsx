@@ -33,6 +33,10 @@ const ToggleButton = styled(Button)<IToggleButtonProps>(({ index, total }) => ({
   fontSize: 11
 }));
 
+const ButtonBorder = styled("div")`
+  border-right: 1px solid white;
+`;
+
 const Toggle: FunctionComponent<IToggleProps> = (
   props: IToggleProps
 ): ReactElement => {
@@ -42,23 +46,26 @@ const Toggle: FunctionComponent<IToggleProps> = (
     lodash.get(formik.touched, name) && lodash.get(formik.errors, name);
   const value = lodash.get(formik.values, name);
 
-  const handleChange = (value: string) => () => {
-    formik.setFieldValue(name, value);
+  const handleChange = (newValue: string) => () => {
+    formik.setFieldValue(name, newValue === value ? "" : newValue);
   };
 
   return (
     <Root>
       {options.map((option, index) => (
-        <ToggleButton
-          variant={value === option.value ? "solid" : "soft"}
-          size="sm"
-          color="primary"
-          index={index}
-          total={options.length}
-          onClick={handleChange(option.value)}
-        >
-          {option.text}
-        </ToggleButton>
+        <>
+          <ToggleButton
+            variant={value === option.value ? "solid" : "soft"}
+            size="sm"
+            color="primary"
+            index={index}
+            total={options.length}
+            onClick={handleChange(option.value)}
+          >
+            {option.text}
+          </ToggleButton>
+          {index + 1 < options.length && <ButtonBorder />}
+        </>
       ))}
 
       <div className="mt-1 text-xs text-red-600">
