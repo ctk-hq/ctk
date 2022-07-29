@@ -6,10 +6,19 @@ import Labels from "./Labels";
 import { CallbackFunction } from "../../../types";
 import { getInitialValues, tabs, validationSchema } from "./form-utils";
 import { classNames } from "../../../utils/styles";
+import { Button, styled } from "@mui/joy";
 
 interface ICreateNetworkModalProps {
   onCreateNetwork: CallbackFunction;
 }
+
+const Actions = styled("div")`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  padding: ${({ theme }) => theme.spacing(1)};
+`;
 
 const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
   props: ICreateNetworkModalProps
@@ -61,15 +70,11 @@ const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
             {openTab === "Labels" && <Labels />}
           </div>
 
-          <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
-            <button
-              className="btn-util"
-              type="button"
-              onClick={formik.submitForm}
-            >
-              Add
-            </button>
-          </div>
+          <Actions>
+            <Button size="sm" variant="solid" onClick={formik.submitForm}>
+              Save
+            </Button>
+          </Actions>
         </>
       )}
     </Formik>
