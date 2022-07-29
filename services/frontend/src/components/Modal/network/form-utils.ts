@@ -69,8 +69,8 @@ export const tabs = [
 ];
 
 export const initialValues: IEditNetworkForm = {
-  entryName: "unknown",
-  networkName: "unknown",
+  entryName: "",
+  networkName: "",
   driver: "default",
   configurations: [],
   options: [],

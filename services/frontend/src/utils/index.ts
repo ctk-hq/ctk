@@ -191,33 +191,33 @@ export const getNodeKeyFromConnectionId = (uuid: string) => {
 export const topLevelVolumeConfigInitialValues =
   (): Partial<IVolumeTopLevel> => {
     return {
-      name: "unnamed"
+      name: ""
     };
   };
 
 export const topLevelNetworkConfigInitialValues =
   (): Partial<INetworkTopLevel> => {
     return {
-      name: "unnamed"
+      name: ""
     };
   };
 
 export const volumeConfigCanvasInitialValues = (): ICanvasConfig => {
   return {
-    node_name: "unnamed",
+    node_name: "",
     node_icon: ""
   };
 };
 
 export const networkConfigCanvasInitialValues = (): ICanvasConfig => {
   return {
-    node_name: "unnamed"
+    node_name: ""
   };
 };
 
 export const serviceConfigCanvasInitialValues = (): ICanvasConfig => {
   return {
-    node_name: "unnamed",
+    node_name: "",
     node_icon: ""
   };
 };
