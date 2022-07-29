@@ -1,6 +1,6 @@
 import type { IEditServiceForm, IServiceNodeItem } from "../../../types";
 import * as yup from "yup";
-import { checkArray } from "../../../utils/forms";
+import { checkArray, pruneObject } from "../../../utils/forms";
 
 const initialValues: IEditServiceForm = {
   imageName: "",
@@ -180,8 +180,8 @@ export const getFinalValues = (
           (port.containerPort ? `:${port.containerPort}` : "") +
           (port.protocol ? `/${port.protocol}` : "")
       ),
-      labels: Object.fromEntries(
-        labels.map((label) => [label.key, label.value])
+      labels: pruneObject(
+        Object.fromEntries(labels.map((label) => [label.key, label.value]))
       )
     }
   } as any;

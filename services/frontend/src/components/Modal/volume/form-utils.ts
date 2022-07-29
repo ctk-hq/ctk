@@ -1,5 +1,6 @@
 import * as yup from "yup";
 import { IEditVolumeForm, IVolumeNodeItem } from "../../../types";
+import { pruneObject } from "../../../utils/forms";
 
 export const validationSchema = yup.object({
   entryName: yup
@@ -65,9 +66,9 @@ export const getFinalValues = (
     },
     volumeConfig: {
       name: values.volumeName,
-      labels: Object.fromEntries(
-        labels.map((label) => [label.key, label.value])
-      )
+      labels: pruneObject(
+        Object.fromEntries(labels.map((label) => [label.key, label.value]))
+      ) as Record<string, string>
     }
   };
 };

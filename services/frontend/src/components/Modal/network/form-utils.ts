@@ -183,9 +183,9 @@ export const getFinalValues = (
           );
         })()
       }) as IIPAM,
-      labels: Object.fromEntries(
-        labels.map((label) => [label.key, label.value])
-      )
+      labels: pruneObject(
+        Object.fromEntries(labels.map((label) => [label.key, label.value]))
+      ) as Record<string, string>
     }
   };
 };

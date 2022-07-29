@@ -78,7 +78,7 @@ export interface IVolumeTopLevel {
     device: string;
   };
   external: boolean;
-  labels: string[] | KeyValuePair;
+  labels?: string[] | KeyValuePair;
   name: string;
 }
 
@@ -102,7 +102,7 @@ export interface INetworkTopLevel {
   enable_ipv6: boolean;
   ipam?: IIPAM;
   internal: boolean;
-  labels: string[] | KeyValPair;
+  labels?: string[] | KeyValPair;
   external: boolean;
   name: string;
 }
