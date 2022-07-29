@@ -135,10 +135,12 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
 
       return { hostPort, containerPort, protocol } as any;
     }),
-    labels: Object.entries(labels as any).map(([key, value]: any) => ({
-      key,
-      value
-    }))
+    labels: labels
+      ? Object.entries(labels as any).map(([key, value]: any) => ({
+          key,
+          value
+        }))
+      : []
   };
 };
 

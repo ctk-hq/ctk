@@ -113,10 +113,12 @@ export const getInitialValues = (node?: INetworkNodeItem): IEditNetworkForm => {
         value: ipam?.options?.[key].toString() ?? ""
       };
     }),
-    labels: Object.entries(labels as any).map(([key, value]: any) => ({
-      key,
-      value
-    }))
+    labels: labels
+      ? Object.entries(labels as any).map(([key, value]: any) => ({
+          key,
+          value
+        }))
+      : []
   };
 };
 

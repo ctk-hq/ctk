@@ -39,10 +39,12 @@ export const getInitialValues = (node?: IVolumeNodeItem): IEditVolumeForm => {
     ...initialValues,
     entryName: node_name,
     volumeName: name,
-    labels: Object.entries(labels as any).map(([key, value]: any) => ({
-      key,
-      value
-    }))
+    labels: labels
+      ? Object.entries(labels as any).map(([key, value]: any) => ({
+          key,
+          value
+        }))
+      : []
   };
 };
 
