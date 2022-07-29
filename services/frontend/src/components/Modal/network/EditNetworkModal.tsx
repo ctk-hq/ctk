@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Formik } from "formik";
-import { TrashIcon } from "@heroicons/react/outline";
 import General from "./General";
 import IPam from "./IPam";
 import Labels from "./Labels";
@@ -10,12 +9,11 @@ import { classNames } from "../../../utils/styles";
 
 interface IEditNetworkModalProps {
   onUpdateNetwork: CallbackFunction;
-  onDeleteNetwork: CallbackFunction;
   network: any;
 }
 
 const EditNetworkModal = (props: IEditNetworkModalProps) => {
-  const { onUpdateNetwork, onDeleteNetwork, network } = props;
+  const { onUpdateNetwork, network } = props;
   const [openTab, setOpenTab] = useState("General");
   const initialValues = useMemo(() => getInitialValues(network), [network]);
 
@@ -63,14 +61,6 @@ const EditNetworkModal = (props: IEditNetworkModalProps) => {
           </div>
 
           <div className="flex justify-between items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
-            <button
-              className="btn-util-red"
-              type="button"
-              onClick={onDeleteNetwork}
-            >
-              <TrashIcon className="w-4 h-4" />
-            </button>
-
             <button
               className="btn-util"
               type="button"
