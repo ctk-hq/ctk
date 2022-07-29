@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { XIcon } from "@heroicons/react/outline";
 import CreateNetworkModal from "./CreateNetworkModal";
 import { CallbackFunction } from "../../../types";
 import EditNetworkModal from "./EditNetworkModal";
 import { attachUUID } from "../../../utils";
 import { getFinalValues } from "./form-utils";
+import EmptyNetworks from "./EmptyNetworks";
+import NetworkList from "./NetworkList";
+import { styled } from "@mui/joy";
 
 interface IModalNetworkProps {
   networks: Record<string, any>;
@@ -13,6 +16,16 @@ interface IModalNetworkProps {
   onDeleteNetwork: CallbackFunction;
   onHide: CallbackFunction;
 }
+
+const Container = styled("div")`
+  display: flex;
+  flex-direction: row;
+`;
+
+const NetworkFormContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
+`;
 
 const ModalNetwork = (props: IModalNetworkProps) => {
   const {
@@ -23,6 +36,7 @@ const ModalNetwork = (props: IModalNetworkProps) => {
     onHide
   } = props;
   const [selectedNetwork, setSelectedNetwork] = useState<any | null>();
+  const [showCreate, setShowCreate] = useState(false);
   const handleCreate = (values: any) => {
     const finalValues = getFinalValues(values);
     const uniqueKey = attachUUID(finalValues.key);
@@ -33,22 +47,38 @@ const ModalNetwork = (props: IModalNetworkProps) => {
     onCreateNetwork(network);
     setSelectedNetwork(network);
   };
+
   const handleUpdate = (values: any) => {
     const finalValues = getFinalValues(values, selectedNetwork);
     onUpdateNetwork(finalValues);
     setSelectedNetwork(finalValues);
   };
-  const handleDelete = () => {
-    onDeleteNetwork(selectedNetwork.key);
+
+  const handleRemove = useCallback(
+    (networkUuid: string) => {
+      onDeleteNetwork(networkUuid);
+      /* Show the new network form only when the selected node was deleted. */
+      /* BUG: If a selected node is deleted, it still remains in the form. */
+      if (selectedNetwork?.key === networkUuid) {
+        setSelectedNetwork(null);
+      }
+    },
+    [onDeleteNetwork, selectedNetwork]
+  );
+
+  const handleNew = useCallback(() => {
+    setShowCreate(true);
     setSelectedNetwork(null);
-  };
-  const handleNew = () => {
-    setSelectedNetwork(null);
-  };
-  const onNetworkSelect = (e: any) => {
-    const networkUuid = e.target.value;
-    setSelectedNetwork(networks[networkUuid]);
-  };
+  }, []);
+
+  const handleEdit = useCallback(
+    (networkUuid: string) => {
+      setSelectedNetwork(networks[networkUuid]);
+    },
+    [networks]
+  );
+
+  const networkKeys = Object.keys(networks);
 
   return (
     <div className="fixed z-50 inset-0 overflow-y-auto">
@@ -60,7 +90,7 @@ const ModalNetwork = (props: IModalNetworkProps) => {
         <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
             <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
-              <h3 className="text-sm font-semibold">Add top level network</h3>
+              <h3 className="text-sm font-semibold">Networks</h3>
               <button
                 className="p-1 ml-auto text-black float-right outline-none focus:outline-none"
                 onClick={onHide}
@@ -71,45 +101,35 @@ const ModalNetwork = (props: IModalNetworkProps) => {
               </button>
             </div>
 
-            {networks && Object.keys(networks).length > 0 && (
-              <div className="flex flex-row space-x-1 mx-4 mt-2">
-                <select
-                  id="network"
-                  name="network"
-                  className="input-util"
-                  value={selectedNetwork ? selectedNetwork.key : ""}
-                  onChange={onNetworkSelect}
-                >
-                  <option>select network to edit</option>
-                  {Object.keys(networks).map((networkUuid: string) => (
-                    <option value={networkUuid} key={networkUuid}>
-                      {networks[networkUuid].canvasConfig.node_name}
-                    </option>
-                  ))}
-                </select>
+            {networkKeys.length === 0 && !showCreate && (
+              <EmptyNetworks onCreate={handleNew} />
+            )}
 
-                {selectedNetwork && (
-                  <button
-                    className="btn-util"
-                    type="button"
-                    onClick={handleNew}
-                  >
-                    New
-                  </button>
+            {(networkKeys.length > 0 || showCreate) && (
+              <Container>
+                {networkKeys.length > 0 && (
+                  <NetworkList
+                    networks={networks}
+                    onNew={handleNew}
+                    onRemove={handleRemove}
+                    onEdit={handleEdit}
+                    selectedUuid={selectedNetwork?.key}
+                  />
                 )}
-              </div>
-            )}
 
-            {!selectedNetwork && (
-              <CreateNetworkModal onCreateNetwork={handleCreate} />
-            )}
+                <NetworkFormContainer>
+                  {!selectedNetwork && (
+                    <CreateNetworkModal onCreateNetwork={handleCreate} />
+                  )}
 
-            {selectedNetwork && (
-              <EditNetworkModal
-                network={selectedNetwork}
-                onUpdateNetwork={handleUpdate}
-                onDeleteNetwork={handleDelete}
-              />
+                  {selectedNetwork && (
+                    <EditNetworkModal
+                      network={selectedNetwork}
+                      onUpdateNetwork={handleUpdate}
+                    />
+                  )}
+                </NetworkFormContainer>
+              </Container>
             )}
           </div>
         </div>
