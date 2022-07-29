@@ -63,7 +63,7 @@ const General = () => {
     formik.setFieldValue(`ports[${ports.length}]`, {
       hostPort: "",
       containerPort: "",
-      protocol: "tcp"
+      protocol: ""
     });
   }, [formik]);
 
