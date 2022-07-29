@@ -128,7 +128,7 @@ export const getFinalValues = (
 
   return {
     key: previous?.key ?? "network",
-    type: previous?.type ?? "NETWORK",
+    type: "NETWORK",
     inputs: previous?.inputs ?? [],
     outputs: previous?.outputs ?? [],
     config: (previous as any)?.config ?? {},
