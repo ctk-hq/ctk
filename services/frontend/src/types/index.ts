@@ -87,19 +87,15 @@ export interface INetworkTopLevel {
   driver_opts: KeyValPair;
   attachable: boolean;
   enable_ipv6: boolean;
-  ipam: {
-    driver: string;
-    config: {
-      subnet: string;
-      ip_range: string;
-      gateway: string;
-      aux_addresses: {
-        host1: string;
-        host2: string;
-        host3: string;
-      };
+  ipam?: {
+    driver?: string;
+    config?: {
+      subnet?: string;
+      ip_range?: string;
+      gateway?: string;
+      aux_addresses?: Record<string, string>;
     }[];
-    options: KeyValPair;
+    options?: Record<string, string>;
   };
   internal: boolean;
   labels: string[] | KeyValPair;
