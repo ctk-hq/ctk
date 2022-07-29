@@ -127,41 +127,37 @@ export const getFinalValues = (
 ): INetworkNodeItem => {
   const { labels, driver, configurations, options } = values;
 
-  return lodash.merge(
-    lodash.cloneDeep(previous) || {
-      key: "network",
-      type: "NETWORK",
-      inputs: [],
-      outputs: [],
-      config: {}
+  return {
+    key: "network",
+    type: "NETWORK",
+    inputs: previous?.inputs ?? [],
+    outputs: previous?.outputs ?? [],
+    config: (previous as any)?.config ?? {},
+    canvasConfig: {
+      node_name: values.entryName
     },
-    {
-      canvasConfig: {
-        node_name: values.entryName
-      },
-      networkConfig: {
-        name: values.networkName,
-        ipam: {
-          driver,
-          config: configurations.map((configuration) => ({
-            subnet: configuration.subnet,
-            ip_range: configuration.ipRange,
-            gateway: configuration.gateway,
-            aux_addresses: Object.fromEntries(
-              configuration.auxAddresses.map((auxAddress) => [
-                auxAddress.hostName,
-                auxAddress.ipAddress
-              ])
-            )
-          })),
-          options: Object.fromEntries(
-            options.map((option) => [option.key, option.value])
+    networkConfig: {
+      name: values.networkName,
+      ipam: {
+        driver,
+        config: configurations.map((configuration) => ({
+          subnet: configuration.subnet,
+          ip_range: configuration.ipRange,
+          gateway: configuration.gateway,
+          aux_addresses: Object.fromEntries(
+            configuration.auxAddresses.map((auxAddress) => [
+              auxAddress.hostName,
+              auxAddress.ipAddress
+            ])
           )
-        },
-        labels: Object.fromEntries(
-          labels.map((label) => [label.key, label.value])
+        })),
+        options: Object.fromEntries(
+          options.map((option) => [option.key, option.value])
         )
-      }
+      },
+      labels: Object.fromEntries(
+        labels.map((label) => [label.key, label.value])
+      )
     }
-  ) as any;
+  } as any;
 };
