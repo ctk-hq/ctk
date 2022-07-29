@@ -1,5 +1,6 @@
 import * as yup from "yup";
-import { IEditNetworkForm, INetworkNodeItem } from "../../../types";
+import { IEditNetworkForm, INetworkNodeItem, IPAMConfig } from "../../../types";
+import { pruneArray, pruneObject } from "../../../utils/forms";
 
 export const validationSchema = yup.object({
   entryName: yup
@@ -139,26 +140,34 @@ export const getFinalValues = (
       name: values.networkName,
       ipam: {
         driver: driver ? driver : undefined,
-        config: configurations.map((configuration) => ({
-          subnet: configuration.subnet ? configuration.subnet : undefined,
-          ip_range: configuration.ipRange ? configuration.ipRange : undefined,
-          gateway: configuration.gateway ? configuration.gateway : undefined,
-          aux_addresses: (() => {
-            if (configuration.auxAddresses.length === 0) {
-              return undefined;
-            }
+        config: pruneArray(
+          configurations.map((configuration) =>
+            pruneObject({
+              subnet: configuration.subnet ? configuration.subnet : undefined,
+              ip_range: configuration.ipRange
+                ? configuration.ipRange
+                : undefined,
+              gateway: configuration.gateway
+                ? configuration.gateway
+                : undefined,
+              aux_addresses: (() => {
+                if (configuration.auxAddresses.length === 0) {
+                  return undefined;
+                }
 
-            /* We do not have to worry about empty `hostName` and `ipAddress`
-             * values because Yup would report such values as error.
-             */
-            return Object.fromEntries(
-              configuration.auxAddresses.map((auxAddress) => [
-                auxAddress.hostName,
-                auxAddress.ipAddress
-              ])
-            );
-          })()
-        })),
+                /* We do not have to worry about empty `hostName` and `ipAddress`
+                 * values because Yup would report such values as error.
+                 */
+                return Object.fromEntries(
+                  configuration.auxAddresses.map((auxAddress) => [
+                    auxAddress.hostName,
+                    auxAddress.ipAddress
+                  ])
+                );
+              })()
+            })
+          )
+        ) as IPAMConfig[],
         options: (() => {
           if (options.length === 0) {
             return undefined;
