@@ -1,4 +1,3 @@
-import lodash from "lodash";
 import * as yup from "yup";
 import { IEditNetworkForm, INetworkNodeItem } from "../../../types";
 
@@ -128,7 +127,7 @@ export const getFinalValues = (
   const { labels, driver, configurations, options } = values;
 
   return {
-    key: "network",
+    key: previous?.key ?? "network",
     type: "NETWORK",
     inputs: previous?.inputs ?? [],
     outputs: previous?.outputs ?? [],
