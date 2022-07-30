@@ -72,7 +72,7 @@ const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
 
           <Actions>
             <Button size="sm" variant="solid" onClick={formik.submitForm}>
-              Save
+              Create
             </Button>
           </Actions>
         </>

@@ -29,12 +29,11 @@ const Group = styled("div")`
 `;
 
 const GroupTitle = styled("h5")`
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #374151;
-  font-weight: 500;
+  font-weight: 700;
   width: 100%;
   text-align: left;
-  margin-bottom: 0.25em;
 `;
 
 const Records = styled("div")`
@@ -44,12 +43,11 @@ const Records = styled("div")`
 `;
 
 const AddButton = styled(Button)`
-  width: 140px;
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
 `;
 
 const Description = styled("p")`
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
   text-align: center;
   color: #7a7a7a;
   font-size: 14px;
@@ -133,13 +131,7 @@ const General = () => {
               ))}
             </Records>
           )}
-          {emptyPorts && (
-            <Description>
-              This service does not have any ports.
-              <br />
-              Click "+ New port" to add a new port.
-            </Description>
-          )}
+          {emptyPorts && <Description>No service ports.</Description>}
 
           <AddButton size="sm" variant="plain" onClick={handleNewPort}>
             <PlusIcon className="h-4 w-4 mr-2" />

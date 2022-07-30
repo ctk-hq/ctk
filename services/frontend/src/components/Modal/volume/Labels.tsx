@@ -18,12 +18,11 @@ const Records = styled("div")`
 `;
 
 const AddButton = styled(Button)`
-  width: 140px;
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
 `;
 
 const Description = styled("p")`
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
   text-align: center;
   color: #7a7a7a;
   font-size: 14px;
@@ -79,13 +78,7 @@ const Labels = () => {
           ))}
         </Records>
       )}
-      {emptyLabels && (
-        <Description>
-          This volume does not have any labels.
-          <br />
-          Click "+ New label" to add a new label.
-        </Description>
-      )}
+      {emptyLabels && <Description>No labels.</Description>}
 
       <AddButton size="sm" variant="plain" onClick={handleNewLabel}>
         <PlusIcon className="h-4 w-4 mr-2" />

@@ -14,7 +14,7 @@ const Labels: FunctionComponent = (): ReactElement => {
       <Records
         name="labels"
         modal="network"
-        title="Labels"
+        title=""
         referred="label"
         fields={(index: number) => [
           {
