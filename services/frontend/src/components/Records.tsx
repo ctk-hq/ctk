@@ -25,9 +25,9 @@ const Group = styled("div")`
 `;
 
 const GroupTitle = styled("h5")`
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #374151;
-  font-weight: 500;
+  font-weight: 700;
   width: 100%;
   text-align: left;
 `;
@@ -43,12 +43,11 @@ const RecordList = styled("div")`
 `;
 
 const AddButton = styled(Button)`
-  min-width: 140px;
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
 `;
 
 const Description = styled("p")`
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
   text-align: center;
   color: #7a7a7a;
   font-size: 14px;
@@ -109,13 +108,7 @@ const Records: FunctionComponent<IRecordsProps> = (
           ))}
         </RecordList>
       )}
-      {empty && (
-        <Description>
-          This {modal} does not have any {referred}.
-          <br />
-          Click "+ New {referred}" to add a new {referred}.
-        </Description>
-      )}
+      {empty && <Description>No {referred}s.</Description>}
 
       <AddButton size="sm" variant="plain" onClick={handleNew}>
         <PlusIcon className="h-4 w-4 mr-2" />

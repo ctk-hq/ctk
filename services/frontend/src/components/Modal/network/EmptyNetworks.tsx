@@ -1,5 +1,6 @@
-import { Button, styled } from "@mui/joy";
 import { FunctionComponent, ReactElement } from "react";
+import { Button, styled } from "@mui/joy";
+import { PlusIcon } from "@heroicons/react/outline";
 
 const Root = styled("div")`
   display: flex;
@@ -10,13 +11,15 @@ const Root = styled("div")`
   text-align: center;
 `;
 
-const Image = styled("img")`
-  width: 300px;
-  height: auto;
+const AddButton = styled(Button)`
+  margin-top: ${({ theme }) => theme.spacing(1)};
 `;
 
-const CreateNew = styled(Button)`
+const Description = styled("p")`
   margin-top: ${({ theme }) => theme.spacing(1)};
+  text-align: center;
+  color: #7a7a7a;
+  font-size: 14px;
 `;
 
 export interface IEmptyNetworksProps {
@@ -29,13 +32,12 @@ const EmptyNetworks: FunctionComponent<IEmptyNetworksProps> = (
   const { onCreate } = props;
   return (
     <Root>
-      <Image src="https://res.cloudinary.com/hypertool/image/upload/v1657816359/hypertool-assets/empty-projects_fdcxtk.svg" />
-      <p className="mt-4 text-md text-gray-500 dark:text-gray-400">
-        We tried our best, but could not find any networks.
-      </p>
-      <CreateNew variant="solid" size="sm" onClick={onCreate}>
-        Create new network
-      </CreateNew>
+      <Description>No top level networks.</Description>
+
+      <AddButton size="sm" variant="plain" onClick={onCreate}>
+        <PlusIcon className="h-4 w-4 mr-2" />
+        New network
+      </AddButton>
     </Root>
   );
 };

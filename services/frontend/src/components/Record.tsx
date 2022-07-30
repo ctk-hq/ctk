@@ -46,6 +46,10 @@ const Root = styled("div")`
   @media (max-width: 768px) {
     column-gap: ${({ theme }) => theme.spacing(1)};
   }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
 `;
 
 const RemoveButton = styled(IconButton)``;

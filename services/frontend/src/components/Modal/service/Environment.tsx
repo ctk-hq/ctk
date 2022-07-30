@@ -18,12 +18,11 @@ const Records = styled("div")`
 `;
 
 const AddButton = styled(Button)`
-  width: 140px;
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
 `;
 
 const Description = styled("p")`
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
   text-align: center;
   color: #7a7a7a;
   font-size: 14px;
@@ -85,11 +84,7 @@ const Environment = () => {
       )}
 
       {emptyEnvironmentVariables && (
-        <Description>
-          This service does not have any environment variables.
-          <br />
-          Click "+ New variable" to add a new environment variable.
-        </Description>
+        <Description>No environment variables.</Description>
       )}
 
       <AddButton

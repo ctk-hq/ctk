@@ -18,12 +18,11 @@ const Records = styled("div")`
 `;
 
 const AddButton = styled(Button)`
-  width: 140px;
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
 `;
 
 const Description = styled("p")`
-  margin-top: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
   text-align: center;
   color: #7a7a7a;
   font-size: 14px;
@@ -84,13 +83,7 @@ const Volumes = () => {
           ))}
         </Records>
       )}
-      {emptyVolumes && (
-        <Description>
-          This service does not have any volumes.
-          <br />
-          Click "+ New volume" to add a new volume.
-        </Description>
-      )}
+      {emptyVolumes && <Description>No volumes.</Description>}
 
       <AddButton size="sm" variant="plain" onClick={handleNewVolume}>
         <PlusIcon className="h-4 w-4 mr-2" />

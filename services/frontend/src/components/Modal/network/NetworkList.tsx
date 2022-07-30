@@ -1,7 +1,8 @@
-import { MinusSmIcon, PlusSmIcon } from "@heroicons/react/outline";
+import { MinusSmIcon, PlusIcon } from "@heroicons/react/outline";
 import { Button, styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
 import { FunctionComponent, ReactElement } from "react";
+import { truncateStr } from "../../../utils";
 
 export interface INetworkListProps {
   networks: Record<string, any>;
@@ -21,7 +22,6 @@ const Root = styled("div")`
   flex-direction: column;
   justify-content: space-between;
   border-right: solid #eaeaea 1px;
-  margin: ${({ theme }) => theme.spacing(1, 2, 1, 0)};
 `;
 
 const Top = styled("div")`
@@ -39,7 +39,7 @@ const ListItem = styled("div")<IListItemProps>`
   justify-content: space-between;
   align-items: center;
   column-gap: ${({ theme }) => theme.spacing(2)};
-  padding: ${({ theme }) => theme.spacing(1, 2)};
+  padding: ${({ theme }) => theme.spacing(1, 1, 1, 2)};
   cursor: pointer;
   background-color: ${({ selected }) => selected && "#f5f5f5"};
 
@@ -77,7 +77,7 @@ const NetworkList: FunctionComponent<INetworkListProps> = (
             selected={networkUuid === selectedUuid}
           >
             <ListItemText>
-              {networks[networkUuid].canvasConfig.node_name}
+              {truncateStr(networks[networkUuid].canvasConfig.node_name, 10)}
             </ListItemText>
             <RemoveButton
               variant="soft"
@@ -93,7 +93,7 @@ const NetworkList: FunctionComponent<INetworkListProps> = (
 
       <Bottom>
         <Button variant="plain" size="sm" onClick={onNew}>
-          <PlusSmIcon className="h-5 w-5" />
+          <PlusIcon className="h-4 w-4 mr-2" />
           New network
         </Button>
       </Bottom>

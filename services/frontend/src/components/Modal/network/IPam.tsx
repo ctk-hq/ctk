@@ -24,19 +24,21 @@ const Configuration = styled("div")`
   display: flex;
   flex-direction: column;
   row-gap: ${({ theme }) => theme.spacing(1)};
-  padding-left: ${({ theme }) => theme.spacing(4)};
+  border-left: 4px solid #e0e8ff;
+  padding-left: 10px;
 `;
 
 const ConfigurationTop = styled("div")`
   display: flex;
   flex-direction: row;
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
   column-gap: ${({ theme }) => theme.spacing(1)};
 `;
 
 const ConfigurationBorder = styled("div")`
-  border-bottom: dotted 1px black;
   height: 1px;
-  width: 40px;
   margin: 8px 0px 0px 0px;
 `;
 
@@ -120,11 +122,7 @@ const IPam = () => {
         renderField={(
           element: ReactElement,
           field: IFieldType
-        ): ReactElement => (
-          <Field style={{ paddingLeft: field.type === "records" ? 16 : 0 }}>
-            {element}
-          </Field>
-        )}
+        ): ReactElement => <Field>{element}</Field>}
         renderRemove={(element: ReactElement): ReactElement => (
           <Remove>{element}</Remove>
         )}
