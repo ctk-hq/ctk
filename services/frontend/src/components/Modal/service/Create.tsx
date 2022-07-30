@@ -11,6 +11,7 @@ import {
   getInitialValues,
   validationSchema
 } from "./form-utils";
+import { styled } from "@mui/joy";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -43,6 +44,38 @@ const tabs = [
     hidden: false
   }
 ];
+
+const FormContainer = styled("div")`
+  width: 640px;
+  height: 800px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+`;
+
+const TabBody = styled("div")`
+  overflow: auto;
+  height: 700px;
+
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+`;
 
 const ModalServiceCreate = (props: IModalServiceProps) => {
   const { onHide, onAddEndpoint } = props;
@@ -87,40 +120,42 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
               validationSchema={validationSchema}
             >
               {(formik) => (
-                <>
-                  <div className="border-b border-gray-200 px-4 md:px-8">
-                    <nav
-                      className="-mb-px flex space-x-4 md:space-x-8"
-                      aria-label="Tabs"
-                    >
-                      {tabs.map((tab) => (
-                        <a
-                          key={tab.name}
-                          href={tab.href}
-                          className={classNames(
-                            tab.name === openTab
-                              ? "border-indigo-500 text-indigo-600"
-                              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-                            "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
-                            tab.hidden ? "hidden" : ""
-                          )}
-                          aria-current={tab.current ? "page" : undefined}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setOpenTab(tab.name);
-                          }}
-                        >
-                          {tab.name}
-                        </a>
-                      ))}
-                    </nav>
-                  </div>
+                <FormContainer>
+                  <div>
+                    <div className="border-b border-gray-200 px-4 md:px-8">
+                      <nav
+                        className="-mb-px flex space-x-4 md:space-x-8"
+                        aria-label="Tabs"
+                      >
+                        {tabs.map((tab) => (
+                          <a
+                            key={tab.name}
+                            href={tab.href}
+                            className={classNames(
+                              tab.name === openTab
+                                ? "border-indigo-500 text-indigo-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+                              "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
+                              tab.hidden ? "hidden" : ""
+                            )}
+                            aria-current={tab.current ? "page" : undefined}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setOpenTab(tab.name);
+                            }}
+                          >
+                            {tab.name}
+                          </a>
+                        ))}
+                      </nav>
+                    </div>
 
-                  <div className="relative px-4 py-3 flex-auto">
-                    {openTab === "General" && <General />}
-                    {openTab === "Environment" && <Environment />}
-                    {openTab === "Volumes" && <Volumes />}
-                    {openTab === "Labels" && <Labels />}
+                    <TabBody className="relative px-4 py-3 flex-auto">
+                      {openTab === "General" && <General />}
+                      {openTab === "Environment" && <Environment />}
+                      {openTab === "Volumes" && <Volumes />}
+                      {openTab === "Labels" && <Labels />}
+                    </TabBody>
                   </div>
 
                   <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
@@ -132,7 +167,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                       Add
                     </button>
                   </div>
-                </>
+                </FormContainer>
               )}
             </Formik>
           </div>
