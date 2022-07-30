@@ -30,7 +30,6 @@ const General = () => {
 
       <Records
         name="ports"
-        modal="service"
         title="Ports"
         referred="port"
         fields={(index: number) => [
@@ -66,6 +65,21 @@ const General = () => {
           containerPort: "",
           protocol: ""
         }}
+      />
+
+      <Records
+        name="profiles"
+        title="Profiles"
+        referred="profile"
+        fields={(index: number) => [
+          {
+            name: `profiles[${index}]`,
+            placeholder: "Name",
+            required: true,
+            type: "text"
+          }
+        ]}
+        newValue={""}
       />
     </Root>
   );

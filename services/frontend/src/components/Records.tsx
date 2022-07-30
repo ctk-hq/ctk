@@ -1,12 +1,12 @@
-import { Button, styled } from "@mui/joy";
+import { styled } from "@mui/joy";
 import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
 import { PlusIcon } from "@heroicons/react/outline";
 import Record, { IFieldType } from "./Record";
 import { useFormikContext } from "formik";
 import lodash from "lodash";
+import IconButton from "@mui/joy/IconButton";
 
 export interface IRecordsProps {
-  modal: string;
   title: string;
   referred: string;
   name: string;
@@ -18,10 +18,15 @@ export interface IRecordsProps {
   renderBorder?: () => ReactElement;
 }
 
-const Group = styled("div")`
+interface IGroupProps {
+  empty: boolean;
+}
+
+const Group = styled("div")<IGroupProps>`
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: ${({ empty }) => (empty ? "center" : "flex-end")};
+  row-gap: ${({ theme }) => theme.spacing(1)};
 `;
 
 const GroupTitle = styled("h5")`
@@ -42,8 +47,9 @@ const RecordList = styled("div")`
   width: 100%;
 `;
 
-const AddButton = styled(Button)`
+const AddButton = styled(IconButton)`
   margin-top: ${({ theme }) => theme.spacing(1)};
+  border-radius: ${({ theme }) => theme.spacing(2)};
 `;
 
 const Description = styled("p")`
@@ -51,13 +57,13 @@ const Description = styled("p")`
   text-align: center;
   color: #7a7a7a;
   font-size: 14px;
+  width: 100%;
 `;
 
 const Records: FunctionComponent<IRecordsProps> = (
   props: IRecordsProps
 ): ReactElement => {
   const {
-    modal,
     title,
     referred,
     name,
@@ -89,7 +95,7 @@ const Records: FunctionComponent<IRecordsProps> = (
   const empty = items && items.length === 0;
 
   return (
-    <Group>
+    <Group empty={empty}>
       <GroupTitle>{title}</GroupTitle>
       {!empty && (
         <RecordList>
@@ -108,11 +114,11 @@ const Records: FunctionComponent<IRecordsProps> = (
           ))}
         </RecordList>
       )}
-      {empty && <Description>No {referred}s.</Description>}
 
-      <AddButton size="sm" variant="plain" onClick={handleNew}>
-        <PlusIcon className="h-4 w-4 mr-2" />
-        New {referred}
+      {empty && <Description>No items available</Description>}
+
+      <AddButton size="sm" variant="soft" onClick={handleNew}>
+        <PlusIcon className="h-4 w-4" />
       </AddButton>
     </Group>
   );

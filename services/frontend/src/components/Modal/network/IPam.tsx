@@ -49,7 +49,6 @@ const IPam = () => {
 
       <Records
         name="configurations"
-        modal="network"
         title="Configurations"
         referred="configuration"
         fields={(index: number) => [
@@ -131,7 +130,6 @@ const IPam = () => {
 
       <Records
         name="options"
-        modal="network"
         title="Options"
         referred="option"
         fields={(index: number) => [
