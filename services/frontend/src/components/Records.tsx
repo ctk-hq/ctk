@@ -22,7 +22,9 @@ interface IGroupProps {
   empty: boolean;
 }
 
-const Group = styled("div")<IGroupProps>`
+const Group = styled("div", {
+  shouldForwardProp: (propName) => propName !== "empty"
+})<IGroupProps>`
   display: flex;
   flex-direction: column;
   align-items: ${({ empty }) => (empty ? "center" : "flex-end")};
