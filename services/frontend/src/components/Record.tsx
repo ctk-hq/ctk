@@ -52,7 +52,9 @@ const Root = styled("div")`
   }
 `;
 
-const RemoveButton = styled(IconButton)``;
+const RemoveButton = styled(IconButton)`
+  border-radius: ${({ theme }) => theme.spacing(2)};
+`;
 
 const Record: FunctionComponent<IRecordProps> = (
   props: IRecordProps
