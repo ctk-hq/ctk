@@ -20,6 +20,20 @@ interface IToggleButtonProps {
 
 const Root = styled("div")`
   display: flex;
+  flex-direction: column;
+  row-gap: ${({ theme }) => theme.spacing(0.4)};
+`;
+
+const Label = styled("label")`
+  color: #374151;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0;
+  margin: 0;
+`;
+
+const Buttons = styled("div")`
+  display: flex;
   flex-direction: row;
 `;
 
@@ -30,7 +44,8 @@ const ToggleButton = styled(Button)<IToggleButtonProps>(({ index, total }) => ({
       ${index === total - 1 ? "8px" : "0px"}
       ${index === 0 ? "8px" : "0px"}
     `,
-  fontSize: 11
+  fontSize: 11,
+  minWidth: 120
 }));
 
 const ButtonBorder = styled("div")`
@@ -40,10 +55,8 @@ const ButtonBorder = styled("div")`
 const Toggle: FunctionComponent<IToggleProps> = (
   props: IToggleProps
 ): ReactElement => {
-  const { name, help, options } = props;
+  const { label, name, options } = props;
   const formik = useFormikContext();
-  const error =
-    lodash.get(formik.touched, name) && lodash.get(formik.errors, name);
   const value = lodash.get(formik.values, name);
 
   const handleChange = (newValue: string) => () => {
@@ -52,26 +65,24 @@ const Toggle: FunctionComponent<IToggleProps> = (
 
   return (
     <Root>
-      {options.map((option, index) => (
-        <Fragment key={option.value}>
-          <ToggleButton
-            variant={value === option.value ? "solid" : "soft"}
-            size="sm"
-            color="primary"
-            index={index}
-            total={options.length}
-            onClick={handleChange(option.value)}
-          >
-            {option.text}
-          </ToggleButton>
-          {index + 1 < options.length && <ButtonBorder />}
-        </Fragment>
-      ))}
-
-      <div className="mt-1 text-xs text-red-600">
-        {error && <span className="caption">{error}</span>}
-        {!error && help}
-      </div>
+      <Label>{label}</Label>
+      <Buttons>
+        {options.map((option, index) => (
+          <Fragment key={option.value}>
+            <ToggleButton
+              variant={value === option.value ? "solid" : "soft"}
+              size="sm"
+              color="primary"
+              index={index}
+              total={options.length}
+              onClick={handleChange(option.value)}
+            >
+              {option.text}
+            </ToggleButton>
+            {index + 1 < options.length && <ButtonBorder />}
+          </Fragment>
+        ))}
+      </Buttons>
     </Root>
   );
 };
