@@ -258,7 +258,7 @@ export interface IService {
         mode: string;
       };
   privileged: boolean;
-  profiles: string;
+  profiles?: string[];
   pull_policy: string;
   read_only: boolean;
   restart: string;
@@ -364,6 +364,7 @@ export interface IEditServiceForm {
   imageName: string;
   imageTag: string;
   containerName: string;
+  profiles: string[];
   ports: {
     hostPort: string;
     containerPort: string;
