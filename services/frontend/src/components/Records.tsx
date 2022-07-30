@@ -80,6 +80,10 @@ const Records: FunctionComponent<IRecordsProps> = (
   const formik = useFormikContext();
   const items = lodash.get(formik.values, name);
 
+  if (!items) {
+    throw new Error(`"${name}" is falsy.`);
+  }
+
   const handleNew = useCallback(() => {
     formik.setFieldValue(`${name}[${items.length}]`, newValue);
   }, [formik]);
