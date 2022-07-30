@@ -67,6 +67,7 @@ export default function Project() {
     null
   );
   const [language, setLanguage] = useState("yaml");
+  const [version, setVersion] = useState("3");
   const [copyText, setCopyText] = useState("Copy");
   const [nodes, setNodes] = useState({});
   const [connections, setConnections] = useState<[[string, string]] | []>([]);
@@ -187,10 +188,8 @@ export default function Project() {
 
   const debouncedOnGraphUpdate = useMemo(
     () =>
-      debounce((graphData) => {
-        graphData.networks = stateNetworksRef.current;
-        const flatData = generatePayload(graphData);
-        generateHttp(JSON.stringify(flatData))
+      debounce((payload) => {
+        generateHttp(JSON.stringify(payload))
           .then(checkHttpStatus)
           .then((data) => {
             if (data["code"].length) {
@@ -213,7 +212,11 @@ export default function Project() {
   };
 
   const onGraphUpdate = (graphData: any) => {
-    debouncedOnGraphUpdate(graphData);
+    const data = { ...graphData };
+    data.version = version;
+    data.networks = stateNetworksRef.current;
+    const payload = generatePayload(data);
+    debouncedOnGraphUpdate(payload);
   };
 
   const onCanvasUpdate = (updatedCanvasPosition: any) => {
@@ -318,6 +321,10 @@ export default function Project() {
     eventBus.dispatch("NODE_DELETED", { message: { node: node } });
   };
 
+  const versionChange = (e: any) => {
+    setVersion(e.target.value);
+  };
+
   useEffect(() => {
     if (!generatedCode) {
       return;
@@ -331,6 +338,14 @@ export default function Project() {
       setFormattedCode(generatedCode);
     }
   }, [language, generatedCode]);
+
+  useEffect(() => {
+    eventBus.dispatch("GENERATE", {
+      message: {
+        id: ""
+      }
+    });
+  }, [version]);
 
   if (!isFetching) {
     if (!error) {
@@ -539,6 +554,17 @@ export default function Project() {
                 <div
                   className={`absolute top-0 left-0 right-0 z-10 flex justify-end p-1 space-x-2 group-hover:visible invisible`}
                 >
+                  <select
+                    id="version"
+                    onChange={versionChange}
+                    value={version}
+                    className="input-util w-min pr-8"
+                  >
+                    <option value="1">v 1</option>
+                    <option value="2">v 2</option>
+                    <option value="3">v 3</option>
+                  </select>
+
                   <button
                     className={`btn-util ${
                       language === "json" ? `btn-util-selected` : ``
