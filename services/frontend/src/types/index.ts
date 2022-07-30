@@ -108,18 +108,18 @@ export interface INetworkTopLevel {
 }
 
 export interface IService {
-  build: {
+  build?: {
     context: string;
-    dockerfile: string;
-    args: KeyValPair[];
-    ssh: string[];
-    cache_from: string[];
-    cache_to: string[];
-    extra_hosts: string[];
-    isolation: string;
-    labels: KeyValPair[];
-    shm_size: string | number;
-    target: string;
+    dockerfile?: string;
+    args?: Record<string, string> | string[];
+    ssh?: string[];
+    cache_from?: string[];
+    cache_to?: string[];
+    extra_hosts?: string[];
+    isolation?: string;
+    labels?: Record<string, string> | string[];
+    shm_size?: string | number;
+    target?: string;
   };
   cpu_count: string | number;
   cpu_percent: string | number;
@@ -360,6 +360,31 @@ export interface IGeneratePayload {
 }
 
 export interface IEditServiceForm {
+  build: {
+    context: string;
+    dockerfile: string;
+    arguments: {
+      key: string[];
+      value: string[];
+    }[];
+    sshAuthentications: {
+      id: string;
+      path: string;
+    }[];
+    cacheFrom: string[];
+    cacheTo: string[];
+    extraHosts: {
+      hostName: string;
+      ipAddress: string;
+    }[];
+    isolation: string;
+    labels: {
+      key: string[];
+      value: string[];
+    }[];
+    sharedMemorySize: string;
+    target: string;
+  };
   serviceName: string;
   imageName: string;
   imageTag: string;
