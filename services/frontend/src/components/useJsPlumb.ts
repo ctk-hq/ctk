@@ -413,5 +413,24 @@ export const useJsPlumb = (
     };
   }, []);
 
+  useEffect(() => {
+    eventBus.on("GENERATE", () => {
+      if (!instance) return;
+
+      if (stateRef.current) {
+        onGraphUpdate({
+          nodes: stateRef.current,
+          connections: getConnections(
+            instance.getConnections({}, true) as Connection[]
+          )
+        });
+      }
+    });
+
+    return () => {
+      eventBus.remove("GENERATE", () => undefined);
+    };
+  }, []);
+
   return [containerCallbackRef, setZoom, setStyle, removeEndpoint];
 };

@@ -1,11 +1,11 @@
 import { IGeneratePayload } from "../types";
 
-export const generatePayload = (data: any): IGeneratePayload => {
-  const nodes = data["nodes"];
-  const networks = data["networks"] || {};
+export const generatePayload = (payload: any): IGeneratePayload => {
+  const nodes = payload["nodes"];
+  const networks = payload["networks"] || {};
   const base: IGeneratePayload = {
     data: {
-      version: 3,
+      version: payload["version"],
       networks: {},
       services: {},
       volumes: {}
