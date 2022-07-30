@@ -1,6 +1,16 @@
 import { styled } from "@mui/joy";
-import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
-import { PlusIcon } from "@heroicons/react/outline";
+import {
+  Fragment,
+  FunctionComponent,
+  ReactElement,
+  useCallback,
+  useState
+} from "react";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  PlusIcon
+} from "@heroicons/react/outline";
 import Record, { IFieldType } from "./Record";
 import { useFormikContext } from "formik";
 import lodash from "lodash";
@@ -29,6 +39,7 @@ const Group = styled("div", {
   flex-direction: column;
   align-items: ${({ empty }) => (empty ? "center" : "flex-end")};
   row-gap: ${({ theme }) => theme.spacing(1)};
+  width: 100%;
 `;
 
 const GroupTitle = styled("h5")`
@@ -62,6 +73,23 @@ const Description = styled("p")`
   width: 100%;
 `;
 
+const Top = styled("div")`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  &:hover {
+    cursor: pointer;
+    user-select: none;
+  }
+`;
+
+const ExpandButton = styled(IconButton)`
+  border-radius: ${({ theme }) => theme.spacing(2)};
+`;
+
 const Records: FunctionComponent<IRecordsProps> = (
   props: IRecordsProps
 ): ReactElement => {
@@ -77,12 +105,14 @@ const Records: FunctionComponent<IRecordsProps> = (
     renderBorder
   } = props;
 
+  const [open, setOpen] = useState(false);
+
   const formik = useFormikContext();
   const items = lodash.get(formik.values, name);
 
-  if (!items) {
-    throw new Error(`"${name}" is falsy.`);
-  }
+  const handleToggle = useCallback(() => {
+    setOpen((open) => !open);
+  }, []);
 
   const handleNew = useCallback(() => {
     formik.setFieldValue(`${name}[${items.length}]`, newValue);
@@ -98,12 +128,22 @@ const Records: FunctionComponent<IRecordsProps> = (
     [formik]
   );
 
+  if (!items) {
+    throw new Error(`"${name}" is falsy.`);
+  }
+
   const empty = items && items.length === 0;
 
   return (
     <Group empty={empty}>
-      <GroupTitle>{title}</GroupTitle>
-      {!empty && (
+      <Top onClick={handleToggle}>
+        <GroupTitle>{title}</GroupTitle>
+        <ExpandButton size="sm" variant="plain">
+          {open && <ChevronUpIcon className="h-5 w-5" />}
+          {!open && <ChevronDownIcon className="h-5 w-5" />}
+        </ExpandButton>
+      </Top>
+      {open && !empty && (
         <RecordList>
           {items.map((_: unknown, index: number) => (
             <Fragment key={index}>
@@ -121,11 +161,13 @@ const Records: FunctionComponent<IRecordsProps> = (
         </RecordList>
       )}
 
-      {empty && <Description>No items available</Description>}
+      {open && empty && <Description>No items available</Description>}
 
-      <AddButton size="sm" variant="soft" onClick={handleNew}>
-        <PlusIcon className="h-4 w-4" />
-      </AddButton>
+      {open && (
+        <AddButton size="sm" variant="soft" onClick={handleNew}>
+          <PlusIcon className="h-4 w-4" />
+        </AddButton>
+      )}
     </Group>
   );
 };
