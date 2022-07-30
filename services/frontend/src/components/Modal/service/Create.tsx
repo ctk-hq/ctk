@@ -11,6 +11,7 @@ import {
   getInitialValues,
   validationSchema
 } from "./form-utils";
+import Build from "./Build";
 import { styled } from "@mui/joy";
 
 interface IModalServiceProps {
@@ -39,6 +40,12 @@ const tabs = [
   },
   {
     name: "Labels",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
+    name: "Build",
     href: "#",
     current: false,
     hidden: false
@@ -155,6 +162,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                       {openTab === "Environment" && <Environment />}
                       {openTab === "Volumes" && <Volumes />}
                       {openTab === "Labels" && <Labels />}
+                      {openTab === "Build" && <Build />}
                     </TabBody>
                   </div>
 
