@@ -29,30 +29,6 @@ const General = () => {
       <TextField label="Container name" name="containerName" required={true} />
 
       <Records
-        name="environmentVariables"
-        title="Environment"
-        fields={(index: number) => [
-          {
-            name: `environmentVariables[${index}].key`,
-            placeholder: "Key",
-            required: true,
-            type: "text"
-          },
-          {
-            name: `environmentVariables[${index}].value`,
-            placeholder: "Value",
-            required: false,
-            type: "text"
-          }
-        ]}
-        newValue={{
-          hostPort: "",
-          containerPort: "",
-          protocol: ""
-        }}
-      />
-
-      <Records
         name="labels"
         title="Labels"
         fields={(index: number) => [
