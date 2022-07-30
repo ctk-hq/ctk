@@ -7,6 +7,7 @@ const initialValues: IEditServiceForm = {
   imageTag: "",
   serviceName: "",
   containerName: "",
+  profiles: [],
   ports: [],
   environmentVariables: [],
   volumes: [],
@@ -44,6 +45,12 @@ export const validationSchema = yup.object({
     .string()
     .max(256, "Container name should be 256 characters or less")
     .required("Container name is required"),
+  profiles: yup.array(
+    yup
+      .string()
+      .max(256, "Name should be 256 characters or less")
+      .required("Name is required")
+  ),
   ports: yup.array(
     yup.object({
       hostPort: (yup.string().required("Host port is required") as any).port(
@@ -91,6 +98,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     environment,
     volumes,
     ports,
+    profiles,
     labels
   } = serviceConfig;
 
@@ -135,6 +143,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
 
       return { hostPort, containerPort, protocol } as any;
     }),
+    profiles: profiles ?? [],
     labels: labels
       ? Object.entries(labels as any).map(([key, value]: any) => ({
           key,
@@ -148,7 +157,7 @@ export const getFinalValues = (
   values: IEditServiceForm,
   previous?: IServiceNodeItem
 ): IServiceNodeItem => {
-  const { environmentVariables, ports, volumes, labels } = values;
+  const { environmentVariables, ports, profiles, volumes, labels } = values;
 
   return {
     key: previous?.key ?? "service",
@@ -185,6 +194,7 @@ export const getFinalValues = (
           (port.containerPort ? `:${port.containerPort}` : "") +
           (port.protocol ? `/${port.protocol}` : "")
       ),
+      profiles: pruneArray(profiles),
       labels: pruneObject(
         Object.fromEntries(labels.map((label) => [label.key, label.value]))
       )
