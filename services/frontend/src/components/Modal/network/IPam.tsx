@@ -50,7 +50,6 @@ const IPam = () => {
       <Records
         name="configurations"
         title="Configurations"
-        referred="configuration"
         fields={(index: number) => [
           {
             name: `configurations[${index}].subnet`,
@@ -131,7 +130,6 @@ const IPam = () => {
       <Records
         name="options"
         title="Options"
-        referred="option"
         fields={(index: number) => [
           {
             name: `options[${index}].key`,

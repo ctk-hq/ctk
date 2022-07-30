@@ -18,7 +18,6 @@ import IconButton from "@mui/joy/IconButton";
 
 export interface IRecordsProps {
   title: string;
-  referred: string;
   name: string;
   fields: (index: number) => IFieldType[];
   newValue: any;
@@ -95,7 +94,6 @@ const Records: FunctionComponent<IRecordsProps> = (
 ): ReactElement => {
   const {
     title,
-    referred,
     name,
     fields,
     newValue,

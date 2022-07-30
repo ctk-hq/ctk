@@ -31,7 +31,6 @@ const General = () => {
       <Records
         name="ports"
         title="Ports"
-        referred="port"
         fields={(index: number) => [
           {
             name: `ports[${index}].hostPort`,
@@ -70,7 +69,6 @@ const General = () => {
       <Records
         name="profiles"
         title="Profiles"
-        referred="profile"
         fields={(index: number) => [
           {
             name: `profiles[${index}]`,

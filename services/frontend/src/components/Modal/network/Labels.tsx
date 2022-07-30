@@ -14,7 +14,6 @@ const Labels: FunctionComponent = (): ReactElement => {
       <Records
         name="labels"
         title=""
-        referred="label"
         fields={(index: number) => [
           {
             name: `labels[${index}].key`,

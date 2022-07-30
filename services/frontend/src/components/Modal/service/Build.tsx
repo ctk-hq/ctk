@@ -24,7 +24,6 @@ const Build = () => {
       <Records
         name="build.arguments"
         title="Arguments"
-        referred="argument"
         fields={(index: number) => [
           {
             name: `build.arguments[${index}].key`,
@@ -47,7 +46,6 @@ const Build = () => {
       <Records
         name="build.labels"
         title="Labels"
-        referred="label"
         fields={(index: number) => [
           {
             name: `build.labels[${index}].key`,
@@ -67,7 +65,6 @@ const Build = () => {
       <Records
         name="build.sshAuthentications"
         title="SSH authentications"
-        referred="SSH authentication"
         fields={(index: number) => [
           {
             name: `build.sshAuthentications[${index}].id`,
@@ -90,7 +87,6 @@ const Build = () => {
       <Records
         name="build.cacheFrom"
         title="Cache from"
-        referred="item"
         fields={(index: number) => [
           {
             name: `build.cacheFrom[${index}]`,
@@ -105,7 +101,6 @@ const Build = () => {
       <Records
         name="build.cacheTo"
         title="Cache to"
-        referred="item"
         fields={(index: number) => [
           {
             name: `build.cacheTo[${index}]`,
@@ -120,7 +115,6 @@ const Build = () => {
       <Records
         name="build.extraHosts"
         title="Extra hosts"
-        referred="extra host"
         fields={(index: number) => [
           {
             name: `build.extraHosts[${index}].hostName`,
