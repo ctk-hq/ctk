@@ -53,6 +53,26 @@ const General = () => {
       />
 
       <Records
+        name="labels"
+        title="Labels"
+        fields={(index: number) => [
+          {
+            name: `labels[${index}].key`,
+            placeholder: "Key",
+            required: true,
+            type: "text"
+          },
+          {
+            name: `labels[${index}].value`,
+            placeholder: "Value",
+            required: true,
+            type: "text"
+          }
+        ]}
+        newValue={{ key: "", value: "" }}
+      />
+
+      <Records
         name="ports"
         title="Ports"
         fields={(index: number) => [

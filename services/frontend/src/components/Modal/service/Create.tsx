@@ -3,7 +3,6 @@ import { Formik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Volumes from "./Volumes";
-import Labels from "./Labels";
 import { CallbackFunction } from "../../../types";
 import {
   getFinalValues,
@@ -27,12 +26,6 @@ const tabs = [
   },
   {
     name: "Volumes",
-    href: "#",
-    current: false,
-    hidden: false
-  },
-  {
-    name: "Labels",
     href: "#",
     current: false,
     hidden: false
@@ -153,7 +146,6 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                     <TabBody className="relative px-4 py-3 flex-auto">
                       {openTab === "General" && <General />}
                       {openTab === "Volumes" && <Volumes />}
-                      {openTab === "Labels" && <Labels />}
                       {openTab === "Build" && <Build />}
                     </TabBody>
                   </div>
