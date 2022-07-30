@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Formik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
-import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
 import { CallbackFunction } from "../../../types";
@@ -24,12 +23,6 @@ const tabs = [
     name: "General",
     href: "#",
     current: true,
-    hidden: false
-  },
-  {
-    name: "Environment",
-    href: "#",
-    current: false,
     hidden: false
   },
   {
@@ -159,7 +152,6 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
 
                     <TabBody className="relative px-4 py-3 flex-auto">
                       {openTab === "General" && <General />}
-                      {openTab === "Environment" && <Environment />}
                       {openTab === "Volumes" && <Volumes />}
                       {openTab === "Labels" && <Labels />}
                       {openTab === "Build" && <Build />}

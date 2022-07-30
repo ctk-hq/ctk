@@ -3,7 +3,6 @@ import { Formik } from "formik";
 
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
-import Environment from "./Environment";
 import Volumes from "./Volumes";
 import Labels from "./Labels";
 import type { CallbackFunction, IServiceNodeItem } from "../../../types";
@@ -24,12 +23,6 @@ const tabs = [
     name: "General",
     href: "#",
     current: true,
-    hidden: false
-  },
-  {
-    name: "Environment",
-    href: "#",
-    current: false,
     hidden: false
   },
   {
@@ -130,7 +123,6 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
 
                     <div className="relative px-4 py-3 flex-auto">
                       {openTab === "General" && <General />}
-                      {openTab === "Environment" && <Environment />}
                       {openTab === "Volumes" && <Volumes />}
                       {openTab === "Labels" && <Labels />}
                     </div>
