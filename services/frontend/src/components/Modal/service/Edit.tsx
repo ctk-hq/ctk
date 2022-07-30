@@ -8,7 +8,8 @@ import type { CallbackFunction, IServiceNodeItem } from "../../../types";
 import {
   getInitialValues,
   getFinalValues,
-  validationSchema
+  validationSchema,
+  tabs
 } from "./form-utils";
 
 export interface IModalServiceProps {
@@ -16,21 +17,6 @@ export interface IModalServiceProps {
   onHide: CallbackFunction;
   onUpdateEndpoint: CallbackFunction;
 }
-
-const tabs = [
-  {
-    name: "General",
-    href: "#",
-    current: true,
-    hidden: false
-  },
-  {
-    name: "Data",
-    href: "#",
-    current: false,
-    hidden: false
-  }
-];
 
 const ModalServiceEdit = (props: IModalServiceProps) => {
   const { node, onHide, onUpdateEndpoint } = props;

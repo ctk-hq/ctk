@@ -7,6 +7,7 @@ import { CallbackFunction } from "../../../types";
 import {
   getFinalValues,
   getInitialValues,
+  tabs,
   validationSchema
 } from "./form-utils";
 import Build from "./Build";
@@ -16,27 +17,6 @@ interface IModalServiceProps {
   onHide: CallbackFunction;
   onAddEndpoint: CallbackFunction;
 }
-
-const tabs = [
-  {
-    name: "General",
-    href: "#",
-    current: true,
-    hidden: false
-  },
-  {
-    name: "Data",
-    href: "#",
-    current: false,
-    hidden: false
-  },
-  {
-    name: "Build",
-    href: "#",
-    current: false,
-    hidden: false
-  }
-];
 
 const FormContainer = styled("div")`
   width: 640px;

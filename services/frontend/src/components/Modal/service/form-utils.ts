@@ -9,6 +9,27 @@ import {
   pruneString
 } from "../../../utils/forms";
 
+export const tabs = [
+  {
+    name: "General",
+    href: "#",
+    current: true,
+    hidden: false
+  },
+  {
+    name: "Data",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
+    name: "Build",
+    href: "#",
+    current: false,
+    hidden: false
+  }
+];
+
 const initialValues: IEditServiceForm = {
   build: {
     context: "",
