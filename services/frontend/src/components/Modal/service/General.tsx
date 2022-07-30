@@ -35,13 +35,13 @@ const General = () => {
         fields={(index: number) => [
           {
             name: `ports[${index}].hostPort`,
-            placeholder: "Host Port",
+            placeholder: "Host port",
             required: true,
             type: "text"
           },
           {
             name: `ports[${index}].containerPort`,
-            placeholder: "Container Port",
+            placeholder: "Container port",
             type: "text"
           },
           {
