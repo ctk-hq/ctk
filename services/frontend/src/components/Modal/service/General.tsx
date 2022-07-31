@@ -51,6 +51,7 @@ const General = () => {
       <Records
         name="ports"
         title="Ports"
+        defaultOpen={true}
         fields={(index: number) => [
           {
             name: `ports[${index}].hostPort`,
