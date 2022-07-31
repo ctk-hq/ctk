@@ -475,7 +475,9 @@ export const getFinalValues = (
           window: pruneString(deploy.restartPolicy.window)
         }),
         labels: pruneObject(
-          Object.fromEntries(labels.map((label) => [label.key, label.value]))
+          Object.fromEntries(
+            deploy.labels.map((label) => [label.key, label.value])
+          )
         )
       }),
       image: `${values.imageName}${
