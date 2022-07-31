@@ -29,9 +29,11 @@ const Top = styled("div")`
 `;
 
 const Title = styled("h5")`
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 0.85rem;
   color: #374151;
+  font-weight: 700;
+  width: 100%;
+  text-align: left;
 `;
 
 const ExpandButton = styled(IconButton)`
