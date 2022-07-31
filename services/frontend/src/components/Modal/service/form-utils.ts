@@ -122,10 +122,12 @@ export const validationSchema = yup.object({
         value: yup.string()
       })
     ),
-    sshAuthentications: yup.object({
-      id: yup.string().required("ID is required"),
-      path: yup.string()
-    }),
+    sshAuthentications: yup.array(
+      yup.object({
+        id: yup.string().required("ID is required"),
+        path: yup.string()
+      })
+    ),
     cacheFrom: yup.array(yup.string()),
     cacheTo: yup.array(yup.string()),
     extraHosts: yup.array(
@@ -260,8 +262,8 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     labels
   } = serviceConfig;
 
-  const volumes0: string[] = checkArray(volumes, "volumes");
-  const ports0: string[] = checkArray(ports, "ports");
+  const volumes0: string[] = checkArray(volumes ?? [], "volumes");
+  const ports0: string[] = checkArray(ports ?? [], "ports");
   const [imageName, imageTag] = (image ?? ":").split(":");
 
   return {
