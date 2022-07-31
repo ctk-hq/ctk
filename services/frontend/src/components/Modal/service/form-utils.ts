@@ -6,7 +6,8 @@ import {
   pruneObject,
   extractObjectOrArray,
   extractArray,
-  pruneString
+  pruneString,
+  pruneNumber
 } from "../../../utils/forms";
 
 export const tabs = [
@@ -57,8 +58,8 @@ const initialValues: IEditServiceForm = {
     target: ""
   },
   deploy: {
-    mode: "replicated",
-    replicas: "1",
+    mode: "",
+    replicas: "",
     endpointMode: "",
     placement: {
       constraints: [],
@@ -425,7 +426,7 @@ export const getFinalValues = (
     },
     serviceConfig: {
       build: pruneObject({
-        context: build.context,
+        context: pruneString(build.context),
         dockerfile: pruneString(build.dockerfile),
         args: pruneObject(build.arguments),
         ssh: pruneArray(
@@ -447,31 +448,31 @@ export const getFinalValues = (
         target: pruneString(build.target)
       }),
       deploy: pruneObject({
-        mode: deploy.mode,
-        replicas: deploy.replicas,
-        endpoint_mode: deploy.endpointMode,
+        mode: pruneString(deploy.mode),
+        replicas: pruneString(deploy.replicas),
+        endpoint_mode: pruneString(deploy.endpointMode),
         placement: pruneObject({
           constraints: pruneArray(deploy.placement.constraints),
           preferences: pruneArray(deploy.placement.preferences)
         }),
         resources: pruneObject({
           limits: pruneObject({
-            cpus: deploy.resources.limits.cpus,
-            memory: deploy.resources.limits.memory,
+            cpus: pruneString(deploy.resources.limits.cpus),
+            memory: pruneString(deploy.resources.limits.memory),
             // NOTE: Could be a potential bug.
-            pids: parseInt(deploy.resources.limits.pids) ?? undefined
+            pids: pruneNumber(parseInt(deploy.resources.limits.pids))
           }),
           reservations: pruneObject({
-            cpus: deploy.resources.reservations.cpus,
-            memory: deploy.resources.reservations.memory
+            cpus: pruneString(deploy.resources.reservations.cpus),
+            memory: pruneString(deploy.resources.reservations.memory)
           })
         }),
         restart_policy: pruneObject({
-          condition: deploy.restartPolicy.condition,
-          delay: deploy.restartPolicy.delay,
+          condition: pruneString(deploy.restartPolicy.condition),
+          delay: pruneString(deploy.restartPolicy.delay),
           // NOTE: Could be a potential bug.
-          maxAttempts: parseInt(deploy.restartPolicy.maxAttempts) ?? undefined,
-          window: deploy.restartPolicy.window
+          maxAttempts: pruneNumber(parseInt(deploy.restartPolicy.maxAttempts)),
+          window: pruneString(deploy.restartPolicy.window)
         }),
         labels: pruneObject(
           Object.fromEntries(labels.map((label) => [label.key, label.value]))
