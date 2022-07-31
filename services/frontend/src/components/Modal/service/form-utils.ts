@@ -484,10 +484,12 @@ export const getFinalValues = (
         values.imageTag ? `:${values.imageTag}` : ""
       }`,
       container_name: values.containerName,
-      environment: pruneArray(
-        environmentVariables.map(
-          (variable) =>
-            `${variable.key}${variable.value ? `=${variable.value}` : ""}`
+      environment: pruneObject(
+        Object.fromEntries(
+          environmentVariables.map((environmentVariable) => [
+            environmentVariable.key,
+            environmentVariable.value
+          ])
         )
       ),
       volumes: pruneArray(
