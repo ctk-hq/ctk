@@ -12,6 +12,7 @@ import {
 } from "./form-utils";
 import Build from "./Build";
 import { styled } from "@mui/joy";
+import Environment from "./Environment";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -122,6 +123,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
 
                     <TabBody className="relative px-4 py-3 flex-auto">
                       {openTab === "General" && <General />}
+                      {openTab === "Environment" && <Environment />}
                       {openTab === "Data" && <Data />}
                       {openTab === "Build" && <Build />}
                     </TabBody>

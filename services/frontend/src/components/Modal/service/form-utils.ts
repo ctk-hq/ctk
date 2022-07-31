@@ -17,6 +17,12 @@ export const tabs = [
     hidden: false
   },
   {
+    name: "Environment",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
     name: "Data",
     href: "#",
     current: false,

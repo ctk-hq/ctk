@@ -11,6 +11,8 @@ import {
   validationSchema,
   tabs
 } from "./form-utils";
+import Environment from "./Environment";
+import Build from "./Build";
 
 export interface IModalServiceProps {
   node: IServiceNodeItem;
@@ -102,7 +104,9 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
 
                     <div className="relative px-4 py-3 flex-auto">
                       {openTab === "General" && <General />}
+                      {openTab === "Environment" && <Environment />}
                       {openTab === "Data" && <Data />}
+                      {openTab === "Build" && <Build />}
                     </div>
 
                     <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
