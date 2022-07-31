@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Formik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Data from "./Data";
-import { CallbackFunction } from "../../../types";
+import { CallbackFunction, IEditServiceForm } from "../../../types";
 import {
   getFinalValues,
   getInitialValues,
@@ -53,11 +53,16 @@ const TabBody = styled("div")`
 const ModalServiceCreate = (props: IModalServiceProps) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
-  const handleCreate = (values: any, formik: any) => {
-    onAddEndpoint(getFinalValues(values));
-    formik.resetForm();
-    onHide();
-  };
+
+  const handleCreate = useCallback(
+    (values: IEditServiceForm, formik: any) => {
+      const result = getFinalValues(values);
+      onAddEndpoint(result);
+      formik.resetForm();
+      onHide();
+    },
+    [onAddEndpoint, onHide]
+  );
 
   const initialValues = useMemo(() => getInitialValues(), []);
 
