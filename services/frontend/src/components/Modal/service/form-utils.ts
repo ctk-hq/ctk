@@ -259,7 +259,6 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     labels
   } = serviceConfig;
 
-  const environment0: string[] = checkArray(environment || [], "environment");
   const volumes0: string[] = checkArray(volumes, "volumes");
   const ports0: string[] = checkArray(ports, "ports");
   const [imageName, imageTag] = (image ?? ":").split(":");
@@ -366,13 +365,9 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     imageTag,
     serviceName: node_name,
     containerName: container_name,
-    environmentVariables: environment0.map((variable) => {
-      const [key, value] = variable.split("=");
-      return {
-        key,
-        value: value ? value : ""
-      };
-    }),
+    environmentVariables:
+      extractObjectOrArray("=", "key", "value", environment) ??
+      initialValues.environmentVariables,
     volumes: volumes0.map((volume) => {
       const [name, containerPath, accessMode] = volume.split(":");
       return {
