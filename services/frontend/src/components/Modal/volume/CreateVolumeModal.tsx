@@ -9,7 +9,6 @@ import {
   validationSchema
 } from "./form-utils";
 import General from "./General";
-import Labels from "./Labels";
 import { CallbackFunction } from "../../../types";
 
 interface ICreateVolumeModalProps {
@@ -90,7 +89,6 @@ const CreateVolumeModal = (props: ICreateVolumeModalProps) => {
 
                   <div className="relative px-4 py-3 flex-auto">
                     {openTab === "General" && <General />}
-                    {openTab === "Labels" && <Labels />}
                   </div>
 
                   <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">

@@ -1,6 +1,7 @@
 import { styled } from "@mui/joy";
 
 import TextField from "../../global/FormElements/TextField";
+import Records from "../../Records";
 
 const Root = styled("div")`
   display: flex;
@@ -13,6 +14,25 @@ const General = () => {
     <Root>
       <TextField label="Entry name" name="entryName" required={true} />
       <TextField label="Volume name" name="volumeName" required={true} />
+      <Records
+        name="labels"
+        title="Labels"
+        fields={(index: number) => [
+          {
+            name: `labels[${index}].key`,
+            placeholder: "Key",
+            required: true,
+            type: "text"
+          },
+          {
+            name: `labels[${index}].value`,
+            placeholder: "Value",
+            required: true,
+            type: "text"
+          }
+        ]}
+        newValue={{ key: "", value: "" }}
+      />
     </Root>
   );
 };
