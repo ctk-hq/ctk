@@ -7,7 +7,9 @@ import {
   extractObjectOrArray,
   extractArray,
   pruneString,
-  pruneNumber
+  pruneNumber,
+  packArrayAsObject,
+  packArrayAsStrings
 } from "../../../utils/forms";
 
 export const tabs = [
@@ -428,16 +430,8 @@ export const getFinalValues = (
       build: pruneObject({
         context: pruneString(build.context),
         dockerfile: pruneString(build.dockerfile),
-        args: pruneObject(
-          Object.fromEntries(
-            build.arguments.map((argument) => [argument.key, argument.value])
-          )
-        ),
-        ssh: pruneArray(
-          build.sshAuthentications.map((authentication) =>
-            [authentication.id, authentication.path].join("=")
-          )
-        ),
+        args: packArrayAsObject(build.arguments, "key", "value"),
+        ssh: packArrayAsStrings(build.sshAuthentications, "id", "path", "="),
         cache_from: pruneArray(build.cacheFrom),
         cache_to: pruneArray(build.cacheTo),
         extra_hosts: pruneArray(
@@ -460,8 +454,18 @@ export const getFinalValues = (
         replicas: pruneString(deploy.replicas),
         endpoint_mode: pruneString(deploy.endpointMode),
         placement: pruneObject({
-          constraints: pruneArray(deploy.placement.constraints),
-          preferences: pruneArray(deploy.placement.preferences)
+          constraints: packArrayAsStrings(
+            deploy.placement.constraints,
+            "key",
+            "value",
+            "="
+          ),
+          preferences: packArrayAsStrings(
+            deploy.placement.preferences,
+            "key",
+            "value",
+            "="
+          )
         }),
         resources: pruneObject({
           limits: pruneObject({
@@ -482,11 +486,7 @@ export const getFinalValues = (
           maxAttempts: pruneNumber(parseInt(deploy.restartPolicy.maxAttempts)),
           window: pruneString(deploy.restartPolicy.window)
         }),
-        labels: pruneObject(
-          Object.fromEntries(
-            deploy.labels.map((label) => [label.key, label.value])
-          )
-        )
+        labels: packArrayAsObject(deploy.labels, "key", "value")
       }),
       image: `${values.imageName}${
         values.imageTag ? `:${values.imageTag}` : ""
