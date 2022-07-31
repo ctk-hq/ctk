@@ -1,4 +1,5 @@
 import lodash from "lodash";
+import { number } from "yup";
 
 export const checkArray = <T>(array: any, name: string): T => {
   if (!Array.isArray(array)) {
@@ -29,6 +30,19 @@ export const pruneString = (value?: string): string | undefined => {
   if (!value) {
     return undefined;
   }
+  return value;
+};
+
+export const pruneNumber = (value?: number): number | undefined => {
+  if (
+    value === undefined ||
+    value === null ||
+    isNaN(value) ||
+    (value as unknown as string) === ""
+  ) {
+    return undefined;
+  }
+
   return value;
 };
 
