@@ -33,6 +33,12 @@ export const tabs = [
     href: "#",
     current: false,
     hidden: false
+  },
+  {
+    name: "Deploy",
+    href: "#",
+    current: false,
+    hidden: false
   }
 ];
 
@@ -49,6 +55,33 @@ const initialValues: IEditServiceForm = {
     labels: [],
     sharedMemorySize: "",
     target: ""
+  },
+  deploy: {
+    mode: "replicated",
+    replicas: "1",
+    endpointMode: "",
+    placement: {
+      constraints: [],
+      preferences: []
+    },
+    resources: {
+      limits: {
+        cpus: "",
+        memory: "",
+        pids: ""
+      },
+      reservations: {
+        cpus: "",
+        memory: ""
+      }
+    },
+    restartPolicy: {
+      condition: "",
+      delay: "",
+      maxAttempts: "",
+      window: ""
+    },
+    labels: []
   },
   imageName: "",
   imageTag: "",
@@ -110,6 +143,48 @@ export const validationSchema = yup.object({
     // TODO: <integer><unit>?
     sharedMemorySize: yup.string(),
     target: yup.string()
+  }),
+  deploy: yup.object({
+    mode: yup.string().oneOf(["", "global", "replicated"]),
+    endpointMode: yup.string().oneOf(["", "vip", "dnsrr"]),
+    replicas: yup.string(),
+    placement: yup.object({
+      constraints: yup.array(
+        yup.object({
+          key: yup.string().required("Key is required"),
+          value: yup.string().required("Value is required")
+        })
+      ),
+      preferences: yup.array(
+        yup.object({
+          key: yup.string().required("Key is required"),
+          value: yup.string().required("Value is required")
+        })
+      )
+    }),
+    resources: yup.object({
+      limits: yup.object({
+        cpus: yup.string(),
+        memory: yup.string(),
+        pids: yup.string()
+      }),
+      reservations: yup.object({
+        cpus: yup.string(),
+        memory: yup.string()
+      })
+    }),
+    restartPolicy: yup.object({
+      condition: yup.string().oneOf(["", "none", "on-failure", "any"]),
+      delay: yup.string(),
+      maxAttempts: yup.string(),
+      window: yup.string()
+    }),
+    labels: yup.array(
+      yup.object({
+        key: yup.string().required("Key is required"),
+        value: yup.string()
+      })
+    )
   }),
   serviceName: yup
     .string()
@@ -174,6 +249,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const { node_name = "" } = canvasConfig;
   const {
     build,
+    deploy,
     image,
     container_name = "",
     environment,
@@ -213,6 +289,79 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
           target: build.target?.toString() ?? initialValues.build.target
         }
       : initialValues.build,
+    deploy: deploy
+      ? {
+          mode: deploy.mode ?? initialValues.deploy.mode,
+          endpointMode:
+            deploy.endpoint_mode ?? initialValues.deploy.endpointMode,
+          replicas:
+            deploy.replicas?.toString() ?? initialValues.deploy.replicas,
+          placement: deploy.placement
+            ? {
+                constraints:
+                  extractObjectOrArray(
+                    "=",
+                    "key",
+                    "value",
+                    deploy.placement.constraints
+                  ) ?? initialValues.deploy.placement.constraints,
+                preferences:
+                  extractObjectOrArray(
+                    "=",
+                    "key",
+                    "value",
+                    deploy.placement.preferences
+                  ) ?? initialValues.deploy.placement.preferences
+              }
+            : initialValues.deploy.placement,
+          resources: deploy.resources
+            ? {
+                limits: deploy.resources.limits
+                  ? {
+                      cpus:
+                        deploy.resources.limits.cpus ??
+                        initialValues.deploy.resources.limits.cpus,
+                      memory:
+                        deploy.resources.limits.memory ??
+                        initialValues.deploy.resources.limits.memory,
+                      pids:
+                        deploy.resources.limits.pids?.toString() ??
+                        initialValues.deploy.resources.limits.pids
+                    }
+                  : initialValues.deploy.resources.limits,
+                reservations: deploy.resources.reservations
+                  ? {
+                      cpus:
+                        deploy.resources.reservations.cpus ??
+                        initialValues.deploy.resources.reservations.cpus,
+                      memory:
+                        deploy.resources.reservations.memory ??
+                        initialValues.deploy.resources.reservations.memory
+                    }
+                  : initialValues.deploy.resources.reservations
+              }
+            : initialValues.deploy.resources,
+          restartPolicy: deploy.restart_policy
+            ? {
+                condition:
+                  deploy.restart_policy.condition ??
+                  initialValues.deploy.restartPolicy.condition,
+                delay:
+                  deploy.restart_policy.delay ??
+                  initialValues.deploy.restartPolicy.delay,
+                maxAttempts:
+                  deploy.restart_policy.max_attempts?.toString() ??
+                  initialValues.deploy.restartPolicy.maxAttempts,
+                window:
+                  deploy.restart_policy.window ??
+                  initialValues.deploy.restartPolicy.window
+              }
+            : initialValues.deploy.restartPolicy,
+          labels:
+            extractObjectOrArray("=", "key", "value", deploy.labels) ??
+            initialValues.deploy.labels
+        }
+      : initialValues.deploy,
     imageName,
     imageTag,
     serviceName: node_name,
@@ -261,8 +410,15 @@ export const getFinalValues = (
   values: IEditServiceForm,
   previous?: IServiceNodeItem
 ): IServiceNodeItem => {
-  const { build, environmentVariables, ports, profiles, volumes, labels } =
-    values;
+  const {
+    build,
+    deploy,
+    environmentVariables,
+    ports,
+    profiles,
+    volumes,
+    labels
+  } = values;
 
   return {
     key: previous?.key ?? "service",
@@ -296,6 +452,37 @@ export const getFinalValues = (
         shm_size: pruneString(build.sharedMemorySize),
         target: pruneString(build.target)
       }),
+      deploy: pruneObject({
+        mode: deploy.mode,
+        replicas: deploy.replicas,
+        endpoint_mode: deploy.endpointMode,
+        placement: pruneObject({
+          constraints: pruneArray(deploy.placement.constraints),
+          preferences: pruneArray(deploy.placement.preferences)
+        }),
+        resources: pruneObject({
+          limits: pruneObject({
+            cpus: deploy.resources.limits.cpus,
+            memory: deploy.resources.limits.memory,
+            // NOTE: Could be a potential bug.
+            pids: parseInt(deploy.resources.limits.pids) ?? undefined
+          }),
+          reservations: pruneObject({
+            cpus: deploy.resources.reservations.cpus,
+            memory: deploy.resources.reservations.memory
+          })
+        }),
+        restart_policy: pruneObject({
+          condition: deploy.restartPolicy.condition,
+          delay: deploy.restartPolicy.delay,
+          // NOTE: Could be a potential bug.
+          maxAttempts: parseInt(deploy.restartPolicy.maxAttempts) ?? undefined,
+          window: deploy.restartPolicy.window
+        }),
+        labels: pruneObject(
+          Object.fromEntries(labels.map((label) => [label.key, label.value]))
+        )
+      }),
       image: `${values.imageName}${
         values.imageTag ? `:${values.imageTag}` : ""
       }`,
@@ -306,19 +493,21 @@ export const getFinalValues = (
             `${variable.key}${variable.value ? `=${variable.value}` : ""}`
         )
       ),
-      volumes: volumes.length
-        ? volumes.map(
-            (volume) =>
-              volume.name +
-              (volume.containerPath ? `:${volume.containerPath}` : "") +
-              (volume.accessMode ? `:${volume.accessMode}` : "")
-          )
-        : [],
-      ports: ports.map(
-        (port) =>
-          port.hostPort +
-          (port.containerPort ? `:${port.containerPort}` : "") +
-          (port.protocol ? `/${port.protocol}` : "")
+      volumes: pruneArray(
+        volumes.map(
+          (volume) =>
+            volume.name +
+            (volume.containerPath ? `:${volume.containerPath}` : "") +
+            (volume.accessMode ? `:${volume.accessMode}` : "")
+        )
+      ),
+      ports: pruneArray(
+        ports.map(
+          (port) =>
+            port.hostPort +
+            (port.containerPort ? `:${port.containerPort}` : "") +
+            (port.protocol ? `/${port.protocol}` : "")
+        )
       ),
       profiles: pruneArray(profiles),
       labels: pruneObject(
