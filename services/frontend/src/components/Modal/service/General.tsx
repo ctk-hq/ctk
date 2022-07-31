@@ -66,7 +66,6 @@ const General = () => {
           },
           {
             name: `ports[${index}].protocol`,
-            placeholder: "Protocol",
             type: "toggle",
             options: [
               {
