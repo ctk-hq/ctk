@@ -113,7 +113,8 @@ yup.addMethod<yup.StringSchema>(yup.string, "port", function (message) {
 
 export const validationSchema = yup.object({
   build: yup.object({
-    context: yup.string().required("Context is required"),
+    /* TODO: The `context` attribute is required, only when `build` is defined. */
+    context: yup.string() /* .required("Context is required") */,
     dockerfile: yup.string(),
     arguments: yup.array(
       yup.object({
