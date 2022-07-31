@@ -32,7 +32,7 @@ const EmptyNetworks: FunctionComponent<IEmptyNetworksProps> = (
   const { onCreate } = props;
   return (
     <Root>
-      <Description>No top level networks.</Description>
+      <Description>No top-level networks available</Description>
 
       <AddButton size="sm" variant="plain" onClick={onCreate}>
         <PlusIcon className="h-4 w-4 mr-2" />
