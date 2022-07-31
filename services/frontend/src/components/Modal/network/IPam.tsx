@@ -72,6 +72,7 @@ const IPam = () => {
             // TODO: Remove placeholder from the main object.
             placeholder: "",
             options: {
+              defaultOpen: true,
               name: `configurations[${index}].auxAddresses`,
               modal: "configuration",
               title: "Aux addresses",
