@@ -1,11 +1,5 @@
 import { styled } from "@mui/joy";
-import {
-  Fragment,
-  FunctionComponent,
-  ReactElement,
-  useCallback,
-  useState
-} from "react";
+import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -19,6 +13,7 @@ import { useAccordionState } from "../hooks";
 import { useParams } from "react-router-dom";
 
 export interface IRecordsProps {
+  collapsible?: boolean;
   defaultOpen?: boolean;
   title: string;
   name: string;
@@ -96,6 +91,7 @@ const Records: FunctionComponent<IRecordsProps> = (
   props: IRecordsProps
 ): ReactElement => {
   const {
+    collapsible = true,
     defaultOpen = false,
     title,
     name,
@@ -138,13 +134,15 @@ const Records: FunctionComponent<IRecordsProps> = (
   return (
     <Group empty={empty}>
       <Top onClick={toggle}>
-        <GroupTitle>{title}</GroupTitle>
-        <ExpandButton size="sm" variant="plain">
-          {open && <ChevronUpIcon className="h-5 w-5" />}
-          {!open && <ChevronDownIcon className="h-5 w-5" />}
-        </ExpandButton>
+        {title && <GroupTitle>{title}</GroupTitle>}
+        {collapsible && (
+          <ExpandButton size="sm" variant="plain">
+            {open && <ChevronUpIcon className="h-5 w-5" />}
+            {!open && <ChevronDownIcon className="h-5 w-5" />}
+          </ExpandButton>
+        )}
       </Top>
-      {open && !empty && (
+      {(!collapsible || open) && !empty && (
         <RecordList>
           {items.map((_: unknown, index: number) => (
             <Fragment key={index}>
@@ -162,9 +160,11 @@ const Records: FunctionComponent<IRecordsProps> = (
         </RecordList>
       )}
 
-      {open && empty && <Description>No items available</Description>}
+      {(!collapsible || open) && empty && (
+        <Description>No items available</Description>
+      )}
 
-      {open && (
+      {(!collapsible || open) && (
         <AddButton size="sm" variant="soft" onClick={handleNew}>
           <PlusIcon className="h-4 w-4" />
         </AddButton>
