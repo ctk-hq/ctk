@@ -13,6 +13,7 @@ import {
 import Build from "./Build";
 import { styled } from "@mui/joy";
 import Environment from "./Environment";
+import Deploy from "./Deploy";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -126,6 +127,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                       {openTab === "Environment" && <Environment />}
                       {openTab === "Data" && <Data />}
                       {openTab === "Build" && <Build />}
+                      {openTab === "Deploy" && <Deploy />}
                     </TabBody>
                   </div>
 

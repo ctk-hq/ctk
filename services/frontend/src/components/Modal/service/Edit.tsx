@@ -13,6 +13,7 @@ import {
 } from "./form-utils";
 import Environment from "./Environment";
 import Build from "./Build";
+import Deploy from "./Deploy";
 
 export interface IModalServiceProps {
   node: IServiceNodeItem;
@@ -107,6 +108,7 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
                       {openTab === "Environment" && <Environment />}
                       {openTab === "Data" && <Data />}
                       {openTab === "Build" && <Build />}
+                      {openTab === "Deploy" && <Deploy />}
                     </div>
 
                     <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
