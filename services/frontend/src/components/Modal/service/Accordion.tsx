@@ -1,11 +1,19 @@
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/outline";
 import { styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
-import { useCallback, useState } from "react";
+import { FunctionComponent, ReactElement, ReactNode } from "react";
+import { useAccordionState } from "../../../hooks";
+
+export interface IAccordionProps {
+  id: string;
+  title: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}
 
 const Root = styled("div")`
-  // display: flex;
-  // flex-direction: column;
+  display: flex;
+  flex-direction: column;
 `;
 
 const Top = styled("div")`
@@ -37,17 +45,16 @@ const Bottom = styled("div")`
   padding: ${({ theme }) => theme.spacing(0, 2)};
 `;
 
-const Accordion = (props: any) => {
-  const { children, title } = props;
-  const [open, setOpen] = useState(false);
+const Accordion: FunctionComponent<IAccordionProps> = (
+  props: IAccordionProps
+): ReactElement => {
+  const { id, defaultOpen = false, children, title } = props;
 
-  const handleToggle = useCallback(() => {
-    setOpen((open) => !open);
-  }, []);
+  const { open, toggle } = useAccordionState(id, defaultOpen);
 
   return (
     <Root>
-      <Top onClick={handleToggle}>
+      <Top onClick={toggle}>
         <Title>{title}</Title>
         <ExpandButton size="sm" variant="plain">
           {open && <ChevronUpIcon className="h-5 w-5" />}
