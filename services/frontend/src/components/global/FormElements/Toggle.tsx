@@ -5,7 +5,7 @@ import { Button, styled } from "@mui/joy";
 
 export interface IToggleProps {
   name: string;
-  label: string;
+  label?: string;
   help?: string;
   options: {
     text: string;
@@ -65,7 +65,7 @@ const Toggle: FunctionComponent<IToggleProps> = (
 
   return (
     <Root>
-      <Label>{label}</Label>
+      {label && <Label>{label}</Label>}
       <Buttons>
         {options.map((option, index) => (
           <Fragment key={option.value}>
