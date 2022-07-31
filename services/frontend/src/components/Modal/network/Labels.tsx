@@ -14,6 +14,7 @@ const Labels: FunctionComponent = (): ReactElement => {
       <Records
         name="labels"
         title=""
+        collapsible={false}
         fields={(index: number) => [
           {
             name: `labels[${index}].key`,
