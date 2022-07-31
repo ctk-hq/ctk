@@ -434,17 +434,14 @@ export const getFinalValues = (
         ssh: packArrayAsStrings(build.sshAuthentications, "id", "path", "="),
         cache_from: pruneArray(build.cacheFrom),
         cache_to: pruneArray(build.cacheTo),
-        extra_hosts: pruneArray(
-          build.extraHosts.map((extraHost) =>
-            [extraHost.hostName, extraHost.ipAddress].join(":")
-          )
+        extra_hosts: packArrayAsStrings(
+          build.extraHosts,
+          "hostName",
+          "ipAddress",
+          ":"
         ),
         isolation: pruneString(build.isolation),
-        labels: pruneObject(
-          Object.fromEntries(
-            build.labels.map((label) => [label.key, label.value])
-          )
-        ),
+        labels: packArrayAsObject(build.labels, "key", "value"),
         // NOTE: This could be a potential bug for "0".
         shm_size: pruneString(build.sharedMemorySize),
         target: pruneString(build.target)
@@ -492,14 +489,7 @@ export const getFinalValues = (
         values.imageTag ? `:${values.imageTag}` : ""
       }`,
       container_name: values.containerName,
-      environment: pruneObject(
-        Object.fromEntries(
-          environmentVariables.map((environmentVariable) => [
-            environmentVariable.key,
-            environmentVariable.value
-          ])
-        )
-      ),
+      environment: packArrayAsObject(environmentVariables, "key", "value"),
       volumes: pruneArray(
         volumes.map(
           (volume) =>
@@ -517,9 +507,7 @@ export const getFinalValues = (
         )
       ),
       profiles: pruneArray(profiles),
-      labels: pruneObject(
-        Object.fromEntries(labels.map((label) => [label.key, label.value]))
-      )
+      labels: packArrayAsObject(labels, "key", "value")
     }
   };
 };
