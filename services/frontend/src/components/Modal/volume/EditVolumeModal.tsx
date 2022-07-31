@@ -9,16 +9,13 @@ import {
   tabs,
   validationSchema
 } from "./form-utils";
+import { classNames } from "../../../utils/styles";
 
 interface IEditVolumeModal {
   node: IVolumeNodeItem;
   onHide: CallbackFunction;
   onUpdateEndpoint: CallbackFunction;
 }
-
-const classNames = (...classes: string[]) => {
-  return classes.filter(Boolean).join(" ");
-};
 
 const EditVolumeModal = (props: IEditVolumeModal) => {
   const { node, onHide, onUpdateEndpoint } = props;

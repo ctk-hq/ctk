@@ -3,6 +3,7 @@ import { BookOpenIcon } from "@heroicons/react/outline";
 import { Link } from "react-router-dom";
 import UserMenu from "./UserMenu";
 import Logo from "./logo";
+import { classNames } from "../../utils/styles";
 
 interface ISideBarProps {
   state: any;
@@ -21,9 +22,7 @@ export default function SideBar(props: ISideBarProps) {
       current: pathname.match(projRegex) ? true : false
     }
   ];
-  const classNames = (...classes: any[]) => {
-    return classes.filter(Boolean).join(" ");
-  };
+
   const userName = state.user ? state.user.username : "";
 
   return (

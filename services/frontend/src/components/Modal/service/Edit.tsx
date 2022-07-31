@@ -14,6 +14,7 @@ import {
 import Environment from "./Environment";
 import Build from "./Build";
 import Deploy from "./Deploy";
+import { classNames } from "../../../utils/styles";
 
 export interface IModalServiceProps {
   node: IServiceNodeItem;
@@ -34,10 +35,6 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
     () => getInitialValues(selectedNode),
     [selectedNode]
   );
-
-  const classNames = (...classes: string[]) => {
-    return classes.filter(Boolean).join(" ");
-  };
 
   useEffect(() => {
     if (node) {

@@ -10,13 +10,12 @@ import {
 } from "./form-utils";
 import General from "./General";
 import { CallbackFunction } from "../../../types";
+import { classNames } from "../../../utils/styles";
 
 interface ICreateVolumeModalProps {
   onHide: CallbackFunction;
   onAddEndpoint: CallbackFunction;
 }
-
-const classNames = (...classes: string[]) => classes.filter(Boolean).join(" ");
 
 const CreateVolumeModal = (props: ICreateVolumeModalProps) => {
   const { onHide, onAddEndpoint } = props;

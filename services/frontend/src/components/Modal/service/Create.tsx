@@ -14,6 +14,7 @@ import Build from "./Build";
 import { styled } from "@mui/joy";
 import Environment from "./Environment";
 import Deploy from "./Deploy";
+import { classNames } from "../../../utils/styles";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -59,10 +60,6 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
   };
 
   const initialValues = useMemo(() => getInitialValues(), []);
-
-  const classNames = (...classes: string[]) => {
-    return classes.filter(Boolean).join(" ");
-  };
 
   return (
     <div className="fixed z-50 inset-0 overflow-y-auto">
