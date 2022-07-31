@@ -153,48 +153,48 @@ export interface IService {
           condition: string;
         };
       };
-  deploy: {
-    endpoint_mode: string;
-    labels: string[] | { [key: string]: string };
-    mode: string;
-    placement: {
-      constraints: KeyValPair[] | KeyValPair;
-      preferences: KeyValPair[] | KeyValPair;
+  deploy?: {
+    endpoint_mode?: "vip" | "dnsrr";
+    labels?: string[] | Record<string, string>;
+    mode?: "replicated" | "global";
+    placement?: {
+      constraints?: KeyValPair[] | KeyValPair;
+      preferences?: KeyValPair[] | KeyValPair;
     };
-    replicas: number;
-    resources: {
-      limits: {
-        cpus: string;
-        memory: string;
-        pids: number;
+    replicas?: number;
+    resources?: {
+      limits?: {
+        cpus?: string;
+        memory?: string;
+        pids?: number;
       };
-      reservations: {
-        cpus: string;
-        memory: string;
-        devices: { [key: string]: string | number | string[] }[];
+      reservations?: {
+        cpus?: string;
+        memory?: string;
+        devices?: { [key: string]: string | number | string[] }[];
       };
     };
-    restart_policy: {
-      condition: string;
-      delay: string;
-      max_attempts: number;
-      window: string;
+    restart_policy?: {
+      condition?: "none" | "on-failure" | "any";
+      delay?: string;
+      max_attempts?: number;
+      window?: string;
     };
-    rollback_config: {
-      parallelism: number;
-      delay: string;
-      failure_action: string;
-      monitor: string;
-      max_failure_ratio: string;
-      order: string;
+    rollback_config?: {
+      parallelism?: number;
+      delay?: string;
+      failure_action?: string;
+      monitor?: string;
+      max_failure_ratio?: string;
+      order?: string;
     };
-    update_config: {
-      parallelism: number;
-      delay: string;
-      failure_action: string;
-      monitor: string;
-      max_failure_ratio: string;
-      order: string;
+    update_config?: {
+      parallelism?: number;
+      delay?: string;
+      failure_action?: string;
+      monitor?: string;
+      max_failure_ratio?: string;
+      order?: string;
     };
   };
   device_cgroup_rules: string[];
@@ -384,6 +384,55 @@ export interface IEditServiceForm {
     }[];
     sharedMemorySize: string;
     target: string;
+  };
+  deploy: {
+    /**
+     * The default value for `mode` is `replicated`. However, we allow
+     * it to be empty. Thus, `mode` attribute can be pruned away
+     * if the user never assigned `mode` explicitly.
+     */
+    mode: "" | "global" | "replicated";
+    /**
+     * The default value for `endpointMode` is platform dependent.
+     */
+    endpointMode: "" | "vip" | "dnsrr";
+    replicas: string;
+    placement: {
+      constraints: {
+        key: string;
+        value: string;
+      }[];
+      preferences: {
+        key: string;
+        value: string;
+      }[];
+    };
+    resources: {
+      limits: {
+        cpus: string;
+        memory: string;
+        pids: string;
+      };
+      reservations: {
+        cpus: string;
+        memory: string;
+      };
+    };
+    restartPolicy: {
+      /**
+       * The default value for `condition` is `any`. However, we allow
+       * it to be empty. Thus, `deploy` attribute can be pruned away
+       * if the user never assigned `condition` explicitly.
+       */
+      condition: "" | "none" | "on-failure" | "any";
+      delay: string;
+      maxAttempts: string;
+      window: string;
+    };
+    labels: {
+      key: string;
+      value: string;
+    }[];
   };
   serviceName: string;
   imageName: string;
