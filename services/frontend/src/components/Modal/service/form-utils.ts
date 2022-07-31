@@ -428,7 +428,11 @@ export const getFinalValues = (
       build: pruneObject({
         context: pruneString(build.context),
         dockerfile: pruneString(build.dockerfile),
-        args: pruneObject(build.arguments),
+        args: pruneObject(
+          Object.fromEntries(
+            build.arguments.map((argument) => [argument.key, argument.value])
+          )
+        ),
         ssh: pruneArray(
           build.sshAuthentications.map((authentication) =>
             [authentication.id, authentication.path].join("=")
@@ -442,7 +446,11 @@ export const getFinalValues = (
           )
         ),
         isolation: pruneString(build.isolation),
-        labels: pruneObject(build.labels),
+        labels: pruneObject(
+          Object.fromEntries(
+            build.labels.map((label) => [label.key, label.value])
+          )
+        ),
         // NOTE: This could be a potential bug for "0".
         shm_size: pruneString(build.sharedMemorySize),
         target: pruneString(build.target)
