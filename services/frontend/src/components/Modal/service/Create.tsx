@@ -19,8 +19,6 @@ interface IModalServiceProps {
 }
 
 const FormContainer = styled("div")`
-  width: 640px;
-  height: 800px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -28,7 +26,6 @@ const FormContainer = styled("div")`
 
 const TabBody = styled("div")`
   overflow: auto;
-  height: 700px;
 
   ::-webkit-scrollbar {
     width: 4px;
