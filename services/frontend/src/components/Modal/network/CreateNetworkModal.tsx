@@ -1,7 +1,7 @@
 import { FunctionComponent, ReactElement, useMemo, useState } from "react";
 import { Formik } from "formik";
 import General from "./General";
-import IPam from "./IPam";
+import IPAM from "./IPAM";
 import { CallbackFunction } from "../../../types";
 import { getInitialValues, tabs, validationSchema } from "./form-utils";
 import { classNames } from "../../../utils/styles";
@@ -65,7 +65,7 @@ const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
 
           <div className="relative px-4 py-3 flex-auto">
             {openTab === "General" && <General />}
-            {openTab === "IPAM" && <IPam />}
+            {openTab === "IPAM" && <IPAM />}
           </div>
 
           <Actions>

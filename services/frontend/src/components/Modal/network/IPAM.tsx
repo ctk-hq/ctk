@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { FunctionComponent, ReactElement } from "react";
 import { styled } from "@mui/joy";
 
 import TextField from "../../global/FormElements/TextField";
@@ -42,7 +42,7 @@ const ConfigurationBorder = styled("div")`
   margin: 8px 0px 0px 0px;
 `;
 
-const IPam = () => {
+const IPAM: FunctionComponent = (): ReactElement => {
   return (
     <Fields>
       <TextField label="Driver" name="driver" />
@@ -154,4 +154,4 @@ const IPam = () => {
   );
 };
 
-export default IPam;
+export default IPAM;
