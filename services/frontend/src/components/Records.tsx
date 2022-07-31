@@ -129,6 +129,10 @@ const Records: FunctionComponent<IRecordsProps> = (
     throw new Error(`"${name}" is falsy.`);
   }
 
+  if (!Array.isArray(items)) {
+    throw new Error(`Expected "${name}" to be an array.`);
+  }
+
   const empty = items && items.length === 0;
 
   return (
