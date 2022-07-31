@@ -119,3 +119,79 @@ export const extractArray = (
     };
   });
 };
+
+/**
+ * Converts an array of the form `[{ [K]: string, [V]: string}]` to `{K: V}`.
+ * For example,
+ * ```
+ * [
+ *     {
+ *         key: "NODE_ENV",
+ *         value: "production"
+ *     }
+ * ]
+ *
+ * becomes
+ *
+ * {
+ *     NODE_ENV: "production"
+ * }
+ * ```
+ */
+export const packArrayAsObject = (
+  array: any[],
+  keyName: string,
+  valueName: string
+) => {
+  return pruneObject(
+    Object.fromEntries(array.map((item) => [item[keyName], item[valueName]]))
+  );
+};
+
+/**
+ * Converts an array objects of the form
+ * ```
+ * [
+ *      {
+ *          [K]: string,
+ *          [V]: string
+ *      }
+ *      ...
+ *  ]`
+ *
+ * to
+ *
+ * [
+ *     `${item[i][K]]}${seperator}${item[i][V]}`,
+ *      ...
+ * ]
+ * ```
+ *
+ * For example,
+ * ```
+ * [
+ *     {
+ *         key: "NODE_ENV",
+ *         value: "production"
+ *     }
+ * ]
+ *
+ * becomes
+ *
+ * {
+ *     "NODE_ENV=production"
+ * }
+ * ```
+ */
+export const packArrayAsStrings = (
+  objects: any[],
+  keyName: string,
+  valueName: string,
+  seperator: string
+) => {
+  return pruneArray(
+    objects.map((object) =>
+      [object[keyName], object[valueName]].join(seperator)
+    )
+  );
+};
