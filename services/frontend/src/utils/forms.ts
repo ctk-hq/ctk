@@ -69,25 +69,40 @@ export type TTransformFunction = (
   index: number
 ) => Record<string, any>;
 
-export const loadObjectOrArrayAsObject = (
-  transform: TTransformFunction,
-  object?: any
+export const extractObjectOrArray = (
+  seperator: string,
+  keyName: string,
+  valueName: string,
+  object: any
 ): any => {
   if (!object) {
     return undefined;
   }
 
   if (Array.isArray(object)) {
-    return object.map(transform);
+    return object.map((item: string) => {
+      const [key, value] = splitKVPairs(item, seperator);
+      return {
+        [keyName]: key,
+        [valueName]: value
+      };
+    });
   }
 
-  return object;
+  return Object.entries(object).map(([key, value]) => {
+    return {
+      [keyName]: key,
+      [valueName]: value
+    };
+  });
 };
 
-export const loadArrayAsObject = (
-  transform: TTransformFunction,
-  array?: string[]
-) => {
+export const extractArray = (
+  seperator: string,
+  keyName: string,
+  valueName: string,
+  array: any
+): any => {
   if (!array) {
     return undefined;
   }
@@ -96,33 +111,11 @@ export const loadArrayAsObject = (
     throw new Error("Malformed document. Expected an array at this point.");
   }
 
-  return array.map(transform);
+  return array.map((item: string) => {
+    const [key, value] = splitKVPairs(item, seperator);
+    return {
+      [keyName]: key,
+      [valueName]: value
+    };
+  });
 };
-
-export const extractObjectOrArray = (
-  seperator: string,
-  keyName: string,
-  valueName: string,
-  object: any
-): any =>
-  loadObjectOrArrayAsObject((item: string) => {
-    const [key, value] = splitKVPairs(item, seperator);
-    return {
-      [keyName]: key,
-      [valueName]: value
-    };
-  }, object);
-
-export const extractArray = (
-  seperator: string,
-  keyName: string,
-  valueName: string,
-  object: any
-): any =>
-  loadArrayAsObject((item: string) => {
-    const [key, value] = splitKVPairs(item, seperator);
-    return {
-      [keyName]: key,
-      [valueName]: value
-    };
-  }, object);
