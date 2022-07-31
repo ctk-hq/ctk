@@ -15,8 +15,11 @@ import Record, { IFieldType } from "./Record";
 import { useFormikContext } from "formik";
 import lodash from "lodash";
 import IconButton from "@mui/joy/IconButton";
+import { useAccordionState } from "../hooks";
+import { useParams } from "react-router-dom";
 
 export interface IRecordsProps {
+  defaultOpen?: boolean;
   title: string;
   name: string;
   fields: (index: number) => IFieldType[];
@@ -93,6 +96,7 @@ const Records: FunctionComponent<IRecordsProps> = (
   props: IRecordsProps
 ): ReactElement => {
   const {
+    defaultOpen = false,
     title,
     name,
     fields,
@@ -103,14 +107,13 @@ const Records: FunctionComponent<IRecordsProps> = (
     renderBorder
   } = props;
 
-  const [open, setOpen] = useState(false);
-
   const formik = useFormikContext();
   const items = lodash.get(formik.values, name);
 
-  const handleToggle = useCallback(() => {
-    setOpen((open) => !open);
-  }, []);
+  const { uuid } = useParams<{ uuid: string }>();
+
+  const id = `${uuid}.${name}`;
+  const { open, toggle } = useAccordionState(id, defaultOpen);
 
   const handleNew = useCallback(() => {
     formik.setFieldValue(`${name}[${items.length}]`, newValue);
@@ -134,7 +137,7 @@ const Records: FunctionComponent<IRecordsProps> = (
 
   return (
     <Group empty={empty}>
-      <Top onClick={handleToggle}>
+      <Top onClick={toggle}>
         <GroupTitle>{title}</GroupTitle>
         <ExpandButton size="sm" variant="plain">
           {open && <ChevronUpIcon className="h-5 w-5" />}
