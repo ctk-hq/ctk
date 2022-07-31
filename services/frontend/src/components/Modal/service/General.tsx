@@ -8,7 +8,7 @@ const Root = styled("div")`
   row-gap: ${({ theme }) => theme.spacing(1)};
 `;
 
-const ImageNameGroup = styled("div")`
+const Group = styled("div")`
   display: flex;
   flex-direction: row;
   @media (max-width: 640px) {
@@ -22,31 +22,13 @@ const General = () => {
   return (
     <Root>
       <TextField label="Service name" name="serviceName" required={true} />
-      <ImageNameGroup>
+
+      <Group>
         <TextField label="Image name" name="imageName" required={true} />
         <TextField label="Image tag" name="imageTag" />
-      </ImageNameGroup>
-      <TextField label="Container name" name="containerName" required={true} />
+      </Group>
 
-      <Records
-        name="labels"
-        title="Labels"
-        fields={(index: number) => [
-          {
-            name: `labels[${index}].key`,
-            placeholder: "Key",
-            required: true,
-            type: "text"
-          },
-          {
-            name: `labels[${index}].value`,
-            placeholder: "Value",
-            required: true,
-            type: "text"
-          }
-        ]}
-        newValue={{ key: "", value: "" }}
-      />
+      <TextField label="Container name" name="containerName" required={true} />
 
       <Records
         name="ports"
@@ -84,6 +66,26 @@ const General = () => {
           containerPort: "",
           protocol: ""
         }}
+      />
+
+      <Records
+        name="labels"
+        title="Labels"
+        fields={(index: number) => [
+          {
+            name: `labels[${index}].key`,
+            placeholder: "Key",
+            required: true,
+            type: "text"
+          },
+          {
+            name: `labels[${index}].value`,
+            placeholder: "Value",
+            required: true,
+            type: "text"
+          }
+        ]}
+        newValue={{ key: "", value: "" }}
       />
 
       <Records
