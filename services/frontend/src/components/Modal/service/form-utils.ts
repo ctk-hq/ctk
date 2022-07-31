@@ -396,13 +396,9 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
 
       return { hostPort, containerPort, protocol } as any;
     }),
-    profiles: profiles ?? [],
-    labels: labels
-      ? Object.entries(labels as any).map(([key, value]: any) => ({
-          key,
-          value
-        }))
-      : []
+    profiles: profiles ?? initialValues.profiles,
+    labels:
+      extractObjectOrArray("=", "key", "value", labels) ?? initialValues.labels
   };
 };
 
