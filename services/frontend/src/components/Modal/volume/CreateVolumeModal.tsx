@@ -9,8 +9,10 @@ import {
   validationSchema
 } from "./form-utils";
 import General from "./General";
-import { CallbackFunction } from "../../../types";
+import { CallbackFunction, IEditVolumeForm } from "../../../types";
 import { classNames } from "../../../utils/styles";
+import { toaster } from "../../../utils";
+import { reportErrorsAndSubmit } from "../../../utils/forms";
 
 interface ICreateVolumeModalProps {
   onHide: CallbackFunction;
@@ -21,10 +23,12 @@ const CreateVolumeModal = (props: ICreateVolumeModalProps) => {
   const { onHide, onAddEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
 
-  const handleCreate = useCallback((values: any, formik: any) => {
+  const handleCreate = useCallback((values: IEditVolumeForm, formik: any) => {
     onAddEndpoint(getFinalValues(values));
     formik.resetForm();
     onHide();
+
+    toaster(`Created "${values.entryName}" volume successfully`, "success");
   }, []);
 
   const initialValues = useMemo(() => getInitialValues(), []);
@@ -94,7 +98,7 @@ const CreateVolumeModal = (props: ICreateVolumeModalProps) => {
                     <button
                       className="btn-util"
                       type="button"
-                      onClick={formik.submitForm}
+                      onClick={reportErrorsAndSubmit(formik)}
                     >
                       Add
                     </button>

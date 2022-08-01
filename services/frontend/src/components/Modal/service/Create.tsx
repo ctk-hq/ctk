@@ -15,6 +15,8 @@ import { styled } from "@mui/joy";
 import Environment from "./Environment";
 import Deploy from "./Deploy";
 import { classNames } from "../../../utils/styles";
+import { toaster } from "../../../utils";
+import { reportErrorsAndSubmit } from "../../../utils/forms";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -60,6 +62,10 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
       onAddEndpoint(result);
       formik.resetForm();
       onHide();
+      toaster(
+        `Created "${values.serviceName}" service successfully`,
+        "success"
+      );
     },
     [onAddEndpoint, onHide]
   );
@@ -137,7 +143,7 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                     <button
                       className="btn-util"
                       type="button"
-                      onClick={formik.submitForm}
+                      onClick={reportErrorsAndSubmit(formik)}
                     >
                       Add
                     </button>

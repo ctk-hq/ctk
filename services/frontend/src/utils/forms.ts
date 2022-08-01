@@ -1,5 +1,5 @@
 import lodash from "lodash";
-import { number } from "yup";
+import { toaster } from ".";
 
 export const checkArray = <T>(array: any, name: string): T => {
   if (!Array.isArray(array)) {
@@ -194,4 +194,23 @@ export const packArrayAsStrings = (
       [object[keyName], object[valueName]].join(seperator)
     )
   );
+};
+
+/**
+ * Formik is configured to validate fields automatically using Yup.
+ * The problem is Formik does not call `onSubmit` function when errors
+ * are present. Therefore, a work around was to call `formik.submitForm`
+ * after showing errors to the user. The `reportErrorsAndSubmit` utility
+ * function basically implements this.
+ */
+export const reportErrorsAndSubmit = (formik: any) => () => {
+  const errors = Object.entries(formik.errors);
+  if (errors.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [_field, message] of errors) {
+      toaster(message as string, "error");
+    }
+  } else {
+    formik.submitForm();
+  }
 };

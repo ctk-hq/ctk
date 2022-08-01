@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Formik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
-import type { CallbackFunction, IVolumeNodeItem } from "../../../types";
+import type {
+  CallbackFunction,
+  IEditVolumeForm,
+  IVolumeNodeItem
+} from "../../../types";
 import {
   getFinalValues,
   getInitialValues,
@@ -10,6 +14,8 @@ import {
   validationSchema
 } from "./form-utils";
 import { classNames } from "../../../utils/styles";
+import { toaster } from "../../../utils";
+import { reportErrorsAndSubmit } from "../../../utils/forms";
 
 interface IEditVolumeModal {
   node: IVolumeNodeItem;
@@ -28,8 +34,10 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
     }
   }, [node]);
 
-  const handleUpdate = (values: any) => {
+  const handleUpdate = (values: IEditVolumeForm) => {
     onUpdateEndpoint(getFinalValues(values, selectedNode));
+
+    toaster(`Updated "${values.entryName}" volume successfully`, "success");
   };
 
   const initialValues = useMemo(
@@ -103,7 +111,7 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
                       <button
                         className="btn-util"
                         type="button"
-                        onClick={formik.submitForm}
+                        onClick={reportErrorsAndSubmit(formik)}
                       >
                         Save
                       </button>

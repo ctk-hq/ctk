@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
 import { XIcon } from "@heroicons/react/outline";
 import CreateNetworkModal from "./CreateNetworkModal";
-import { CallbackFunction } from "../../../types";
+import { CallbackFunction, IEditNetworkForm } from "../../../types";
 import EditNetworkModal from "./EditNetworkModal";
-import { attachUUID } from "../../../utils";
+import { attachUUID, toaster } from "../../../utils";
 import { getFinalValues } from "./form-utils";
 import EmptyNetworks from "./EmptyNetworks";
 import NetworkList from "./NetworkList";
@@ -37,7 +37,8 @@ const ModalNetwork = (props: IModalNetworkProps) => {
   } = props;
   const [selectedNetwork, setSelectedNetwork] = useState<any | null>();
   const [showCreate, setShowCreate] = useState(false);
-  const handleCreate = (values: any) => {
+
+  const handleCreate = (values: IEditNetworkForm) => {
     const finalValues = getFinalValues(values);
     const uniqueKey = attachUUID(finalValues.key);
     const network = {
@@ -46,12 +47,16 @@ const ModalNetwork = (props: IModalNetworkProps) => {
     };
     onCreateNetwork(network);
     setSelectedNetwork(network);
+
+    toaster(`Created "${values.entryName}" network successfully`, "success");
   };
 
-  const handleUpdate = (values: any) => {
+  const handleUpdate = (values: IEditNetworkForm) => {
     const finalValues = getFinalValues(values, selectedNetwork);
     onUpdateNetwork(finalValues);
     setSelectedNetwork(finalValues);
+
+    toaster(`Updated "${values.entryName}" network successfully`, "success");
   };
 
   const handleRemove = useCallback(

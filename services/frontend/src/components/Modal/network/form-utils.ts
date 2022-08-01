@@ -44,7 +44,7 @@ export const validationSchema = yup.object({
   labels: yup.array(
     yup.object({
       key: yup.string().required("Key is required"),
-      value: yup.string().required("Value is required")
+      value: yup.string()
     })
   )
 });
