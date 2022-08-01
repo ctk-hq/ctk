@@ -11,8 +11,8 @@ const Root = styled("div")`
 const General = () => {
   return (
     <Root>
-      <TextField label="Entry name" name="entryName" />
-      <TextField label="Network name" name="networkName" />
+      <TextField label="Entry name" name="entryName" required={true} />
+      <TextField label="Network name" name="networkName" required={true} />
       <Records
         name="labels"
         title="Labels"
