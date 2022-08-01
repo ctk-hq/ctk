@@ -29,9 +29,8 @@ const Environment = () => {
           }
         ]}
         newValue={{
-          hostPort: "",
-          containerPort: "",
-          protocol: ""
+          key: "",
+          value: ""
         }}
       />
     </Root>
