@@ -7,6 +7,7 @@ import { getInitialValues, tabs, validationSchema } from "./form-utils";
 import { classNames } from "../../../utils/styles";
 import { Button, styled } from "@mui/joy";
 import { reportErrorsAndSubmit } from "../../../utils/forms";
+import { ScrollView } from "../../ScrollView";
 
 interface ICreateNetworkModalProps {
   onCreateNetwork: CallbackFunction;
@@ -64,10 +65,10 @@ const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
             </nav>
           </div>
 
-          <div className="relative px-4 py-3 flex-auto">
+          <ScrollView height="500px" className="relative px-4 py-3 flex-auto">
             {openTab === "General" && <General />}
             {openTab === "IPAM" && <IPAM />}
-          </div>
+          </ScrollView>
 
           <Actions>
             <Button
