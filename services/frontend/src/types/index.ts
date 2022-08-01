@@ -108,18 +108,18 @@ export interface INetworkTopLevel {
 }
 
 export interface IService {
-  build: {
+  build?: {
     context: string;
-    dockerfile: string;
-    args: KeyValPair[];
-    ssh: string[];
-    cache_from: string[];
-    cache_to: string[];
-    extra_hosts: string[];
-    isolation: string;
-    labels: KeyValPair[];
-    shm_size: string | number;
-    target: string;
+    dockerfile?: string;
+    args?: Record<string, string> | string[];
+    ssh?: string[];
+    cache_from?: string[];
+    cache_to?: string[];
+    extra_hosts?: string[];
+    isolation?: string;
+    labels?: Record<string, string> | string[];
+    shm_size?: string | number;
+    target?: string;
   };
   cpu_count: string | number;
   cpu_percent: string | number;
@@ -153,48 +153,48 @@ export interface IService {
           condition: string;
         };
       };
-  deploy: {
-    endpoint_mode: string;
-    labels: string[] | { [key: string]: string };
-    mode: string;
-    placement: {
-      constraints: KeyValPair[] | KeyValPair;
-      preferences: KeyValPair[] | KeyValPair;
+  deploy?: {
+    endpoint_mode?: "vip" | "dnsrr";
+    labels?: string[] | Record<string, string>;
+    mode?: "replicated" | "global";
+    placement?: {
+      constraints?: KeyValPair[] | KeyValPair;
+      preferences?: KeyValPair[] | KeyValPair;
     };
-    replicas: number;
-    resources: {
-      limits: {
-        cpus: string;
-        memory: string;
-        pids: number;
+    replicas?: number;
+    resources?: {
+      limits?: {
+        cpus?: string;
+        memory?: string;
+        pids?: number;
       };
-      reservations: {
-        cpus: string;
-        memory: string;
-        devices: { [key: string]: string | number | string[] }[];
+      reservations?: {
+        cpus?: string;
+        memory?: string;
+        devices?: { [key: string]: string | number | string[] }[];
       };
     };
-    restart_policy: {
-      condition: string;
-      delay: string;
-      max_attempts: number;
-      window: string;
+    restart_policy?: {
+      condition?: "none" | "on-failure" | "any";
+      delay?: string;
+      max_attempts?: number;
+      window?: string;
     };
-    rollback_config: {
-      parallelism: number;
-      delay: string;
-      failure_action: string;
-      monitor: string;
-      max_failure_ratio: string;
-      order: string;
+    rollback_config?: {
+      parallelism?: number;
+      delay?: string;
+      failure_action?: string;
+      monitor?: string;
+      max_failure_ratio?: string;
+      order?: string;
     };
-    update_config: {
-      parallelism: number;
-      delay: string;
-      failure_action: string;
-      monitor: string;
-      max_failure_ratio: string;
-      order: string;
+    update_config?: {
+      parallelism?: number;
+      delay?: string;
+      failure_action?: string;
+      monitor?: string;
+      max_failure_ratio?: string;
+      order?: string;
     };
   };
   device_cgroup_rules: string[];
@@ -258,7 +258,7 @@ export interface IService {
         mode: string;
       };
   privileged: boolean;
-  profiles: string;
+  profiles?: string[];
   pull_policy: string;
   read_only: boolean;
   restart: string;
@@ -360,10 +360,85 @@ export interface IGeneratePayload {
 }
 
 export interface IEditServiceForm {
+  build: {
+    context: string;
+    dockerfile: string;
+    arguments: {
+      key: string[];
+      value: string[];
+    }[];
+    sshAuthentications: {
+      id: string;
+      path: string;
+    }[];
+    cacheFrom: string[];
+    cacheTo: string[];
+    extraHosts: {
+      hostName: string;
+      ipAddress: string;
+    }[];
+    isolation: string;
+    labels: {
+      key: string[];
+      value: string[];
+    }[];
+    sharedMemorySize: string;
+    target: string;
+  };
+  deploy: {
+    /**
+     * The default value for `mode` is `replicated`. However, we allow
+     * it to be empty. Thus, `mode` attribute can be pruned away
+     * if the user never assigned `mode` explicitly.
+     */
+    mode: "" | "global" | "replicated";
+    /**
+     * The default value for `endpointMode` is platform dependent.
+     */
+    endpointMode: "" | "vip" | "dnsrr";
+    replicas: string;
+    placement: {
+      constraints: {
+        key: string;
+        value: string;
+      }[];
+      preferences: {
+        key: string;
+        value: string;
+      }[];
+    };
+    resources: {
+      limits: {
+        cpus: string;
+        memory: string;
+        pids: string;
+      };
+      reservations: {
+        cpus: string;
+        memory: string;
+      };
+    };
+    restartPolicy: {
+      /**
+       * The default value for `condition` is `any`. However, we allow
+       * it to be empty. Thus, `deploy` attribute can be pruned away
+       * if the user never assigned `condition` explicitly.
+       */
+      condition: "" | "none" | "on-failure" | "any";
+      delay: string;
+      maxAttempts: string;
+      window: string;
+    };
+    labels: {
+      key: string;
+      value: string;
+    }[];
+  };
   serviceName: string;
   imageName: string;
   imageTag: string;
   containerName: string;
+  profiles: string[];
   ports: {
     hostPort: string;
     containerPort: string;

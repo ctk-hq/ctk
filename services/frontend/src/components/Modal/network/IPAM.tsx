@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { FunctionComponent, ReactElement } from "react";
 import { styled } from "@mui/joy";
 
 import TextField from "../../global/FormElements/TextField";
@@ -42,16 +42,14 @@ const ConfigurationBorder = styled("div")`
   margin: 8px 0px 0px 0px;
 `;
 
-const IPam = () => {
+const IPAM: FunctionComponent = (): ReactElement => {
   return (
     <Fields>
       <TextField label="Driver" name="driver" />
 
       <Records
         name="configurations"
-        modal="network"
         title="Configurations"
-        referred="configuration"
         fields={(index: number) => [
           {
             name: `configurations[${index}].subnet`,
@@ -74,6 +72,7 @@ const IPam = () => {
             // TODO: Remove placeholder from the main object.
             placeholder: "",
             options: {
+              defaultOpen: true,
               name: `configurations[${index}].auxAddresses`,
               modal: "configuration",
               title: "Aux addresses",
@@ -131,9 +130,7 @@ const IPam = () => {
 
       <Records
         name="options"
-        modal="network"
         title="Options"
-        referred="option"
         fields={(index: number) => [
           {
             name: `options[${index}].key`,
@@ -157,4 +154,4 @@ const IPam = () => {
   );
 };
 
-export default IPam;
+export default IPAM;

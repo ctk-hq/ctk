@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Formik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
-import Labels from "./Labels";
 import type { CallbackFunction, IVolumeNodeItem } from "../../../types";
 import {
   getFinalValues,
@@ -10,16 +9,13 @@ import {
   tabs,
   validationSchema
 } from "./form-utils";
+import { classNames } from "../../../utils/styles";
 
 interface IEditVolumeModal {
   node: IVolumeNodeItem;
   onHide: CallbackFunction;
   onUpdateEndpoint: CallbackFunction;
 }
-
-const classNames = (...classes: string[]) => {
-  return classes.filter(Boolean).join(" ");
-};
 
 const EditVolumeModal = (props: IEditVolumeModal) => {
   const { node, onHide, onUpdateEndpoint } = props;
@@ -101,7 +97,6 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
 
                     <div className="relative px-4 py-3 flex-auto">
                       {openTab === "General" && <General />}
-                      {openTab === "Labels" && <Labels />}
                     </div>
 
                     <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">

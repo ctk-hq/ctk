@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import { Formik } from "formik";
 import General from "./General";
-import IPam from "./IPam";
-import Labels from "./Labels";
+import IPAM from "./IPAM";
 import { CallbackFunction } from "../../../types";
 import { getInitialValues, tabs, validationSchema } from "./form-utils";
 import { classNames } from "../../../utils/styles";
@@ -65,8 +64,7 @@ const EditNetworkModal = (props: IEditNetworkModalProps) => {
 
           <div className="relative px-4 py-3 flex-auto max-h-96 overflow-y-auto">
             {openTab === "General" && <General />}
-            {openTab === "IPAM" && <IPam />}
-            {openTab === "Labels" && <Labels />}
+            {openTab === "IPAM" && <IPAM />}
           </div>
 
           <Actions>

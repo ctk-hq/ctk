@@ -1,12 +1,96 @@
 import type { IEditServiceForm, IServiceNodeItem } from "../../../types";
 import * as yup from "yup";
-import { checkArray, pruneArray, pruneObject } from "../../../utils/forms";
+import {
+  checkArray,
+  pruneArray,
+  pruneObject,
+  extractObjectOrArray,
+  extractArray,
+  pruneString,
+  pruneNumber,
+  packArrayAsObject,
+  packArrayAsStrings
+} from "../../../utils/forms";
+
+export const tabs = [
+  {
+    name: "General",
+    href: "#",
+    current: true,
+    hidden: false
+  },
+  {
+    name: "Environment",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
+    name: "Data",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
+    name: "Build",
+    href: "#",
+    current: false,
+    hidden: false
+  },
+  {
+    name: "Deploy",
+    href: "#",
+    current: false,
+    hidden: false
+  }
+];
 
 const initialValues: IEditServiceForm = {
+  build: {
+    context: "",
+    dockerfile: "",
+    arguments: [],
+    sshAuthentications: [],
+    cacheFrom: [],
+    cacheTo: [],
+    extraHosts: [],
+    isolation: "",
+    labels: [],
+    sharedMemorySize: "",
+    target: ""
+  },
+  deploy: {
+    mode: "",
+    replicas: "",
+    endpointMode: "",
+    placement: {
+      constraints: [],
+      preferences: []
+    },
+    resources: {
+      limits: {
+        cpus: "",
+        memory: "",
+        pids: ""
+      },
+      reservations: {
+        cpus: "",
+        memory: ""
+      }
+    },
+    restartPolicy: {
+      condition: "",
+      delay: "",
+      maxAttempts: "",
+      window: ""
+    },
+    labels: []
+  },
   imageName: "",
   imageTag: "",
   serviceName: "",
   containerName: "",
+  profiles: [],
   ports: [],
   environmentVariables: [],
   volumes: [],
@@ -31,6 +115,83 @@ yup.addMethod<yup.StringSchema>(yup.string, "port", function (message) {
 });
 
 export const validationSchema = yup.object({
+  build: yup.object({
+    /* TODO: The `context` attribute is required, only when `build` is defined. */
+    context: yup.string() /* .required("Context is required") */,
+    dockerfile: yup.string(),
+    arguments: yup.array(
+      yup.object({
+        key: yup.string().required("Key is required"),
+        value: yup.string()
+      })
+    ),
+    sshAuthentications: yup.array(
+      yup.object({
+        id: yup.string().required("ID is required"),
+        path: yup.string()
+      })
+    ),
+    cacheFrom: yup.array(yup.string()),
+    cacheTo: yup.array(yup.string()),
+    extraHosts: yup.array(
+      yup.object({
+        hostName: yup.string().required(),
+        ipAddress: yup.string().required()
+      })
+    ),
+    isolation: yup.string(),
+    labels: yup.array(
+      yup.object({
+        key: yup.string().required("Key is required"),
+        value: yup.string()
+      })
+    ),
+    // TODO: <integer><unit>?
+    sharedMemorySize: yup.string(),
+    target: yup.string()
+  }),
+  deploy: yup.object({
+    mode: yup.string().oneOf(["", "global", "replicated"]),
+    endpointMode: yup.string().oneOf(["", "vip", "dnsrr"]),
+    replicas: yup.string(),
+    placement: yup.object({
+      constraints: yup.array(
+        yup.object({
+          key: yup.string().required("Key is required"),
+          value: yup.string().required("Value is required")
+        })
+      ),
+      preferences: yup.array(
+        yup.object({
+          key: yup.string().required("Key is required"),
+          value: yup.string().required("Value is required")
+        })
+      )
+    }),
+    resources: yup.object({
+      limits: yup.object({
+        cpus: yup.string(),
+        memory: yup.string(),
+        pids: yup.string()
+      }),
+      reservations: yup.object({
+        cpus: yup.string(),
+        memory: yup.string()
+      })
+    }),
+    restartPolicy: yup.object({
+      condition: yup.string().oneOf(["", "none", "on-failure", "any"]),
+      delay: yup.string(),
+      maxAttempts: yup.string(),
+      window: yup.string()
+    }),
+    labels: yup.array(
+      yup.object({
+        key: yup.string().required("Key is required"),
+        value: yup.string()
+      })
+    )
+  }),
   serviceName: yup
     .string()
     .max(256, "Service name should be 256 characters or less")
@@ -44,6 +205,12 @@ export const validationSchema = yup.object({
     .string()
     .max(256, "Container name should be 256 characters or less")
     .required("Container name is required"),
+  profiles: yup.array(
+    yup
+      .string()
+      .max(256, "Name should be 256 characters or less")
+      .required("Name is required")
+  ),
   ports: yup.array(
     yup.object({
       hostPort: (yup.string().required("Host port is required") as any).port(
@@ -71,7 +238,8 @@ export const validationSchema = yup.object({
   ),
   labels: yup.array(
     yup.object({
-      key: yup.string().required("Key is required")
+      key: yup.string().required("Key is required"),
+      value: yup.string()
     })
   )
 });
@@ -86,32 +254,126 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const { canvasConfig, serviceConfig } = node;
   const { node_name = "" } = canvasConfig;
   const {
+    build,
+    deploy,
     image,
     container_name = "",
     environment,
     volumes,
     ports,
+    profiles,
     labels
   } = serviceConfig;
 
-  const environment0: string[] = checkArray(environment || [], "environment");
-  const volumes0: string[] = checkArray(volumes, "volumes");
-  const ports0: string[] = checkArray(ports, "ports");
+  const volumes0: string[] = checkArray(volumes ?? [], "volumes");
+  const ports0: string[] = checkArray(ports ?? [], "ports");
   const [imageName, imageTag] = (image ?? ":").split(":");
 
   return {
-    ...initialValues,
+    build: build
+      ? {
+          context: build.context,
+          dockerfile: build.dockerfile ?? initialValues.build.dockerfile,
+          arguments:
+            extractObjectOrArray("=", "key", "value", build.args) ??
+            initialValues.build.arguments,
+          sshAuthentications:
+            extractArray("=", "id", "path", build.ssh) ??
+            initialValues.build.sshAuthentications,
+          cacheFrom: build.cache_from ?? initialValues.build.cacheFrom,
+          cacheTo: build.cache_to ?? initialValues.build.cacheTo,
+          extraHosts:
+            extractArray(":", "hostName", "ipAddress", build.extra_hosts) ??
+            initialValues.build.extraHosts,
+          isolation: build.isolation ?? initialValues.build.isolation,
+          labels:
+            extractObjectOrArray("=", "key", "value", build.labels) ??
+            initialValues.build.labels,
+          sharedMemorySize:
+            build.shm_size?.toString() ?? initialValues.build.sharedMemorySize,
+          target: build.target?.toString() ?? initialValues.build.target
+        }
+      : initialValues.build,
+    deploy: deploy
+      ? {
+          mode: deploy.mode ?? initialValues.deploy.mode,
+          endpointMode:
+            deploy.endpoint_mode ?? initialValues.deploy.endpointMode,
+          replicas:
+            deploy.replicas?.toString() ?? initialValues.deploy.replicas,
+          placement: deploy.placement
+            ? {
+                constraints:
+                  extractObjectOrArray(
+                    "=",
+                    "key",
+                    "value",
+                    deploy.placement.constraints
+                  ) ?? initialValues.deploy.placement.constraints,
+                preferences:
+                  extractObjectOrArray(
+                    "=",
+                    "key",
+                    "value",
+                    deploy.placement.preferences
+                  ) ?? initialValues.deploy.placement.preferences
+              }
+            : initialValues.deploy.placement,
+          resources: deploy.resources
+            ? {
+                limits: deploy.resources.limits
+                  ? {
+                      cpus:
+                        deploy.resources.limits.cpus ??
+                        initialValues.deploy.resources.limits.cpus,
+                      memory:
+                        deploy.resources.limits.memory ??
+                        initialValues.deploy.resources.limits.memory,
+                      pids:
+                        deploy.resources.limits.pids?.toString() ??
+                        initialValues.deploy.resources.limits.pids
+                    }
+                  : initialValues.deploy.resources.limits,
+                reservations: deploy.resources.reservations
+                  ? {
+                      cpus:
+                        deploy.resources.reservations.cpus ??
+                        initialValues.deploy.resources.reservations.cpus,
+                      memory:
+                        deploy.resources.reservations.memory ??
+                        initialValues.deploy.resources.reservations.memory
+                    }
+                  : initialValues.deploy.resources.reservations
+              }
+            : initialValues.deploy.resources,
+          restartPolicy: deploy.restart_policy
+            ? {
+                condition:
+                  deploy.restart_policy.condition ??
+                  initialValues.deploy.restartPolicy.condition,
+                delay:
+                  deploy.restart_policy.delay ??
+                  initialValues.deploy.restartPolicy.delay,
+                maxAttempts:
+                  deploy.restart_policy.max_attempts?.toString() ??
+                  initialValues.deploy.restartPolicy.maxAttempts,
+                window:
+                  deploy.restart_policy.window ??
+                  initialValues.deploy.restartPolicy.window
+              }
+            : initialValues.deploy.restartPolicy,
+          labels:
+            extractObjectOrArray("=", "key", "value", deploy.labels) ??
+            initialValues.deploy.labels
+        }
+      : initialValues.deploy,
     imageName,
     imageTag,
     serviceName: node_name,
     containerName: container_name,
-    environmentVariables: environment0.map((variable) => {
-      const [key, value] = variable.split("=");
-      return {
-        key,
-        value: value ? value : ""
-      };
-    }),
+    environmentVariables:
+      extractObjectOrArray("=", "key", "value", environment) ??
+      initialValues.environmentVariables,
     volumes: volumes0.map((volume) => {
       const [name, containerPath, accessMode] = volume.split(":");
       return {
@@ -135,12 +397,9 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
 
       return { hostPort, containerPort, protocol } as any;
     }),
-    labels: labels
-      ? Object.entries(labels as any).map(([key, value]: any) => ({
-          key,
-          value
-        }))
-      : []
+    profiles: profiles ?? initialValues.profiles,
+    labels:
+      extractObjectOrArray("=", "key", "value", labels) ?? initialValues.labels
   };
 };
 
@@ -148,7 +407,15 @@ export const getFinalValues = (
   values: IEditServiceForm,
   previous?: IServiceNodeItem
 ): IServiceNodeItem => {
-  const { environmentVariables, ports, volumes, labels } = values;
+  const {
+    build,
+    deploy,
+    environmentVariables,
+    ports,
+    profiles,
+    volumes,
+    labels
+  } = values;
 
   return {
     key: previous?.key ?? "service",
@@ -156,38 +423,91 @@ export const getFinalValues = (
     position: previous?.position ?? { left: 0, top: 0 },
     inputs: previous?.inputs ?? ["op_source"],
     outputs: previous?.outputs ?? [],
-    config: (previous as any)?.config ?? {},
     canvasConfig: {
       node_name: values.serviceName
     },
     serviceConfig: {
+      build: pruneObject({
+        context: pruneString(build.context),
+        dockerfile: pruneString(build.dockerfile),
+        args: packArrayAsObject(build.arguments, "key", "value"),
+        ssh: packArrayAsStrings(build.sshAuthentications, "id", "path", "="),
+        cache_from: pruneArray(build.cacheFrom),
+        cache_to: pruneArray(build.cacheTo),
+        extra_hosts: packArrayAsStrings(
+          build.extraHosts,
+          "hostName",
+          "ipAddress",
+          ":"
+        ),
+        isolation: pruneString(build.isolation),
+        labels: packArrayAsObject(build.labels, "key", "value"),
+        // NOTE: This could be a potential bug for "0".
+        shm_size: pruneString(build.sharedMemorySize),
+        target: pruneString(build.target)
+      }),
+      deploy: pruneObject({
+        mode: pruneString(deploy.mode),
+        replicas: pruneString(deploy.replicas),
+        endpoint_mode: pruneString(deploy.endpointMode),
+        placement: pruneObject({
+          constraints: packArrayAsStrings(
+            deploy.placement.constraints,
+            "key",
+            "value",
+            "="
+          ),
+          preferences: packArrayAsStrings(
+            deploy.placement.preferences,
+            "key",
+            "value",
+            "="
+          )
+        }),
+        resources: pruneObject({
+          limits: pruneObject({
+            cpus: pruneString(deploy.resources.limits.cpus),
+            memory: pruneString(deploy.resources.limits.memory),
+            // NOTE: Could be a potential bug.
+            pids: pruneNumber(parseInt(deploy.resources.limits.pids))
+          }),
+          reservations: pruneObject({
+            cpus: pruneString(deploy.resources.reservations.cpus),
+            memory: pruneString(deploy.resources.reservations.memory)
+          })
+        }),
+        restart_policy: pruneObject({
+          condition: pruneString(deploy.restartPolicy.condition),
+          delay: pruneString(deploy.restartPolicy.delay),
+          // NOTE: Could be a potential bug.
+          maxAttempts: pruneNumber(parseInt(deploy.restartPolicy.maxAttempts)),
+          window: pruneString(deploy.restartPolicy.window)
+        }),
+        labels: packArrayAsObject(deploy.labels, "key", "value")
+      }),
       image: `${values.imageName}${
         values.imageTag ? `:${values.imageTag}` : ""
       }`,
       container_name: values.containerName,
-      environment: pruneArray(
-        environmentVariables.map(
-          (variable) =>
-            `${variable.key}${variable.value ? `=${variable.value}` : ""}`
+      environment: packArrayAsObject(environmentVariables, "key", "value"),
+      volumes: pruneArray(
+        volumes.map(
+          (volume) =>
+            volume.name +
+            (volume.containerPath ? `:${volume.containerPath}` : "") +
+            (volume.accessMode ? `:${volume.accessMode}` : "")
         )
       ),
-      volumes: volumes.length
-        ? volumes.map(
-            (volume) =>
-              volume.name +
-              (volume.containerPath ? `:${volume.containerPath}` : "") +
-              (volume.accessMode ? `:${volume.accessMode}` : "")
-          )
-        : [],
-      ports: ports.map(
-        (port) =>
-          port.hostPort +
-          (port.containerPort ? `:${port.containerPort}` : "") +
-          (port.protocol ? `/${port.protocol}` : "")
+      ports: pruneArray(
+        ports.map(
+          (port) =>
+            port.hostPort +
+            (port.containerPort ? `:${port.containerPort}` : "") +
+            (port.protocol ? `/${port.protocol}` : "")
+        )
       ),
-      labels: pruneObject(
-        Object.fromEntries(labels.map((label) => [label.key, label.value]))
-      )
+      profiles: pruneArray(profiles),
+      labels: packArrayAsObject(labels, "key", "value")
     }
-  } as any;
+  };
 };

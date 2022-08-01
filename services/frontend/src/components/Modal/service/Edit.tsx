@@ -3,48 +3,24 @@ import { Formik } from "formik";
 
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
-import Environment from "./Environment";
-import Volumes from "./Volumes";
-import Labels from "./Labels";
+import Data from "./Data";
 import type { CallbackFunction, IServiceNodeItem } from "../../../types";
 import {
   getInitialValues,
   getFinalValues,
-  validationSchema
+  validationSchema,
+  tabs
 } from "./form-utils";
+import Environment from "./Environment";
+import Build from "./Build";
+import Deploy from "./Deploy";
+import { classNames } from "../../../utils/styles";
 
 export interface IModalServiceProps {
   node: IServiceNodeItem;
   onHide: CallbackFunction;
   onUpdateEndpoint: CallbackFunction;
 }
-
-const tabs = [
-  {
-    name: "General",
-    href: "#",
-    current: true,
-    hidden: false
-  },
-  {
-    name: "Environment",
-    href: "#",
-    current: false,
-    hidden: false
-  },
-  {
-    name: "Volumes",
-    href: "#",
-    current: false,
-    hidden: false
-  },
-  {
-    name: "Labels",
-    href: "#",
-    current: false,
-    hidden: false
-  }
-];
 
 const ModalServiceEdit = (props: IModalServiceProps) => {
   const { node, onHide, onUpdateEndpoint } = props;
@@ -59,10 +35,6 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
     () => getInitialValues(selectedNode),
     [selectedNode]
   );
-
-  const classNames = (...classes: string[]) => {
-    return classes.filter(Boolean).join(" ");
-  };
 
   useEffect(() => {
     if (node) {
@@ -131,8 +103,9 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
                     <div className="relative px-4 py-3 flex-auto">
                       {openTab === "General" && <General />}
                       {openTab === "Environment" && <Environment />}
-                      {openTab === "Volumes" && <Volumes />}
-                      {openTab === "Labels" && <Labels />}
+                      {openTab === "Data" && <Data />}
+                      {openTab === "Build" && <Build />}
+                      {openTab === "Deploy" && <Deploy />}
                     </div>
 
                     <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">

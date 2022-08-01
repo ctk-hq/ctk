@@ -1,14 +1,21 @@
-import { Button, styled } from "@mui/joy";
+import { styled } from "@mui/joy";
 import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
-import { PlusIcon } from "@heroicons/react/outline";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  PlusIcon
+} from "@heroicons/react/outline";
 import Record, { IFieldType } from "./Record";
 import { useFormikContext } from "formik";
 import lodash from "lodash";
+import IconButton from "@mui/joy/IconButton";
+import { useAccordionState } from "../hooks";
+import { useParams } from "react-router-dom";
 
 export interface IRecordsProps {
-  modal: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
   title: string;
-  referred: string;
   name: string;
   fields: (index: number) => IFieldType[];
   newValue: any;
@@ -18,10 +25,18 @@ export interface IRecordsProps {
   renderBorder?: () => ReactElement;
 }
 
-const Group = styled("div")`
+interface IGroupProps {
+  empty: boolean;
+}
+
+const Group = styled("div", {
+  shouldForwardProp: (propName) => propName !== "empty"
+})<IGroupProps>`
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: ${({ empty }) => (empty ? "center" : "flex-end")};
+  row-gap: ${({ theme }) => theme.spacing(1)};
+  width: 100%;
 `;
 
 const GroupTitle = styled("h5")`
@@ -42,8 +57,9 @@ const RecordList = styled("div")`
   width: 100%;
 `;
 
-const AddButton = styled(Button)`
+const AddButton = styled(IconButton)`
   margin-top: ${({ theme }) => theme.spacing(1)};
+  border-radius: ${({ theme }) => theme.spacing(2)};
 `;
 
 const Description = styled("p")`
@@ -51,15 +67,33 @@ const Description = styled("p")`
   text-align: center;
   color: #7a7a7a;
   font-size: 14px;
+  width: 100%;
+`;
+
+const Top = styled("div")`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  &:hover {
+    cursor: pointer;
+    user-select: none;
+  }
+`;
+
+const ExpandButton = styled(IconButton)`
+  border-radius: ${({ theme }) => theme.spacing(2)};
 `;
 
 const Records: FunctionComponent<IRecordsProps> = (
   props: IRecordsProps
 ): ReactElement => {
   const {
-    modal,
+    collapsible = true,
+    defaultOpen = false,
     title,
-    referred,
     name,
     fields,
     newValue,
@@ -71,6 +105,11 @@ const Records: FunctionComponent<IRecordsProps> = (
 
   const formik = useFormikContext();
   const items = lodash.get(formik.values, name);
+
+  const { uuid } = useParams<{ uuid: string }>();
+
+  const id = `${uuid}.${name}`;
+  const { open, toggle } = useAccordionState(id, defaultOpen);
 
   const handleNew = useCallback(() => {
     formik.setFieldValue(`${name}[${items.length}]`, newValue);
@@ -86,12 +125,28 @@ const Records: FunctionComponent<IRecordsProps> = (
     [formik]
   );
 
+  if (!items) {
+    throw new Error(`"${name}" is falsy.`);
+  }
+
+  if (!Array.isArray(items)) {
+    throw new Error(`Expected "${name}" to be an array.`);
+  }
+
   const empty = items && items.length === 0;
 
   return (
-    <Group>
-      <GroupTitle>{title}</GroupTitle>
-      {!empty && (
+    <Group empty={empty}>
+      <Top onClick={toggle}>
+        {title && <GroupTitle>{title}</GroupTitle>}
+        {collapsible && (
+          <ExpandButton size="sm" variant="plain">
+            {open && <ChevronUpIcon className="h-5 w-5" />}
+            {!open && <ChevronDownIcon className="h-5 w-5" />}
+          </ExpandButton>
+        )}
+      </Top>
+      {(!collapsible || open) && !empty && (
         <RecordList>
           {items.map((_: unknown, index: number) => (
             <Fragment key={index}>
@@ -108,12 +163,16 @@ const Records: FunctionComponent<IRecordsProps> = (
           ))}
         </RecordList>
       )}
-      {empty && <Description>No {referred}s.</Description>}
 
-      <AddButton size="sm" variant="plain" onClick={handleNew}>
-        <PlusIcon className="h-4 w-4 mr-2" />
-        New {referred}
-      </AddButton>
+      {(!collapsible || open) && empty && (
+        <Description>No items available</Description>
+      )}
+
+      {(!collapsible || open) && (
+        <AddButton size="sm" variant="soft" onClick={handleNew}>
+          <PlusIcon className="h-4 w-4" />
+        </AddButton>
+      )}
     </Group>
   );
 };

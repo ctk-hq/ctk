@@ -61,12 +61,6 @@ export const tabs = [
     href: "#",
     current: false,
     hidden: false
-  },
-  {
-    name: "Labels",
-    href: "#",
-    current: false,
-    hidden: false
   }
 ];
 
