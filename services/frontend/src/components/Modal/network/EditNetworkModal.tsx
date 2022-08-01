@@ -7,6 +7,7 @@ import { getInitialValues, tabs, validationSchema } from "./form-utils";
 import { classNames } from "../../../utils/styles";
 import { Button, styled } from "@mui/joy";
 import { reportErrorsAndSubmit } from "../../../utils/forms";
+import { ScrollView } from "../../ScrollView";
 
 interface IEditNetworkModalProps {
   onUpdateNetwork: CallbackFunction;
@@ -63,10 +64,13 @@ const EditNetworkModal = (props: IEditNetworkModalProps) => {
             </nav>
           </div>
 
-          <div className="relative px-4 py-3 flex-auto max-h-96 overflow-y-auto">
+          <ScrollView
+            height="500px"
+            className="relative px-4 py-3 flex-auto max-h-96 overflow-y-auto"
+          >
             {openTab === "General" && <General />}
             {openTab === "IPAM" && <IPAM />}
-          </div>
+          </ScrollView>
 
           <Actions>
             <Button
