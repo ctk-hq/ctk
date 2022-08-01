@@ -15,6 +15,8 @@ import Environment from "./Environment";
 import Build from "./Build";
 import Deploy from "./Deploy";
 import { classNames } from "../../../utils/styles";
+import { toaster } from "../../../utils";
+import { reportErrorsAndSubmit } from "../../../utils/forms";
 
 export interface IModalServiceProps {
   node: IServiceNodeItem;
@@ -29,6 +31,7 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
 
   const handleUpdate = (values: any) => {
     onUpdateEndpoint(getFinalValues(values, selectedNode));
+    toaster(`Updated "${values.serviceName}" service successfully`, "success");
   };
 
   const initialValues = useMemo(
@@ -112,9 +115,7 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
                       <button
                         className="btn-util"
                         type="button"
-                        onClick={() => {
-                          formik.submitForm();
-                        }}
+                        onClick={reportErrorsAndSubmit(formik)}
                       >
                         Save
                       </button>
