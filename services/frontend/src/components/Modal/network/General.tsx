@@ -26,7 +26,7 @@ const General = () => {
           {
             name: `labels[${index}].value`,
             placeholder: "Value",
-            required: true,
+            required: false,
             type: "text"
           }
         ]}
