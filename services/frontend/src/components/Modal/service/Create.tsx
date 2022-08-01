@@ -17,6 +17,7 @@ import Deploy from "./Deploy";
 import { classNames } from "../../../utils/styles";
 import { toaster } from "../../../utils";
 import { reportErrorsAndSubmit } from "../../../utils/forms";
+import { ScrollView } from "../../ScrollView";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;
@@ -27,29 +28,6 @@ const FormContainer = styled("div")`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-`;
-
-const TabBody = styled("div")`
-  overflow: auto;
-
-  ::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  /* Track */
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-    background: #888;
-  }
-
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
 `;
 
 const ModalServiceCreate = (props: IModalServiceProps) => {
@@ -130,13 +108,16 @@ const ModalServiceCreate = (props: IModalServiceProps) => {
                       </nav>
                     </div>
 
-                    <TabBody className="relative px-4 py-3 flex-auto">
+                    <ScrollView
+                      height="500px"
+                      className="relative px-4 py-3 flex-auto"
+                    >
                       {openTab === "General" && <General />}
                       {openTab === "Environment" && <Environment />}
                       {openTab === "Data" && <Data />}
                       {openTab === "Build" && <Build />}
                       {openTab === "Deploy" && <Deploy />}
-                    </TabBody>
+                    </ScrollView>
                   </div>
 
                   <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
