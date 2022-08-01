@@ -6,6 +6,7 @@ import { CallbackFunction } from "../../../types";
 import { getInitialValues, tabs, validationSchema } from "./form-utils";
 import { classNames } from "../../../utils/styles";
 import { Button, styled } from "@mui/joy";
+import { reportErrorsAndSubmit } from "../../../utils/forms";
 
 interface ICreateNetworkModalProps {
   onCreateNetwork: CallbackFunction;
@@ -69,7 +70,11 @@ const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
           </div>
 
           <Actions>
-            <Button size="sm" variant="solid" onClick={formik.submitForm}>
+            <Button
+              size="sm"
+              variant="solid"
+              onClick={reportErrorsAndSubmit(formik)}
+            >
               Create
             </Button>
           </Actions>
