@@ -16,6 +16,7 @@ import {
 import { classNames } from "../../../utils/styles";
 import { toaster } from "../../../utils";
 import { reportErrorsAndSubmit } from "../../../utils/forms";
+import { ScrollView } from "../../ScrollView";
 
 interface IEditVolumeModal {
   node: IVolumeNodeItem;
@@ -103,9 +104,12 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
                       </nav>
                     </div>
 
-                    <div className="relative px-4 py-3 flex-auto">
+                    <ScrollView
+                      height="500px"
+                      className="relative px-4 py-3 flex-auto"
+                    >
                       {openTab === "General" && <General />}
-                    </div>
+                    </ScrollView>
 
                     <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
                       <button
