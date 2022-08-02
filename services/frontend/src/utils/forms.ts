@@ -208,7 +208,16 @@ export const reportErrorsAndSubmit = (formik: any) => () => {
   if (errors.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [_field, message] of errors) {
-      toaster(message as string, "error");
+      if (Array.isArray(message)) {
+        message.forEach((m: object) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          for (const [_, value] of Object.entries(m)) {
+            toaster(value as string, "error");
+          }
+        });
+      } else {
+        toaster(message as string, "error");
+      }
     }
   } else {
     formik.submitForm();
