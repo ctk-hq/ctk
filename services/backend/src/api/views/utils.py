@@ -76,11 +76,11 @@ def generate(services, volumes, networks, version="3", return_format='yaml'):
     specified_version = get_version(version)
     base_version = int(specified_version)
 
-    if services:
-        ret_yaml.dump({'version': DoubleQuotedScalarString(specified_version)}, s)
-        ret_yaml.explicit_start = False
-        s.write('\n')
+    ret_yaml.dump({'version': DoubleQuotedScalarString(specified_version)}, s)
+    ret_yaml.explicit_start = False
+    s.write('\n')
 
+    if services:
         if base_version in {2, 3}:
             ret_yaml.dump({'services': services}, s, transform=sequence_indent_four)
 
