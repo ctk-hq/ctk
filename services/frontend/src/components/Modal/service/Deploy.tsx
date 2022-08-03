@@ -153,6 +153,95 @@ const Deploy = () => {
         </Group>
       </Accordion>
 
+      <Accordion id={`${uuid}.deploy.rollbackConfig`} title="Rollback config">
+        <TextField
+          label="Parallelism"
+          name="deploy.rollbackConfig.parallelism"
+        />
+
+        <TextField label="Delay" name="deploy.rollbackConfig.delay" />
+
+        <Toggle
+          name="deploy.rollbackConfig.failureAction"
+          label="Failure action"
+          options={[
+            {
+              value: "continue",
+              text: "Continue"
+            },
+            {
+              value: "pause",
+              text: "Pause"
+            }
+          ]}
+        />
+
+        <TextField label="Monitor" name="deploy.rollbackConfig.monitor" />
+
+        <TextField
+          label="Max failure ratio"
+          name="deploy.rollbackConfig.maxFailureRatio"
+        />
+
+        <Toggle
+          name="deploy.rollbackConfig.order"
+          label="Order"
+          options={[
+            {
+              value: "stop-first",
+              text: "Stop first"
+            },
+            {
+              value: "start-first",
+              text: "Start first"
+            }
+          ]}
+        />
+      </Accordion>
+
+      <Accordion id={`${uuid}.deploy.updateConfig`} title="Update config">
+        <TextField label="Parallelism" name="deploy.updateConfig.parallelism" />
+
+        <TextField label="Delay" name="deploy.updateConfig.delay" />
+
+        <Toggle
+          name="deploy.updateConfig.failureAction"
+          label="Failure action"
+          options={[
+            {
+              value: "continue",
+              text: "Continue"
+            },
+            {
+              value: "pause",
+              text: "Pause"
+            }
+          ]}
+        />
+
+        <TextField label="Monitor" name="deploy.updateConfig.monitor" />
+
+        <TextField
+          label="Max failure ratio"
+          name="deploy.updateConfig.maxFailureRatio"
+        />
+
+        <Toggle
+          name="deploy.updateConfig.order"
+          label="Order"
+          options={[
+            {
+              value: "stop-first",
+              text: "Stop first"
+            },
+            {
+              value: "start-first",
+              text: "Start first"
+            }
+          ]}
+        />
+      </Accordion>
+
       <Records
         name="deploy.labels"
         title="Labels"
