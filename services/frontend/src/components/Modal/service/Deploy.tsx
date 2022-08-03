@@ -199,6 +199,49 @@ const Deploy = () => {
         />
       </Accordion>
 
+      <Accordion id={`${uuid}.deploy.updateConfig`} title="Update config">
+        <TextField label="Parallelism" name="deploy.updateConfig.parallelism" />
+
+        <TextField label="Delay" name="deploy.updateConfig.delay" />
+
+        <Toggle
+          name="deploy.updateConfig.failureAction"
+          label="Failure action"
+          options={[
+            {
+              value: "continue",
+              text: "Continue"
+            },
+            {
+              value: "pause",
+              text: "Pause"
+            }
+          ]}
+        />
+
+        <TextField label="Monitor" name="deploy.updateConfig.monitor" />
+
+        <TextField
+          label="Max failure ratio"
+          name="deploy.updateConfig.maxFailureRatio"
+        />
+
+        <Toggle
+          name="deploy.updateConfig.order"
+          label="Order"
+          options={[
+            {
+              value: "stop-first",
+              text: "Stop first"
+            },
+            {
+              value: "start-first",
+              text: "Start first"
+            }
+          ]}
+        />
+      </Accordion>
+
       <Records
         name="deploy.labels"
         title="Labels"
