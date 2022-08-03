@@ -1,5 +1,6 @@
 import { styled } from "@mui/joy";
 import TextField from "../../global/FormElements/TextField";
+import Toggle from "../../global/FormElements/Toggle";
 import Records from "../../Records";
 
 const Root = styled("div")`
@@ -29,6 +30,32 @@ const General = () => {
       </Group>
 
       <TextField label="Container name" name="containerName" required={true} />
+      <TextField label="Command" name="command" required={false} />
+      <TextField label="Entrypoint" name="entrypoint" required={false} />
+      <TextField label="Working directory" name="workingDir" required={false} />
+
+      <Toggle
+        name="restart"
+        label="Restart policy"
+        options={[
+          {
+            value: "no",
+            text: "no"
+          },
+          {
+            value: "always",
+            text: "always"
+          },
+          {
+            value: "on-failure",
+            text: "on-failure"
+          },
+          {
+            value: "unless-stopped",
+            text: "unless-stopped"
+          }
+        ]}
+      />
 
       <Records
         name="ports"

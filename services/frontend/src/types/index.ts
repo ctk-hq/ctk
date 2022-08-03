@@ -1,6 +1,7 @@
 import { AnchorId } from "@jsplumb/common";
 import { Dictionary } from "lodash";
 import { KeyValuePair } from "tailwindcss/types/config";
+import { string } from "yup";
 import { NodeGroupType } from "./enums";
 
 type KeyValPair = {
@@ -385,6 +386,7 @@ export interface IEditServiceForm {
     sharedMemorySize: string;
     target: string;
   };
+  command: string;
   deploy: {
     /**
      * The default value for `mode` is `replicated`. However, we allow
@@ -450,6 +452,7 @@ export interface IEditServiceForm {
       value: string;
     }[];
   };
+  entrypoint: string;
   serviceName: string;
   imageName: string;
   imageTag: string;
@@ -465,6 +468,7 @@ export interface IEditServiceForm {
     key: string;
     value: string;
   }[];
+  restart: string;
   volumes: {
     name: string;
     containerPath: string;
@@ -475,6 +479,7 @@ export interface IEditServiceForm {
     value: string;
   }[];
   dependsOn: string[];
+  workingDir: string;
 }
 
 export interface IEditVolumeForm {

@@ -59,6 +59,7 @@ const initialValues: IEditServiceForm = {
     sharedMemorySize: "",
     target: ""
   },
+  command: "",
   deploy: {
     mode: "",
     replicas: "",
@@ -102,6 +103,8 @@ const initialValues: IEditServiceForm = {
     },
     labels: []
   },
+  dependsOn: [],
+  entrypoint: "",
   imageName: "",
   imageTag: "",
   serviceName: "",
@@ -111,8 +114,9 @@ const initialValues: IEditServiceForm = {
   ports: [],
   environmentVariables: [],
   volumes: [],
+  restart: "",
   labels: [],
-  dependsOn: []
+  workingDir: ""
 };
 
 yup.addMethod<yup.StringSchema>(yup.string, "port", function (message) {
@@ -289,8 +293,10 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const { node_name = "" } = canvasConfig;
   const {
     build,
+    command,
     deploy,
     depends_on,
+    entrypoint,
     image,
     container_name = "",
     environment,
@@ -298,7 +304,9 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     networks,
     ports,
     profiles,
-    labels
+    restart,
+    labels,
+    working_dir
   } = serviceConfig;
 
   const volumes0: string[] = checkArray(volumes ?? [], "volumes");
@@ -330,6 +338,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
           target: build.target?.toString() ?? initialValues.build.target
         }
       : initialValues.build,
+    command: (command as string) ?? (initialValues.command as string),
     deploy: deploy
       ? {
           mode: deploy.mode ?? initialValues.deploy.mode,
@@ -447,6 +456,9 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
             initialValues.deploy.labels
         }
       : initialValues.deploy,
+    dependsOn:
+      (depends_on as string[]) ?? (initialValues.dependsOn as string[]),
+    entrypoint: (entrypoint as string) ?? (initialValues.entrypoint as string),
     imageName,
     imageTag,
     serviceName: node_name,
@@ -479,9 +491,10 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
       return { hostPort, containerPort, protocol } as any;
     }),
     profiles: profiles ?? initialValues.profiles,
+    restart: (restart as string) ?? (initialValues.restart as string),
     labels:
       extractObjectOrArray("=", "key", "value", labels) ?? initialValues.labels,
-    dependsOn: (depends_on as string[]) ?? (initialValues.dependsOn as string[])
+    workingDir: (working_dir as string) ?? (initialValues.workingDir as string)
   };
 };
 
@@ -491,14 +504,18 @@ export const getFinalValues = (
 ): IServiceNodeItem => {
   const {
     build,
+    command,
     deploy,
     dependsOn,
+    entrypoint,
     environmentVariables,
+    volumes,
+    networks,
     ports,
     profiles,
-    networks,
-    volumes,
-    labels
+    restart,
+    labels,
+    workingDir
   } = values;
 
   return {
@@ -530,6 +547,7 @@ export const getFinalValues = (
         shm_size: pruneString(build.sharedMemorySize),
         target: pruneString(build.target)
       }),
+      command: pruneString(command),
       deploy: pruneObject({
         mode: pruneString(deploy.mode),
         replicas: pruneString(deploy.replicas),
@@ -585,6 +603,8 @@ export const getFinalValues = (
         }),
         labels: packArrayAsObject(deploy.labels, "key", "value")
       }),
+      depends_on: pruneArray(dependsOn),
+      entrypoint: pruneString(entrypoint),
       image: `${values.imageName}${
         values.imageTag ? `:${values.imageTag}` : ""
       }`,
@@ -608,8 +628,9 @@ export const getFinalValues = (
         )
       ),
       profiles: pruneArray(profiles),
+      restart: pruneString(restart),
       labels: packArrayAsObject(labels, "key", "value"),
-      depends_on: pruneArray(dependsOn)
+      working_dir: pruneString(workingDir)
     }
   };
 };
