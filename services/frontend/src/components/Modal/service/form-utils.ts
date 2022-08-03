@@ -92,6 +92,14 @@ const initialValues: IEditServiceForm = {
       maxFailureRatio: "",
       order: ""
     },
+    updateConfig: {
+      parallelism: "",
+      delay: "",
+      failureAction: "",
+      monitor: "",
+      maxFailureRatio: "",
+      order: ""
+    },
     labels: []
   },
   imageName: "",
@@ -194,6 +202,14 @@ export const validationSchema = yup.object({
       window: yup.string()
     }),
     rollbackConfig: yup.object({
+      parallelism: yup.string(),
+      delay: yup.string(),
+      failureAction: yup.string().oneOf(["", "continue", "pause"]),
+      monitor: yup.string(),
+      maxFailureRatio: yup.string(),
+      order: yup.string().oneOf(["", "stop-first", "start-first"])
+    }),
+    updateConfig: yup.object({
       parallelism: yup.string(),
       delay: yup.string(),
       failureAction: yup.string().oneOf(["", "continue", "pause"]),
@@ -400,6 +416,28 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
                   initialValues.deploy.rollbackConfig.order
               }
             : initialValues.deploy.rollbackConfig,
+          updateConfig: deploy.update_config
+            ? {
+                parallelism:
+                  deploy.update_config.parallelism?.toString() ??
+                  initialValues.deploy.updateConfig.parallelism,
+                delay:
+                  deploy.update_config.delay ??
+                  initialValues.deploy.updateConfig.delay,
+                failureAction:
+                  deploy.update_config.failure_action ??
+                  initialValues.deploy.updateConfig.failureAction,
+                monitor:
+                  deploy.update_config.monitor ??
+                  initialValues.deploy.updateConfig.monitor,
+                maxFailureRatio:
+                  deploy.update_config.max_failure_ratio ??
+                  initialValues.deploy.updateConfig.maxFailureRatio,
+                order:
+                  deploy.update_config.order ??
+                  initialValues.deploy.updateConfig.order
+              }
+            : initialValues.deploy.updateConfig,
           labels:
             extractObjectOrArray("=", "key", "value", deploy.labels) ??
             initialValues.deploy.labels
@@ -528,6 +566,14 @@ export const getFinalValues = (
           monitor: pruneString(deploy.rollbackConfig.monitor),
           max_failure_ratio: pruneString(deploy.rollbackConfig.maxFailureRatio),
           order: pruneString(deploy.rollbackConfig.order)
+        }),
+        update_config: pruneObject({
+          parallelism: pruneNumber(parseInt(deploy.updateConfig.parallelism)),
+          delay: pruneString(deploy.updateConfig.delay),
+          failure_action: pruneString(deploy.updateConfig.failureAction),
+          monitor: pruneString(deploy.updateConfig.monitor),
+          max_failure_ratio: pruneString(deploy.updateConfig.maxFailureRatio),
+          order: pruneString(deploy.updateConfig.order)
         }),
         labels: packArrayAsObject(deploy.labels, "key", "value")
       }),
