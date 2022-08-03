@@ -65,7 +65,10 @@ const NetworkList: FunctionComponent<INetworkListProps> = (
 
   const handleEdit = (networkUuid: string) => () => onEdit(networkUuid);
 
-  const handleRemove = (networkUuid: string) => () => onRemove(networkUuid);
+  const handleRemove = (e: any, networkUuid: string) => {
+    e.stopPropagation();
+    onRemove(networkUuid);
+  };
 
   return (
     <Root>
@@ -83,7 +86,7 @@ const NetworkList: FunctionComponent<INetworkListProps> = (
               variant="soft"
               size="sm"
               color="danger"
-              onClick={handleRemove(networkUuid)}
+              onClick={(e) => handleRemove(e, networkUuid)}
             >
               <MinusSmIcon className="h-4 w-4" />
             </RemoveButton>

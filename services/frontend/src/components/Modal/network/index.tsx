@@ -62,8 +62,6 @@ const ModalNetwork = (props: IModalNetworkProps) => {
   const handleRemove = useCallback(
     (networkUuid: string) => {
       onDeleteNetwork(networkUuid);
-      /* Show the new network form only when the selected node was deleted. */
-      /* BUG: If a selected node is deleted, it still remains in the form. */
       if (selectedNetwork?.key === networkUuid) {
         setSelectedNetwork(null);
       }
