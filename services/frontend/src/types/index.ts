@@ -191,10 +191,10 @@ export interface IService {
     update_config?: {
       parallelism?: number;
       delay?: string;
-      failure_action?: string;
+      failure_action?: "continue" | "pause";
       monitor?: string;
       max_failure_ratio?: string;
-      order?: string;
+      order?: "stop-first" | "start-first";
     };
   };
   device_cgroup_rules: string[];
@@ -430,6 +430,14 @@ export interface IEditServiceForm {
       window: string;
     };
     rollbackConfig: {
+      parallelism: string;
+      delay: string;
+      failureAction: "" | "continue" | "pause";
+      monitor: string;
+      maxFailureRatio: string;
+      order: "" | "stop-first" | "start-first";
+    };
+    updateConfig: {
       parallelism: string;
       delay: string;
       failureAction: "" | "continue" | "pause";
