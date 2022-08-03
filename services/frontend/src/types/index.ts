@@ -454,6 +454,7 @@ export interface IEditServiceForm {
   imageName: string;
   imageTag: string;
   containerName: string;
+  networks: string[];
   profiles: string[];
   ports: {
     hostPort: string;
@@ -473,6 +474,7 @@ export interface IEditServiceForm {
     key: string;
     value: string;
   }[];
+  dependsOn: string[];
 }
 
 export interface IEditVolumeForm {

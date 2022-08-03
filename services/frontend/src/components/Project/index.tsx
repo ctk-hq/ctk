@@ -69,7 +69,7 @@ export default function Project() {
   const [language, setLanguage] = useState("yaml");
   const [version, setVersion] = useState("3");
   const [copyText, setCopyText] = useState("Copy");
-  const [nodes, setNodes] = useState({});
+  const [nodes, setNodes] = useState<Record<string, any>>({});
   const [connections, setConnections] = useState<[[string, string]] | []>([]);
   const [networks, setNetworks] = useState<Record<string, any>>({});
   const [projectName, setProjectName] = useState(
@@ -278,6 +278,20 @@ export default function Project() {
   };
 
   const onUpdateEndpoint = (nodeItem: IServiceNodeItem) => {
+    const key = nodeItem.key;
+
+    if (Array.isArray(nodeItem.serviceConfig.depends_on)) {
+      nodeItem.serviceConfig.depends_on.forEach((dep: string) => {
+        const depObject = Object.keys(nodes).find((key: string) => {
+          const node = nodes[key];
+          if (node.canvasConfig.node_name === dep) {
+            return node;
+          }
+        });
+
+        onConnectionAttached([key, depObject]);
+      });
+    }
     setNodes({ ...nodes, [nodeItem.key]: nodeItem });
   };
 
