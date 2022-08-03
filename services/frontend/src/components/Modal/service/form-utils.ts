@@ -84,6 +84,14 @@ const initialValues: IEditServiceForm = {
       maxAttempts: "",
       window: ""
     },
+    rollbackConfig: {
+      parallelism: "",
+      delay: "",
+      failureAction: "",
+      monitor: "",
+      maxFailureRatio: "",
+      order: ""
+    },
     labels: []
   },
   imageName: "",
@@ -184,6 +192,14 @@ export const validationSchema = yup.object({
       delay: yup.string(),
       maxAttempts: yup.string(),
       window: yup.string()
+    }),
+    rollbackConfig: yup.object({
+      parallelism: yup.string(),
+      delay: yup.string(),
+      failureAction: yup.string().oneOf(["", "continue", "pause"]),
+      monitor: yup.string(),
+      maxFailureRatio: yup.string(),
+      order: yup.string().oneOf(["", "stop-first", "start-first"])
     }),
     labels: yup.array(
       yup.object({
@@ -362,6 +378,28 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
                   initialValues.deploy.restartPolicy.window
               }
             : initialValues.deploy.restartPolicy,
+          rollbackConfig: deploy.rollback_config
+            ? {
+                parallelism:
+                  deploy.rollback_config.parallelism?.toString() ??
+                  initialValues.deploy.rollbackConfig.parallelism,
+                delay:
+                  deploy.rollback_config.delay ??
+                  initialValues.deploy.rollbackConfig.delay,
+                failureAction:
+                  deploy.rollback_config.failure_action ??
+                  initialValues.deploy.rollbackConfig.failureAction,
+                monitor:
+                  deploy.rollback_config.monitor ??
+                  initialValues.deploy.rollbackConfig.monitor,
+                maxFailureRatio:
+                  deploy.rollback_config.max_failure_ratio ??
+                  initialValues.deploy.rollbackConfig.maxFailureRatio,
+                order:
+                  deploy.rollback_config.order ??
+                  initialValues.deploy.rollbackConfig.order
+              }
+            : initialValues.deploy.rollbackConfig,
           labels:
             extractObjectOrArray("=", "key", "value", deploy.labels) ??
             initialValues.deploy.labels
@@ -482,6 +520,14 @@ export const getFinalValues = (
           // NOTE: Could be a potential bug.
           maxAttempts: pruneNumber(parseInt(deploy.restartPolicy.maxAttempts)),
           window: pruneString(deploy.restartPolicy.window)
+        }),
+        rollback_config: pruneObject({
+          parallelism: pruneNumber(parseInt(deploy.rollbackConfig.parallelism)),
+          delay: pruneString(deploy.rollbackConfig.delay),
+          failure_action: pruneString(deploy.rollbackConfig.failureAction),
+          monitor: pruneString(deploy.rollbackConfig.monitor),
+          max_failure_ratio: pruneString(deploy.rollbackConfig.maxFailureRatio),
+          order: pruneString(deploy.rollbackConfig.order)
         }),
         labels: packArrayAsObject(deploy.labels, "key", "value")
       }),
