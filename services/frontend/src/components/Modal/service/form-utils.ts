@@ -106,11 +106,13 @@ const initialValues: IEditServiceForm = {
   imageTag: "",
   serviceName: "",
   containerName: "",
+  networks: [],
   profiles: [],
   ports: [],
   environmentVariables: [],
   volumes: [],
-  labels: []
+  labels: [],
+  dependsOn: []
 };
 
 yup.addMethod<yup.StringSchema>(yup.string, "port", function (message) {
@@ -288,10 +290,12 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const {
     build,
     deploy,
+    depends_on,
     image,
     container_name = "",
     environment,
     volumes,
+    networks,
     ports,
     profiles,
     labels
@@ -458,6 +462,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
         accessMode
       };
     }),
+    networks: (networks as string[]) ?? (initialValues.networks as string[]),
     ports: ports0.map((port) => {
       const slashIndex = port.lastIndexOf("/");
       const protocol = slashIndex >= 0 ? port.substring(slashIndex + 1) : "";
@@ -475,7 +480,8 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     }),
     profiles: profiles ?? initialValues.profiles,
     labels:
-      extractObjectOrArray("=", "key", "value", labels) ?? initialValues.labels
+      extractObjectOrArray("=", "key", "value", labels) ?? initialValues.labels,
+    dependsOn: (depends_on as string[]) ?? (initialValues.dependsOn as string[])
   };
 };
 
@@ -486,9 +492,11 @@ export const getFinalValues = (
   const {
     build,
     deploy,
+    dependsOn,
     environmentVariables,
     ports,
     profiles,
+    networks,
     volumes,
     labels
   } = values;
@@ -590,6 +598,7 @@ export const getFinalValues = (
             (volume.accessMode ? `:${volume.accessMode}` : "")
         )
       ),
+      networks: pruneArray(networks),
       ports: pruneArray(
         ports.map(
           (port) =>
@@ -599,7 +608,8 @@ export const getFinalValues = (
         )
       ),
       profiles: pruneArray(profiles),
-      labels: packArrayAsObject(labels, "key", "value")
+      labels: packArrayAsObject(labels, "key", "value"),
+      depends_on: pruneArray(dependsOn)
     }
   };
 };

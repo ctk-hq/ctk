@@ -69,6 +69,34 @@ const General = () => {
       />
 
       <Records
+        name="dependsOn"
+        title="Depends on"
+        fields={(index: number) => [
+          {
+            name: `dependsOn[${index}]`,
+            placeholder: "Service name",
+            required: false,
+            type: "text"
+          }
+        ]}
+        newValue={""}
+      />
+
+      <Records
+        name="networks"
+        title="Networks"
+        fields={(index: number) => [
+          {
+            name: `networks[${index}]`,
+            placeholder: "Network name",
+            required: false,
+            type: "text"
+          }
+        ]}
+        newValue={""}
+      />
+
+      <Records
         name="labels"
         title="Labels"
         fields={(index: number) => [
