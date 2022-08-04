@@ -58,7 +58,7 @@ const Login = (props: IProfileProps) => {
   return (
     <>
       <div className="flex flex-col">
-        <main className="py-6 md:w-2/3 lg:w-1/4 mx-auto">
+        <main className="py-6 md:w-1/3 lg:w-1/4 mx-auto">
           <h2 className="mb-4 px-4 sm:px-6 md:flex-row md:px-8 text-xl font-extrabold dark:text-white text-gray-900">
             Sign in
           </h2>

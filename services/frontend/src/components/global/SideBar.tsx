@@ -19,13 +19,15 @@ export default function SideBar(props: ISideBarProps) {
       name: "Projects",
       href: "/projects",
       icon: BookOpenIcon,
-      current: pathname.match(projRegex) ? true : false
+      current: pathname.match(projRegex) ? true : false,
+      visible: isAuthenticated
     },
     {
       name: "New project",
       href: "/projects/new",
       icon: PlusIcon,
-      current: false
+      current: false,
+      visible: true
     }
   ];
 
@@ -36,31 +38,35 @@ export default function SideBar(props: ISideBarProps) {
       <div className="md:flex md:w-16 md:flex-col md:fixed md:inset-y-0">
         <div className="flex justify-between flex-col sm:flex-row md:flex-col md:flex-grow md:pt-5 bg-blue-700 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 mx-auto p-2 ">
-            <Link to={isAuthenticated ? "/" : "projects/new"}>
+            <Link to={isAuthenticated ? "/" : "login"}>
               <Logo />
             </Link>
           </div>
 
           <div className="md:mt-5 flex-1 flex flex-col items-center sm:flex-row md:flex-col justify-end">
             <nav className="flex md:flex-1 md:flex-col items-center md:space-y-1">
-              {navigation.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className={classNames(
-                    item.current
-                      ? "bg-blue-800 text-white"
-                      : "text-blue-100 hover:bg-blue-600",
-                    "group flex items-center justify-center p-2 text-sm font-medium rounded-md"
-                  )}
-                >
-                  <item.icon
-                    className="mr-3 sm:mr-0 flex-shrink-0 h-5 w-5"
-                    aria-hidden="true"
-                  />
-                  <span className="sm:hidden">{item.name}</span>
-                </a>
-              ))}
+              {navigation.map((item) => {
+                if (item.visible) {
+                  return (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className={classNames(
+                        item.current
+                          ? "bg-blue-800 text-white"
+                          : "text-blue-100 hover:bg-blue-600",
+                        "group flex items-center justify-center p-2 text-sm font-medium rounded-md"
+                      )}
+                    >
+                      <item.icon
+                        className="mr-3 sm:mr-0 flex-shrink-0 h-5 w-5"
+                        aria-hidden="true"
+                      />
+                      <span className="sm:hidden">{item.name}</span>
+                    </a>
+                  );
+                }
+              })}
             </nav>
 
             <UserMenu

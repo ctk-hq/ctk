@@ -42,7 +42,12 @@ import CodeEditor from "../CodeEditor";
 import { useTitle } from "../../hooks";
 import VisibilitySwitch from "../global/VisibilitySwitch";
 
-export default function Project() {
+interface IProjectProps {
+  isAuthenticated: boolean;
+}
+
+export default function Project(props: IProjectProps) {
+  const { isAuthenticated } = props;
   const { uuid } = useParams<{ uuid: string }>();
   const { height } = useWindowDimensions();
   const { data, error, isFetching } = useProject(uuid);
@@ -467,12 +472,14 @@ export default function Project() {
                 />
 
                 <div className="flex flex-col space-y-2 w-full justify-end mb-4  md:flex-row md:space-y-0 md:space-x-2 md:mb-0">
-                  <VisibilitySwitch
-                    isVisible={isVisible}
-                    onToggle={() => {
-                      setIsVisible(!isVisible);
-                    }}
-                  />
+                  {isAuthenticated && (
+                    <VisibilitySwitch
+                      isVisible={isVisible}
+                      onToggle={() => {
+                        setIsVisible(!isVisible);
+                      }}
+                    />
+                  )}
 
                   <button
                     onClick={() => onSave()}

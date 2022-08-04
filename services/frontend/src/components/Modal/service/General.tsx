@@ -25,13 +25,14 @@ const General = () => {
       <TextField label="Service name" name="serviceName" required={true} />
 
       <Group>
-        <TextField label="Image name" name="imageName" required={true} />
+        <TextField label="Image name" name="imageName" required={false} />
         <TextField label="Image tag" name="imageTag" />
       </Group>
 
-      <TextField label="Container name" name="containerName" required={true} />
+      <TextField label="Container name" name="containerName" required={false} />
       <TextField label="Command" name="command" required={false} />
       <TextField label="Entrypoint" name="entrypoint" required={false} />
+      <TextField label="Env file" name="envFile" required={false} />
       <TextField label="Working directory" name="workingDir" required={false} />
 
       <Toggle
