@@ -87,9 +87,15 @@ export default function App() {
           <Toaster />
           <SideBar isAuthenticated={isAuthenticated} state={state} />
           <Routes>
-            <Route path="/projects/:uuid" element={<Project />} />
+            <Route
+              path="/projects/:uuid"
+              element={<Project isAuthenticated={isAuthenticated} />}
+            />
 
-            <Route path="/projects/new" element={<Project />} />
+            <Route
+              path="/projects/new"
+              element={<Project isAuthenticated={isAuthenticated} />}
+            />
 
             <Route
               path="/"

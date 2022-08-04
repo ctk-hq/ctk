@@ -454,6 +454,7 @@ export interface IEditServiceForm {
     }[];
   };
   entrypoint: string;
+  envFile: string;
   serviceName: string;
   imageName: string;
   imageTag: string;

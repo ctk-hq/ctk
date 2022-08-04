@@ -105,6 +105,7 @@ const initialValues: IEditServiceForm = {
   },
   dependsOn: [],
   entrypoint: "",
+  envFile: "",
   imageName: "",
   imageTag: "",
   serviceName: "",
@@ -236,13 +237,11 @@ export const validationSchema = yup.object({
     .required("Service name is required"),
   imageName: yup
     .string()
-    .max(256, "Image name should be 256 characters or less")
-    .required("Image name is required"),
+    .max(256, "Image name should be 256 characters or less"),
   imageTag: yup.string().max(256, "Image tag should be 256 characters or less"),
   containerName: yup
     .string()
-    .max(256, "Container name should be 256 characters or less")
-    .required("Container name is required"),
+    .max(256, "Container name should be 256 characters or less"),
   profiles: yup.array(
     yup
       .string()
@@ -297,6 +296,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     deploy,
     depends_on,
     entrypoint,
+    env_file,
     image,
     container_name = "",
     environment,
@@ -459,6 +459,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     dependsOn:
       (depends_on as string[]) ?? (initialValues.dependsOn as string[]),
     entrypoint: (entrypoint as string) ?? (initialValues.entrypoint as string),
+    envFile: (env_file as string) ?? (initialValues.envFile as string),
     imageName,
     imageTag,
     serviceName: node_name,
@@ -478,9 +479,10 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     ports: ports0.map((port) => {
       const slashIndex = port.lastIndexOf("/");
       const protocol = slashIndex >= 0 ? port.substring(slashIndex + 1) : "";
-      const [hostPort, containerPort] = port
-        .substring(0, slashIndex)
-        .split(":");
+      const [hostPort, containerPort] =
+        slashIndex >= 0
+          ? port.substring(0, slashIndex).split(":")
+          : port.split(":");
 
       if (!["", "tcp", "udp"].includes(protocol)) {
         throw new Error(
@@ -508,6 +510,7 @@ export const getFinalValues = (
     deploy,
     dependsOn,
     entrypoint,
+    envFile,
     environmentVariables,
     volumes,
     networks,
@@ -605,10 +608,11 @@ export const getFinalValues = (
       }),
       depends_on: pruneArray(dependsOn),
       entrypoint: pruneString(entrypoint),
-      image: `${values.imageName}${
-        values.imageTag ? `:${values.imageTag}` : ""
-      }`,
-      container_name: values.containerName,
+      env_file: pruneString(envFile),
+      image: pruneString(
+        `${values.imageName}${values.imageTag ? `:${values.imageTag}` : ""}`
+      ),
+      container_name: pruneString(values.containerName),
       environment: packArrayAsObject(environmentVariables, "key", "value"),
       volumes: pruneArray(
         volumes.map(
