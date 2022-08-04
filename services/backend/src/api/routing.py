@@ -15,6 +15,7 @@ class DefaultRouterPlusPlus(ExtendedDefaultRouter):
 api_urls = [
     path("", view.ViewGenericAPIView.as_view()),
     path("projects/", project.ProjectListCreateAPIView.as_view()),
+    path("projects/import/", project.ProjectImportAPIView.as_view()),
     path("projects/<str:uuid>/", project.ProjectGenericAPIView.as_view()),
     path("generate/", generate.GenerateGenericAPIView.as_view()),
     path("auth/self/", user.UserGenericAPIView.as_view()),

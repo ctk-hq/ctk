@@ -337,6 +337,7 @@ export interface INetworkNodeItem extends INodeItem {
 
 export interface IProjectPayload {
   name: string;
+  visibility: number;
   data: {
     canvas: {
       position: {

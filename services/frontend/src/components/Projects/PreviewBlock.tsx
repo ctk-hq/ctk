@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { PencilIcon, TrashIcon } from "@heroicons/react/outline";
+import { useNavigate } from "react-router-dom";
+import { TrashIcon } from "@heroicons/react/outline";
 import { truncateStr } from "../../utils";
 import { IProject } from "../../types";
 import ModalConfirmDelete from "../../components/Modal/ConfirmDelete";

@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { BookOpenIcon } from "@heroicons/react/outline";
+import { BookOpenIcon, PlusIcon } from "@heroicons/react/outline";
 import { Link } from "react-router-dom";
 import UserMenu from "./UserMenu";
 import Logo from "./logo";
@@ -20,6 +20,12 @@ export default function SideBar(props: ISideBarProps) {
       href: "/projects",
       icon: BookOpenIcon,
       current: pathname.match(projRegex) ? true : false
+    },
+    {
+      name: "New project",
+      href: "/projects/new",
+      icon: PlusIcon,
+      current: false
     }
   ];
 
@@ -36,7 +42,7 @@ export default function SideBar(props: ISideBarProps) {
           </div>
 
           <div className="md:mt-5 flex-1 flex flex-col items-center sm:flex-row md:flex-col justify-end">
-            <nav className="md:flex-1 space-y-1">
+            <nav className="flex md:flex-1 md:flex-col items-center md:space-y-1">
               {navigation.map((item) => (
                 <a
                   key={item.name}

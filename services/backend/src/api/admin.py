@@ -5,6 +5,7 @@ from .models import Project
 class ProjectAdmin(admin.ModelAdmin):
   list_display = (
       'id',
+      'visibility',
       'name',
       'uuid',
       'created_at',
