@@ -15,3 +15,5 @@ boto3==1.21.46
 requests==2.27.1
 pyaml==21.10.1
 ruamel.yaml==0.17.21
+networkx==2.8.5
+numpy==1.23.1

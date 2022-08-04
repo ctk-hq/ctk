@@ -1,35 +1,78 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PROJECTS_FETCH_LIMIT } from "../../constants";
+import ModalImport from "../Modal/import";
 import { IProject } from "../../types";
+import { toaster } from "../../utils";
 import Spinner from "../../components/global/Spinner";
 import PreviewBlock from "./PreviewBlock";
 import { useProjects } from "../../hooks/useProjects";
 import { PlusIcon } from "@heroicons/react/outline";
+import { importProject } from "../../hooks/useImportProject";
+import { IImportFinalValues } from "../Modal/import/form-utils";
 
 const Projects = () => {
+  const navigate = useNavigate();
   const [limit] = useState(PROJECTS_FETCH_LIMIT);
   const [offset, setOffset] = useState(0);
+  const [importing, setImporting] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const { isLoading, isError, error, data, isFetching, isPreviousData } =
     useProjects(limit, offset);
 
+  const onImportClick = () => {
+    setShowImportModal(true);
+  };
+
+  const handleImport = (values: IImportFinalValues) => {
+    setImporting(true);
+    importProject(values)
+      .then((resp: any) => {
+        navigate(`/projects/${resp.name}`);
+        toaster(`Imported!`, "success");
+      })
+      .catch((e: any) => {
+        toaster(`Something went wrong!`, "error");
+      })
+      .finally(() => {
+        setImporting(false);
+      });
+  };
+
   return (
     <>
+      {showImportModal ? (
+        <ModalImport
+          onHide={() => setShowImportModal(false)}
+          onImport={(values: IImportFinalValues) => handleImport(values)}
+          importing={importing}
+        />
+      ) : null}
+
       <div className="md:pl-16 flex flex-col flex-1">
         <main>
           <div className="py-6">
-            <div className="flex justify-between px-4 sm:px-6 md:px-8">
+            <div className="flex flex-col sm:flex-row justify-between px-4 sm:px-6 md:px-8">
               <h1 className="text-2xl font-semibold dark:text-white text-gray-900">
                 Projects
               </h1>
 
               {data && data.results.length > 0 && (
-                <Link
-                  className="btn-util text-white bg-blue-600 hover:bg-blue-700 sm:w-auto"
-                  to="/projects/new"
-                >
-                  <span>Create new project</span>
-                </Link>
+                <div className="flex justify-end space-x-1">
+                  <button
+                    onClick={onImportClick}
+                    className="btn-util text-white bg-blue-600 hover:bg-blue-700 sm:w-auto"
+                  >
+                    <span>Import</span>
+                  </button>
+
+                  <Link
+                    className="btn-util text-white bg-blue-600 hover:bg-blue-700 sm:w-auto"
+                    to="/projects/new"
+                  >
+                    <span>Create new project</span>
+                  </Link>
+                </div>
               )}
             </div>
 

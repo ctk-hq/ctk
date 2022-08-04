@@ -40,6 +40,7 @@ import CreateVolumeModal from "../Modal/volume/CreateVolumeModal";
 import EditVolumeModal from "../Modal/volume/EditVolumeModal";
 import CodeEditor from "../CodeEditor";
 import { useTitle } from "../../hooks";
+import VisibilitySwitch from "../global/VisibilitySwitch";
 
 export default function Project() {
   const { uuid } = useParams<{ uuid: string }>();
@@ -50,6 +51,7 @@ export default function Project() {
   const stateConnectionsRef = useRef<[[string, string]] | []>();
   const stateNetworksRef = useRef({});
 
+  const [isVisible, setIsVisible] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string>();
   const [formattedCode, setFormattedCode] = useState<string>("");
   const [showModalCreateService, setShowModalCreateService] = useState(false);
@@ -126,6 +128,7 @@ export default function Project() {
   const onSave = () => {
     const payload: IProjectPayload = {
       name: projectName,
+      visibility: +isVisible,
       data: {
         canvas: {
           position: canvasPosition,
@@ -172,6 +175,7 @@ export default function Project() {
     );
 
     setProjectName(data.name);
+    setIsVisible(Boolean(data.visibility));
     setNodes(clientNodeItems);
     setConnections(canvasData.canvas.connections);
     setNetworks(canvasData.canvas.networks);
@@ -463,17 +467,12 @@ export default function Project() {
                 />
 
                 <div className="flex flex-col space-y-2 w-full justify-end mb-4  md:flex-row md:space-y-0 md:space-x-2 md:mb-0">
-                  <button
-                    onClick={() => {
-                      window.location.replace("/projects/new");
+                  <VisibilitySwitch
+                    isVisible={isVisible}
+                    onToggle={() => {
+                      setIsVisible(!isVisible);
                     }}
-                    type="button"
-                    className="btn-util text-black bg-gray-200 hover:bg-gray-300 sm:w-auto"
-                  >
-                    <div className="flex justify-center items-center space-x-2 mx-auto">
-                      <span>New project</span>
-                    </div>
-                  </button>
+                  />
 
                   <button
                     onClick={() => onSave()}
