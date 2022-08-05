@@ -2,7 +2,7 @@ import axios from "axios";
 import _ from "lodash";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import { API_SERVER_URL } from "../constants";
-import { getLocalStorageJWTKeys } from "../utils";
+import { getLocalStorageJWTKeys, toaster } from "../utils";
 import { IProject, IProjectPayload } from "../types";
 import useLocalStorageJWTKeys from "./useLocalStorageJWTKeys";
 
@@ -129,9 +129,9 @@ export const useUpdateProject = (uuid: string | undefined) => {
         return data;
       } catch (err: any) {
         if (err.response.status === 404) {
-          // console.error("Resource could not be found!");
+          toaster("You are not the owner of this project!", "error");
         } else {
-          // console.error(err.message);
+          toaster(err.message, "error");
         }
       }
     },
