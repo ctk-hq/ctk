@@ -195,6 +195,14 @@ export default function Project(props: IProjectProps) {
     []
   );
 
+  const debouncedAutoSave = useMemo(
+    () =>
+      debounce(() => {
+        console.log("the api is going to call after 5 seconds");
+      }, 5000),
+    []
+  );
+
   const debouncedOnGraphUpdate = useMemo(
     () =>
       debounce((payload) => {
@@ -635,11 +643,12 @@ export default function Project(props: IProjectProps) {
             minHeight: "calc(100vh - 120px)"
           }}
         >
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
-            Something went wrong...
+          <h3 className="text-2xl font-medium text-gray-900">
+            {(error as any)?.response.status === 404 ? <>404</> : <>Oops...</>}
           </h3>
           <p className="mt-1 text-sm text-gray-500">
-            Either this project does not exist, or the link is wrong.
+            Either this project does not exist, it is private or the link is
+            wrong.
           </p>
         </div>
       );
