@@ -1,5 +1,5 @@
 import { useReducer, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
@@ -30,6 +30,7 @@ const queryClient = new QueryClient();
 export default function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const auth = useLocalStorageAuth();
+  const navigate = useNavigate();
   const isAuthenticated = !!(auth && Object.keys(auth).length);
 
   const defaultProtectedRouteProps: Omit<ProtectedRouteProps, "outlet"> = {
@@ -49,10 +50,10 @@ export default function App() {
           // try to refresh the existing token,
           // on error clear localstorage
           if (err.status === 401) {
-            err.text().then((text: string) => {
-              const textObj = JSON.parse(text);
-              if (textObj.code === "user_not_found") {
+            err.json().then((errObj: any) => {
+              if (errObj.code === "user_not_found") {
                 localStorage.removeItem(LOCAL_STORAGE);
+                navigate("/login");
               }
             });
 
@@ -72,8 +73,9 @@ export default function App() {
                   }
                 }
               })
-              .catch(() => {
+              .catch((err) => {
                 localStorage.removeItem(LOCAL_STORAGE);
+                navigate("/login");
               });
           }
         });

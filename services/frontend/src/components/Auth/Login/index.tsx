@@ -25,9 +25,10 @@ const Login = (props: IProfileProps) => {
     onSubmit: (values) => {
       const username = values.username;
       const password = values.password;
-      setLoggingIn(true);
 
       if (username && password) {
+        setLoggingIn(true);
+
         logIn(username, password)
           .then(checkHttpStatus)
           .then((data) => {
@@ -43,8 +44,10 @@ const Login = (props: IProfileProps) => {
           })
           .catch((err) => {
             if (err) {
-              err.text().then((e: string) => {
-                toaster(e, "error");
+              err.json().then((e: any) => {
+                Object.keys(e).forEach(function (key) {
+                  toaster(e[key] as string, "error");
+                });
               });
             }
           })

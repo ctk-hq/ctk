@@ -19,7 +19,7 @@ export default function SideBar(props: ISideBarProps) {
       name: "Projects",
       href: "/projects",
       icon: BookOpenIcon,
-      current: pathname.match(projRegex) ? true : false,
+      current: pathname.match(projRegex) || pathname == "/" ? true : false,
       visible: isAuthenticated
     },
     {

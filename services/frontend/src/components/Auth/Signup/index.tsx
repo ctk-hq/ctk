@@ -29,9 +29,10 @@ const Signup = (props: IProfileProps) => {
       const email = values.email;
       const password1 = values.password;
       const password2 = values.confirmPassword;
-      setSigningUp(true);
 
       if (username && email && password1 && password2) {
+        setSigningUp(true);
+
         signup(username, email, password1, password2)
           .then(checkHttpStatus)
           .then((data) => {
@@ -47,8 +48,10 @@ const Signup = (props: IProfileProps) => {
           })
           .catch((err) => {
             if (err) {
-              err.text().then((e: string) => {
-                toaster(e, "error");
+              err.json().then((e: any) => {
+                Object.keys(e).forEach(function (key) {
+                  toaster(e[key] as string, "error");
+                });
               });
             }
           })
