@@ -18,11 +18,8 @@ cd services/frontend && npm i && npm run start
 ### Server
 
 ```bash
-python -m venv .env
-source .env/bin/activate
-python -m pip install -r services/backend/requirements.txt
-python -m pip  install black
-
+make up
+make local_server_init
 make dev_server
 ```
 
@@ -30,10 +27,9 @@ make dev_server
 
 ## Project roadmap
 
-- Complete react rewrite.
-- Ongoing improvements and features for docker compose yaml generation.
 - Kubernetes manifest generation.
-- Deployment to user's ECS, K8S, GS accounts.
+- ECS deployment.
+- K8S deployment.
 
 ## Docs
 

@@ -317,3 +317,4 @@ Temporary Items
 
 # Django
 static
+zappa_settings.json
