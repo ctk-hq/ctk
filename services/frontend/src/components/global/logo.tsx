@@ -1,62 +1,34 @@
 const Logo = () => {
   return (
     <svg
-      width="28px"
-      height="28px"
-      viewBox="0 0 152 152"
-      version="1.1"
+      width="24"
+      height="24"
+      viewBox="0 0 270 270"
+      fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
     >
-      <title>CTK</title>
-      <g
-        id="Page-1"
-        stroke="none"
-        strokeWidth="1"
-        fill="none"
-        fillRule="evenodd"
-      >
-        <g id="Logo" transform="translate(-179.000000, -225.000000)">
-          <g id="ctk-logo-copy" transform="translate(167.000000, 200.000000)">
-            <g
-              id="ctk-logo"
-              transform="translate(98.500000, 95.000000) rotate(-60.000000) translate(-98.500000, -95.000000) translate(33.000000, 20.000000)"
-            >
-              <polygon
-                id="Polygon"
-                fillOpacity="0.15"
-                fill="#000000"
-                points="44 0 87.3012702 25 87.3012702 75 44 100 0.698729811 75 0.698729811 25"
-              ></polygon>
-              <polygon
-                id="Polygon-Copy"
-                fillOpacity="0.15"
-                fill="#000000"
-                points="87 25 130.30127 50 130.30127 100 87 125 43.6987298 100 43.6987298 50"
-              ></polygon>
-              <polygon
-                id="Polygon-Copy-2"
-                fillOpacity="0.15"
-                fill="#000000"
-                points="44 50 87.3012702 75 87.3012702 125 44 150 0.698729811 125 0.698729811 75"
-              ></polygon>
-              <text
-                id="n"
-                transform="translate(61.705647, 69.842201) rotate(30.000000) translate(-61.705647, -69.842201) "
-                fontFamily="Kefa-Bold, Kefa"
-                fontSize="71"
-                fontWeight="bold"
-                letterSpacing="0.492226294"
-                fill="#FFFFFF"
-              >
-                <tspan x="39.6707155" y="94.8422015">
-                  n
-                </tspan>
-              </text>
-            </g>
-          </g>
-        </g>
-      </g>
+      <path
+        d="M26.0711 110.924C22.1658 107.019 22.1658 100.687 26.0711 96.7817L96.7817 26.071C100.687 22.1658 107.019 22.1658 110.924 26.071L144.866 60.0132C148.771 63.9184 148.771 70.2501 144.866 74.1553L74.1554 144.866C70.2501 148.771 63.9185 148.771 60.0132 144.866L26.0711 110.924Z"
+        fill="#2697EC"
+      />
+      <rect
+        x="118.736"
+        y="109.654"
+        width="120"
+        height="68.0015"
+        rx="10"
+        transform="rotate(-45 118.736 109.654)"
+        fill="#F38432"
+      />
+      <rect
+        x="27.3326"
+        y="202.095"
+        width="120"
+        height="68.0015"
+        rx="10"
+        transform="rotate(-45 27.3326 202.095)"
+        fill="#2E6DE5"
+      />
     </svg>
   );
 };
