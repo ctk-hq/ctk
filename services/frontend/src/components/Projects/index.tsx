@@ -113,7 +113,7 @@ const Projects = () => {
                           flexDirection: "column",
                           justifyContent: "center",
                           alignItems: "center",
-                          minHeight: "calc(100vh - 120px)"
+                          minHeight: "calc(60vh - 120px)"
                         }}
                       >
                         <h3 className="mt-2 text-sm font-medium text-gray-900">
@@ -122,7 +122,11 @@ const Projects = () => {
                         <p className="mt-1 text-sm text-gray-500">
                           Get started by creating a new project.
                         </p>
-                        <div className="mt-6">
+                        <div className="flex flex-col md:flex-row mt-6 items-center space-y-2 md:space-y-0 space-x-2">
+                          <button onClick={onImportClick} className="btn-util">
+                            <span>Import</span>
+                          </button>
+
                           <Link to="/projects/new" className="btn-util">
                             <span className="flex space-x-1 items-center">
                               <PlusIcon

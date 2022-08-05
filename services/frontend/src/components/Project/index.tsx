@@ -640,7 +640,7 @@ export default function Project(props: IProjectProps) {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            minHeight: "calc(100vh - 120px)"
+            minHeight: "calc(60vh - 120px)"
           }}
         >
           <h3 className="text-2xl font-medium text-gray-900">

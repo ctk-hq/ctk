@@ -106,7 +106,8 @@ export const useProject = (uuid: string | undefined) => {
       return (await axios(requestConfig)).data;
     },
     {
-      staleTime: Infinity
+      staleTime: Infinity,
+      retry: 1
     }
   );
 };
