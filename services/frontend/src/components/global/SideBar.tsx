@@ -44,7 +44,7 @@ export default function SideBar(props: ISideBarProps) {
           </div>
 
           <div className="md:mt-5 flex-1 flex flex-col items-center sm:flex-row md:flex-col justify-end">
-            <nav className="flex md:flex-1 md:flex-col items-center md:space-y-1">
+            <nav className="flex md:flex-1 flex-col sm:flex-row md:flex-col items-center md:space-y-1">
               {navigation.map((item) => {
                 if (item.visible) {
                   return (
