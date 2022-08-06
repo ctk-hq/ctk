@@ -289,6 +289,21 @@ export default function Project(props: IProjectProps) {
   const onUpdateEndpoint = (nodeItem: IServiceNodeItem) => {
     const key = nodeItem.key;
 
+    if (connections.length) {
+      const _connections = [...connections];
+
+      _connections.forEach((conn: any) => {
+        if (key === conn[0]) {
+          const filtered = connections.filter((conn: any) => {
+            return key !== conn[0];
+          }) as any;
+
+          setConnections(filtered);
+          stateConnectionsRef.current = filtered;
+        }
+      });
+    }
+
     if (Array.isArray(nodeItem.serviceConfig.depends_on)) {
       nodeItem.serviceConfig.depends_on.forEach((dep: string) => {
         const depObject = Object.keys(nodes).find((key: string) => {
@@ -298,9 +313,12 @@ export default function Project(props: IProjectProps) {
           }
         });
 
-        onConnectionAttached([key, depObject]);
+        if (depObject) {
+          onConnectionAttached([key, depObject]);
+        }
       });
     }
+
     setNodes({ ...nodes, [nodeItem.key]: nodeItem });
   };
 

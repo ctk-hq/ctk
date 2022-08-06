@@ -295,12 +295,30 @@ export const useJsPlumb = (
   useEffect(() => {
     if (!instance) return;
 
-    const exisitngConnectionUuids = (
+    const currentConnections = instance.getConnections(
+      {},
+      true
+    ) as Connection[];
+    const currentConnectionUuids = (
       instance.getConnections({}, true) as Connection[]
     ).map((x) => x.getUuids());
 
+    currentConnections.forEach((conn: Connection) => {
+      const uuids = conn.getUuids();
+      uuids[0] = uuids[0].replace("op_", "");
+      uuids[1] = uuids[1].replace("ip_", "");
+
+      const c = connections.find((y) => {
+        return isEqual([uuids[0], uuids[1]], y);
+      });
+
+      if (!c) {
+        instance.deleteConnection(conn);
+      }
+    });
+
     connections.forEach((x) => {
-      const c = exisitngConnectionUuids.find((y) => {
+      const c = currentConnectionUuids.find((y) => {
         return isEqual([`op_${x[0]}`, `ip_${x[1]}`], y);
       });
 
