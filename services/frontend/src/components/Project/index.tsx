@@ -195,14 +195,6 @@ export default function Project(props: IProjectProps) {
     []
   );
 
-  const debouncedAutoSave = useMemo(
-    () =>
-      debounce(() => {
-        console.log("the api is going to call after 5 seconds");
-      }, 5000),
-    []
-  );
-
   const debouncedOnGraphUpdate = useMemo(
     () =>
       debounce((payload) => {
@@ -320,6 +312,29 @@ export default function Project(props: IProjectProps) {
       return;
     }
 
+    if (stateNodesRef.current) {
+      const sourceNode = {
+        ...stateNodesRef.current[data[0]]
+      } as IServiceNodeItem;
+      const targetNode = stateNodesRef.current[data[1]];
+      const targetServiceName = targetNode.canvasConfig.node_name;
+      const sourceDependsOn = sourceNode.serviceConfig.depends_on as string[];
+
+      if (sourceDependsOn && sourceDependsOn.length) {
+        if (targetServiceName) {
+          const filtered = sourceDependsOn.filter(
+            (nodeName: string) => nodeName !== targetServiceName
+          );
+
+          if (filtered.length) {
+            sourceNode.serviceConfig.depends_on = filtered;
+          } else {
+            delete sourceNode.serviceConfig.depends_on;
+          }
+        }
+      }
+    }
+
     const _connections: [[string, string]] = [
       ...stateConnectionsRef.current
     ] as any;
@@ -333,6 +348,29 @@ export default function Project(props: IProjectProps) {
   };
 
   const onConnectionAttached = (data: any) => {
+    if (stateNodesRef.current) {
+      const sourceNode = {
+        ...stateNodesRef.current[data[0]]
+      } as IServiceNodeItem;
+      const targetNode = stateNodesRef.current[data[1]];
+      const targetServiceName = targetNode.canvasConfig.node_name;
+      let sourceDependsOn = sourceNode.serviceConfig.depends_on as string[];
+
+      if (sourceDependsOn && sourceDependsOn.length) {
+        if (targetServiceName) {
+          if (!sourceDependsOn.includes(targetServiceName)) {
+            sourceDependsOn.push(targetServiceName);
+          }
+        }
+      } else {
+        if (targetServiceName) {
+          sourceDependsOn = [targetServiceName];
+        }
+      }
+
+      sourceNode.serviceConfig.depends_on = sourceDependsOn;
+    }
+
     if (stateConnectionsRef.current && stateConnectionsRef.current.length > 0) {
       const _connections: [[string, string]] = [
         ...stateConnectionsRef.current
