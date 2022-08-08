@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import { Field, Formik } from "formik";
+import { useCallback, useMemo } from "react";
+import { Formik } from "formik";
 import { styled } from "@mui/joy";
 import { XIcon } from "@heroicons/react/outline";
 import { CallbackFunction } from "../../../types";
@@ -13,7 +13,6 @@ import TextField from "../../global/FormElements/TextField";
 import { toaster } from "../../../utils";
 import { reportErrorsAndSubmit } from "../../../utils/forms";
 import { ScrollView } from "../../ScrollView";
-import lodash from "lodash";
 
 interface IModalImportProps {
   onHide: CallbackFunction;

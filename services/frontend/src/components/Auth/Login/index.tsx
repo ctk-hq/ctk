@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { useFormik } from "formik";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  REACT_APP_GITHUB_CLIENT_ID,
+  REACT_APP_GITHUB_SCOPE
+} from "../../../constants";
 import Spinner from "../../../components/global/Spinner";
 import { toaster } from "../../../utils";
 import { checkHttpStatus } from "../../../services/helpers";
 import { logIn } from "../../../services/auth";
 import { LOCAL_STORAGE } from "../../../constants";
 import { authLoginSuccess } from "../../../reducers";
+import LoginBtn from "../GitHub/LoginBtn";
 
 interface IProfileProps {
   dispatch: any;
@@ -62,7 +67,7 @@ const Login = (props: IProfileProps) => {
     <>
       <div className="flex flex-col">
         <main className="py-6 md:w-1/3 lg:w-1/4 mx-auto">
-          <h2 className="mb-4 px-4 sm:px-6 md:flex-row md:px-8 text-xl font-extrabold dark:text-white text-gray-900">
+          <h2 className="mb-4 px-4 sm:px-6 md:flex-row md:px-8 text-xl font-bold dark:text-white text-gray-900">
             Sign in
           </h2>
           <form autoComplete="off">
@@ -151,6 +156,19 @@ const Login = (props: IProfileProps) => {
             >
               <span className="text-sm">Create account</span>
             </Link>
+          </div>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 text-gray-800 font-medium">
+                  Or login with
+                </span>
+              </div>
+            </div>
+            {REACT_APP_GITHUB_SCOPE && REACT_APP_GITHUB_CLIENT_ID && (
+              <LoginBtn />
+            )}
           </div>
         </main>
       </div>

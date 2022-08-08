@@ -3,6 +3,7 @@ django-cors-headers==3.11.0
 django-axes==5.32.0
 djangorestframework==3.13.1
 djangorestframework-simplejwt==5.1.0
+django-storages==1.13.1
 drf-extensions==0.7.1
 dj-rest-auth[with_social]==2.2.4
 
