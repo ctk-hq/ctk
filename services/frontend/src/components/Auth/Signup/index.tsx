@@ -5,8 +5,13 @@ import Spinner from "../../../components/global/Spinner";
 import { toaster } from "../../../utils";
 import { checkHttpStatus } from "../../../services/helpers";
 import { signup } from "../../../services/auth";
-import { LOCAL_STORAGE } from "../../../constants";
+import {
+  LOCAL_STORAGE,
+  REACT_APP_GITHUB_CLIENT_ID,
+  REACT_APP_GITHUB_SCOPE
+} from "../../../constants";
 import { authLoginSuccess } from "../../../reducers";
+import LoginBtn from "../GitHub/LoginBtn";
 
 interface IProfileProps {
   dispatch: any;
@@ -219,6 +224,19 @@ const Signup = (props: IProfileProps) => {
             >
               <span className="text-sm">Already have an account?</span>
             </Link>
+          </div>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 text-gray-800 font-medium">
+                  Or signup with
+                </span>
+              </div>
+            </div>
+            {REACT_APP_GITHUB_SCOPE && REACT_APP_GITHUB_CLIENT_ID && (
+              <LoginBtn />
+            )}
           </div>
         </main>
       </div>

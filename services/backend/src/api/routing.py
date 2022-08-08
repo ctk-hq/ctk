@@ -2,7 +2,7 @@ from django.urls import include, path
 
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
-from .views import project, generate, user, view
+from .views import project, generate, user, view, auth
 
 
 class DefaultRouterPlusPlus(ExtendedDefaultRouter):
@@ -20,5 +20,6 @@ api_urls = [
     path("generate/", generate.GenerateGenericAPIView.as_view()),
     path("auth/self/", user.UserGenericAPIView.as_view()),
     path("auth/", include("dj_rest_auth.urls")),
+    path("auth/github/", auth.GitHubLogin.as_view(), name="github_login"),
     path("auth/registration/", include("dj_rest_auth.registration.urls")),
 ]

@@ -18,6 +18,7 @@ import Project from "./components/Project";
 import Profile from "./components/Profile";
 import Signup from "./components/Auth/Signup";
 import Login from "./components/Auth/Login";
+import GitHub from "./components/Auth/GitHub";
 
 import { ProtectedRouteProps } from "./partials/ProtectedRoute";
 import ProtectedRoute from "./partials/ProtectedRoute";
@@ -131,6 +132,7 @@ export default function App() {
 
             <Route path="/signup" element={<Signup dispatch={dispatch} />} />
             <Route path="/login" element={<Login dispatch={dispatch} />} />
+            <Route path="/github/cb" element={<GitHub dispatch={dispatch} />} />
           </Routes>
         </div>
 
