@@ -118,14 +118,16 @@ const Record: FunctionComponent<IRecordProps> = (
         ))
       )}
       {renderRemoveWrapper(
-        <RemoveButton
-          variant="soft"
-          size="sm"
-          color="danger"
-          onClick={handleRemove}
-        >
-          <MinusSmIcon className="h-5 w-5" />
-        </RemoveButton>
+        <div className="flex justify-end content-end">
+          <RemoveButton
+            variant="soft"
+            size="sm"
+            color="danger"
+            onClick={handleRemove}
+          >
+            <MinusSmIcon className="h-5 w-5" />
+          </RemoveButton>
+        </div>
       )}
     </Root>
   );

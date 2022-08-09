@@ -1,6 +1,6 @@
 import lodash from "lodash";
 import { useFormikContext } from "formik";
-import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
+import { Fragment, FunctionComponent, ReactElement } from "react";
 import { Button, styled } from "@mui/joy";
 
 export interface IToggleProps {
@@ -25,16 +25,21 @@ const Root = styled("div")`
 `;
 
 const Label = styled("label")`
+  margin-bottom: 0.25rem;
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
   color: #374151;
-  font-size: 12px;
-  font-weight: 500;
   padding: 0;
-  margin: 0;
 `;
 
 const Buttons = styled("div")`
   display: flex;
   flex-direction: row;
+  @media (max-width: 640px) {
+    margin-bottom: 0.5rem;
+  }
 `;
 
 const ToggleButton = styled(Button)<IToggleButtonProps>(({ index, total }) => ({
@@ -44,8 +49,7 @@ const ToggleButton = styled(Button)<IToggleButtonProps>(({ index, total }) => ({
       ${index === total - 1 ? "8px" : "0px"}
       ${index === 0 ? "8px" : "0px"}
     `,
-  fontSize: 11,
-  minWidth: 120
+  fontSize: 11
 }));
 
 const ButtonBorder = styled("div")`
