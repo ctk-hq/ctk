@@ -304,7 +304,10 @@ export default function Project(props: IProjectProps) {
       });
     }
 
-    if (Array.isArray(nodeItem.serviceConfig.depends_on)) {
+    if (
+      nodeItem.serviceConfig?.depends_on &&
+      Array.isArray(nodeItem.serviceConfig.depends_on)
+    ) {
       nodeItem.serviceConfig.depends_on.forEach((dep: string) => {
         const depObject = Object.keys(nodes).find((key: string) => {
           const node = nodes[key];

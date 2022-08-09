@@ -1,6 +1,6 @@
 # Container ToolKit
 
-![Alt text](/screenshots/ui.png?raw=true "UI")
+![Alt text](https://ctk-public.s3.amazonaws.com/ui.png?raw=true "UI")
 
 ## Local setup and development
 
