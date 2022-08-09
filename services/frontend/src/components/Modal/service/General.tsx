@@ -7,56 +7,98 @@ const Root = styled("div")`
   display: flex;
   flex-direction: column;
   row-gap: ${({ theme }) => theme.spacing(1)};
+  @media (max-width: 640px) {
+    row-gap: 0;
+  }
 `;
 
 const Group = styled("div")`
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
   @media (max-width: 640px) {
-    flex-direction: column;
+    grid-template-columns: repeat(1, 1fr);
   }
   column-gap: ${({ theme }) => theme.spacing(1)};
   width: 100%;
 `;
 
+const SpanTwo = styled("div")`
+  grid-column: span 2;
+  @media (max-width: 640px) {
+    grid-column: span 3;
+  }
+`;
+
 const General = () => {
   return (
     <Root>
-      <TextField label="Service name" name="serviceName" required={true} />
+      <Group>
+        <TextField label="Service name" name="serviceName" required={true} />
+      </Group>
 
       <Group>
         <TextField label="Image name" name="imageName" required={false} />
         <TextField label="Image tag" name="imageTag" />
       </Group>
 
-      <TextField label="Container name" name="containerName" required={false} />
-      <TextField label="Command" name="command" required={false} />
-      <TextField label="Entrypoint" name="entrypoint" required={false} />
-      <TextField label="Env file" name="envFile" required={false} />
-      <TextField label="Working directory" name="workingDir" required={false} />
+      <Group>
+        <TextField
+          label="Container name"
+          name="containerName"
+          required={false}
+        />
+      </Group>
 
-      <Toggle
-        name="restart"
-        label="Restart policy"
-        options={[
-          {
-            value: "no",
-            text: "no"
-          },
-          {
-            value: "always",
-            text: "always"
-          },
-          {
-            value: "on-failure",
-            text: "on-failure"
-          },
-          {
-            value: "unless-stopped",
-            text: "unless-stopped"
-          }
-        ]}
-      />
+      <Group>
+        <TextField label="Command" name="command" required={false} />
+      </Group>
+
+      <Group>
+        <TextField label="Entrypoint" name="entrypoint" required={false} />
+      </Group>
+
+      <Group>
+        <TextField label="Env file" name="envFile" required={false} />
+      </Group>
+
+      <Group>
+        <SpanTwo>
+          <TextField
+            label="Working directory"
+            name="workingDir"
+            required={false}
+          />
+        </SpanTwo>
+      </Group>
+
+      <Group>
+        <SpanTwo>
+          <Toggle
+            name="restart"
+            label="Restart policy"
+            options={[
+              {
+                value: "no",
+                text: "no"
+              },
+              {
+                value: "always",
+                text: "always"
+              },
+              {
+                value: "on-failure",
+                text: "on-failure"
+              },
+              {
+                value: "unless-stopped",
+                text: "unless-stopped"
+              }
+            ]}
+          />
+        </SpanTwo>
+      </Group>
 
       <Records
         name="ports"

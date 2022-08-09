@@ -37,6 +37,9 @@ const Group = styled("div", {
   align-items: ${({ empty }) => (empty ? "center" : "flex-end")};
   row-gap: ${({ theme }) => theme.spacing(1)};
   width: 100%;
+  @media (max-width: 640px) {
+    row-gap: 0;
+  }
 `;
 
 const GroupTitle = styled("h5")`
@@ -58,7 +61,6 @@ const RecordList = styled("div")`
 `;
 
 const AddButton = styled(IconButton)`
-  margin-top: ${({ theme }) => theme.spacing(1)};
   border-radius: ${({ theme }) => theme.spacing(2)};
 `;
 
