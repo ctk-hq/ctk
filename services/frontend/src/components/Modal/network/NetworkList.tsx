@@ -38,7 +38,7 @@ const ListItem = styled("div")<IListItemProps>`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  column-gap: ${({ theme }) => theme.spacing(2)};
+  column-gap: ${({ theme }) => theme.spacing(1)};
   padding: ${({ theme }) => theme.spacing(1, 1, 1, 2)};
   cursor: pointer;
   background-color: ${({ selected }) => selected && "#f5f5f5"};

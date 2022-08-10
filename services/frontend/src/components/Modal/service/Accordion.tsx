@@ -44,7 +44,6 @@ const Bottom = styled("div")`
   display: flex;
   flex-direction: column;
   row-gap: ${({ theme }) => theme.spacing(1)};
-  padding: ${({ theme }) => theme.spacing(0, 2)};
 `;
 
 const Accordion: FunctionComponent<IAccordionProps> = (

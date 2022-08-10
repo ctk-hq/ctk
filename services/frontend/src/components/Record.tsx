@@ -40,7 +40,7 @@ const Root = styled("div")`
   flex-direction: row;
   justify-content: flex-start;
   align-items: flex-start;
-  column-gap: ${({ theme }) => theme.spacing(2)};
+  column-gap: ${({ theme }) => theme.spacing(1)};
   width: 100%;
 
   @media (max-width: 768px) {
@@ -118,14 +118,16 @@ const Record: FunctionComponent<IRecordProps> = (
         ))
       )}
       {renderRemoveWrapper(
-        <RemoveButton
-          variant="soft"
-          size="sm"
-          color="danger"
-          onClick={handleRemove}
-        >
-          <MinusSmIcon className="h-5 w-5" />
-        </RemoveButton>
+        <div className="flex justify-end content-end">
+          <RemoveButton
+            variant="soft"
+            size="sm"
+            color="danger"
+            onClick={handleRemove}
+          >
+            <MinusSmIcon className="h-5 w-5" />
+          </RemoveButton>
+        </div>
       )}
     </Root>
   );

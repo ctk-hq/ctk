@@ -9,6 +9,9 @@ const Root = styled("div")`
   display: flex;
   flex-direction: column;
   row-gap: ${({ theme }) => theme.spacing(1)};
+  @media (max-width: 640px) {
+    row-gap: 0;
+  }
 `;
 
 const Group = styled("div")`

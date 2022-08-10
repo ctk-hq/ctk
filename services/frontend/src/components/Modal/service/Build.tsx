@@ -6,6 +6,9 @@ const Root = styled("div")`
   display: flex;
   flex-direction: column;
   row-gap: ${({ theme }) => theme.spacing(1)};
+  @media (max-width: 640px) {
+    row-gap: 0;
+  }
 `;
 
 const Build = () => {
@@ -15,7 +18,7 @@ const Build = () => {
 
       <TextField label="Dockerfile" name="build.dockerfile" />
 
-      <TextField label="Stage" name="build.stage" />
+      <TextField label="Target" name="build.target" />
 
       <TextField label="Isolation" name="build.isolation" />
 
