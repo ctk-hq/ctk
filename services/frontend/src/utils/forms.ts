@@ -196,6 +196,35 @@ export const packArrayAsStrings = (
   );
 };
 
+const isObject = (value: any) => {
+  return !!(value && typeof value === "object" && !Array.isArray(value));
+};
+
+const digForString = (error: any[] | string) => {
+  if (lodash.isString(error) && /\s/.test(error)) {
+    toaster(error as string, "error");
+    return;
+  }
+
+  if (Array.isArray(error)) {
+    for (const message of error) {
+      digForString(message);
+    }
+  }
+
+  if (isObject(error)) {
+    for (const [_, value] of Object.entries(error)) {
+      if (Array.isArray(value)) {
+        digForString(value);
+      }
+
+      if (lodash.isString(value)) {
+        toaster(value as string, "error");
+      }
+    }
+  }
+};
+
 /**
  * Formik is configured to validate fields automatically using Yup.
  * The problem is Formik does not call `onSubmit` function when errors
@@ -204,21 +233,9 @@ export const packArrayAsStrings = (
  * function basically implements this.
  */
 export const reportErrorsAndSubmit = (formik: any) => () => {
-  const errors = Object.entries(formik.errors);
+  const errors: [string, any][] = Object.entries(formik.errors);
   if (errors.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_field, message] of errors) {
-      if (Array.isArray(message)) {
-        message.forEach((m: object) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          for (const [_, value] of Object.entries(m)) {
-            toaster(value as string, "error");
-          }
-        });
-      } else {
-        toaster(message as string, "error");
-      }
-    }
+    digForString(errors);
   } else {
     formik.submitForm();
   }

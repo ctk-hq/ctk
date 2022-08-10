@@ -4,7 +4,10 @@ import Records from "../../Records";
 const Root = styled("div")`
   display: flex;
   flex-direction: column;
-  align-items: center;
+  row-gap: ${({ theme }) => theme.spacing(1)};
+  @media (max-width: 640px) {
+    row-gap: 0;
+  }
 `;
 
 const Volumes = () => {

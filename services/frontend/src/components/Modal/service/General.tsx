@@ -14,7 +14,7 @@ const Root = styled("div")`
 
 const Group = styled("div")`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   grid-column-gap: 0px;
   grid-row-gap: 0px;
   @media (max-width: 640px) {
@@ -52,11 +52,15 @@ const General = () => {
       </Group>
 
       <Group>
-        <TextField label="Command" name="command" required={false} />
+        <SpanTwo>
+          <TextField label="Command" name="command" required={false} />
+        </SpanTwo>
       </Group>
 
       <Group>
-        <TextField label="Entrypoint" name="entrypoint" required={false} />
+        <SpanTwo>
+          <TextField label="Entrypoint" name="entrypoint" required={false} />
+        </SpanTwo>
       </Group>
 
       <Group>

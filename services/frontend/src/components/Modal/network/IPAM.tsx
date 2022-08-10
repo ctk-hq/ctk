@@ -5,10 +5,24 @@ import TextField from "../../global/FormElements/TextField";
 import { IFieldType } from "../../Record";
 import Records from "../../Records";
 
-const Fields = styled("div")`
+const Root = styled("div")`
   display: flex;
   flex-direction: column;
   row-gap: ${({ theme }) => theme.spacing(1)};
+  @media (max-width: 640px) {
+    row-gap: 0;
+  }
+`;
+
+const Group = styled("div")`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  column-gap: ${({ theme }) => theme.spacing(1)};
   width: 100%;
 `;
 
@@ -44,8 +58,10 @@ const ConfigurationBorder = styled("div")`
 
 const IPAM: FunctionComponent = (): ReactElement => {
   return (
-    <Fields>
-      <TextField label="Driver" name="driver" />
+    <Root>
+      <Group>
+        <TextField label="Driver" name="driver" />
+      </Group>
 
       <Records
         name="configurations"
@@ -150,7 +166,7 @@ const IPAM: FunctionComponent = (): ReactElement => {
           <Field>{element}</Field>
         )}
       />
-    </Fields>
+    </Root>
   );
 };
 

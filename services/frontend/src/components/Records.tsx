@@ -35,19 +35,19 @@ const Group = styled("div", {
   display: flex;
   flex-direction: column;
   align-items: ${({ empty }) => (empty ? "center" : "flex-end")};
-  row-gap: ${({ theme }) => theme.spacing(1)};
   width: 100%;
   @media (max-width: 640px) {
     row-gap: 0;
   }
 `;
 
-const GroupTitle = styled("h5")`
-  font-size: 0.85rem;
-  color: #374151;
+const GroupTitle = styled("label")`
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 700;
-  width: 100%;
-  text-align: left;
+  color: #374151;
+  padding: 0;
 `;
 
 const RecordList = styled("div")`
@@ -56,7 +56,6 @@ const RecordList = styled("div")`
   justify-content: center;
   align-items: center;
   row-gap: ${({ theme }) => theme.spacing(1)};
-  margin-top: ${({ theme }) => theme.spacing(1)};
   width: 100%;
 `;
 
