@@ -1,7 +1,8 @@
+import { styled } from "@mui/joy";
 import lodash from "lodash";
 import { toaster } from ".";
 
-export const checkArray = <T>(array: any, name: string): T => {
+export const checkArray = <T,>(array: any, name: string): T => {
   if (!Array.isArray(array)) {
     throw new Error(
       `Looks like we encountered a bug. The current implementation expects "${name}" to be an array.`
@@ -10,7 +11,7 @@ export const checkArray = <T>(array: any, name: string): T => {
   return array as unknown as T;
 };
 
-export const pruneArray = <T>(array: (T | undefined)[]): T[] | undefined => {
+export const pruneArray = <T,>(array: (T | undefined)[]): T[] | undefined => {
   const result = array.filter(Boolean);
   if (array.length === 0) {
     return undefined;
@@ -200,26 +201,40 @@ const isObject = (value: any) => {
   return !!(value && typeof value === "object" && !Array.isArray(value));
 };
 
-const digForString = (error: any[] | string) => {
+const Path = styled("span")`
+  font-weight: bold;
+  font-size: 0.75rem;
+`;
+
+const renderToast = (path: string, message: string) => (
+  <p>
+    <Path>{path}</Path>
+    <br />
+    {message}
+  </p>
+);
+
+const reportError = (prefix: string, error: any[] | string) => {
   if (lodash.isString(error) && /\s/.test(error)) {
-    toaster(error as string, "error");
+    toaster(renderToast(prefix, error as string), "error");
     return;
   }
 
   if (Array.isArray(error)) {
-    for (const message of error) {
-      digForString(message);
-    }
+    error.forEach((item, index) => {
+      reportError(`${prefix} > ${index}`, item);
+    });
   }
 
   if (isObject(error)) {
-    for (const [_, value] of Object.entries(error)) {
-      if (Array.isArray(value)) {
-        digForString(value);
-      }
-
-      if (lodash.isString(value)) {
-        toaster(value as string, "error");
+    const normalizedPrefix = `${prefix}${prefix !== "" ? " > " : ""}`;
+    for (const [key, value] of Object.entries(error)) {
+      if (Array.isArray(value) || isObject(value)) {
+        reportError(`${normalizedPrefix}${key}`, value);
+      } else if (lodash.isString(value)) {
+        toaster(renderToast(normalizedPrefix + key, value as string), "error");
+      } else {
+        throw new Error("Unknown path");
       }
     }
   }
@@ -235,7 +250,7 @@ const digForString = (error: any[] | string) => {
 export const reportErrorsAndSubmit = (formik: any) => () => {
   const errors: [string, any][] = Object.entries(formik.errors);
   if (errors.length > 0) {
-    digForString(errors);
+    reportError("", formik.errors);
   } else {
     formik.submitForm();
   }
