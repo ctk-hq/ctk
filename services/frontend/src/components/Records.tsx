@@ -61,6 +61,7 @@ const RecordList = styled("div")`
 
 const AddButton = styled(IconButton)`
   border-radius: ${({ theme }) => theme.spacing(2)};
+  margin-top: ${({ theme }) => theme.spacing(1)};
 `;
 
 const Description = styled("p")`
