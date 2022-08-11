@@ -12,6 +12,7 @@ import {
 } from "lodash";
 import { LOCAL_STORAGE } from "../constants";
 import { IServiceNodeItem, INodeLibraryItem, INodeGroup } from "../types";
+import { ReactElement } from "react";
 
 export function ensure<T>(
   argument: T | undefined | null,
@@ -181,7 +182,7 @@ export const getNodeKeyFromConnectionId = (uuid: string) => {
   return key;
 };
 
-export const toaster = (message: string, type: string) => {
+export const toaster = (message: string | ReactElement, type: string) => {
   const toastConfig = {
     duration: 3000,
     position: "bottom-right",
