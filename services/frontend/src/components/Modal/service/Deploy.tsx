@@ -73,6 +73,7 @@ const Deploy = () => {
           {
             name: `deploy.placement.constraints[${index}].value`,
             placeholder: "Value",
+            required: true,
             type: "text"
           }
         ]}
@@ -95,6 +96,7 @@ const Deploy = () => {
           {
             name: `deploy.placement.preferences[${index}].value`,
             placeholder: "Value",
+            required: true,
             type: "text"
           }
         ]}
