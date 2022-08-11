@@ -41,7 +41,7 @@ const TextField: FunctionComponent<ITextFieldProps> = (
           {...otherProps}
         />
 
-        <div className="text-xs text-red-600">
+        <div className="text-xs text-red-600 mt-1">
           {error && <span className="caption">{error}</span>}
           {!error && help}
         </div>
