@@ -74,9 +74,6 @@ export const getFinalValues = (
 
 export const tabs = [
   {
-    name: "General",
-    href: "#",
-    current: true,
-    hidden: false
+    name: "General"
   }
 ];
