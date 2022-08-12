@@ -9,11 +9,11 @@ import {
   validationSchema
 } from "./form-utils";
 import General from "./General";
-import { CallbackFunction, IEditVolumeForm } from "../../../types";
-import { classNames } from "../../../utils/styles";
-import { toaster } from "../../../utils";
-import { reportErrorsAndSubmit } from "../../../utils/forms";
-import { ScrollView } from "../../ScrollView";
+import { CallbackFunction, IEditVolumeForm } from "../../../../types";
+import { classNames } from "../../../../utils/styles";
+import { toaster } from "../../../../utils";
+import { reportErrorsAndSubmit } from "../../../../utils/forms";
+import { ScrollView } from "../../../ScrollView";
 
 interface ICreateVolumeModalProps {
   onHide: CallbackFunction;

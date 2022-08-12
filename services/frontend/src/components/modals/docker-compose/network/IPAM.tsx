@@ -1,9 +1,9 @@
 import { FunctionComponent, ReactElement } from "react";
 import { styled } from "@mui/joy";
 
-import TextField from "../../global/FormElements/TextField";
-import { IFieldType } from "../../Record";
-import Records from "../../Records";
+import TextField from "../../../global/FormElements/TextField";
+import { IFieldType } from "../../../Record";
+import Records from "../../../Records";
 
 const Root = styled("div")`
   display: flex;

@@ -1,4 +1,4 @@
-import type { IEditServiceForm, IServiceNodeItem } from "../../../types";
+import type { IEditServiceForm, IServiceNodeItem } from "../../../../types";
 import * as yup from "yup";
 import {
   checkArray,
@@ -10,7 +10,7 @@ import {
   pruneNumber,
   packArrayAsObject,
   packArrayAsStrings
-} from "../../../utils/forms";
+} from "../../../../utils/forms";
 
 export const tabs = [
   {

@@ -1,8 +1,8 @@
 import { styled } from "@mui/joy";
 import { useParams } from "react-router-dom";
-import TextField from "../../global/FormElements/TextField";
-import Toggle from "../../global/FormElements/Toggle";
-import Records from "../../Records";
+import TextField from "../../../global/FormElements/TextField";
+import Toggle from "../../../global/FormElements/Toggle";
+import Records from "../../../Records";
 import Accordion from "./Accordion";
 
 const Root = styled("div")`

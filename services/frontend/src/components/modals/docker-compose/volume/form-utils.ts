@@ -1,6 +1,6 @@
 import * as yup from "yup";
-import { IEditVolumeForm, IVolumeNodeItem } from "../../../types";
-import { pruneObject } from "../../../utils/forms";
+import { IEditVolumeForm, IVolumeNodeItem } from "../../../../types";
+import { pruneObject } from "../../../../utils/forms";
 
 export const validationSchema = yup.object({
   entryName: yup

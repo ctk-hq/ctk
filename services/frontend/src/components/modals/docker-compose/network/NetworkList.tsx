@@ -2,7 +2,7 @@ import { MinusSmIcon, PlusIcon } from "@heroicons/react/outline";
 import { Button, styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
 import { FunctionComponent, ReactElement } from "react";
-import { truncateStr } from "../../../utils";
+import { truncateStr } from "../../../../utils";
 
 export interface INetworkListProps {
   networks: Record<string, any>;

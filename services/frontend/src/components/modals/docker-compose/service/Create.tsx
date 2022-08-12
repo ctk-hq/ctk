@@ -3,7 +3,7 @@ import { Formik } from "formik";
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
 import Data from "./Data";
-import { CallbackFunction, IEditServiceForm } from "../../../types";
+import { CallbackFunction, IEditServiceForm } from "../../../../types";
 import {
   getFinalValues,
   getInitialValues,
@@ -14,10 +14,10 @@ import Build from "./Build";
 import { styled } from "@mui/joy";
 import Environment from "./Environment";
 import Deploy from "./Deploy";
-import { classNames } from "../../../utils/styles";
-import { toaster } from "../../../utils";
-import { reportErrorsAndSubmit } from "../../../utils/forms";
-import { ScrollView } from "../../ScrollView";
+import { classNames } from "../../../../utils/styles";
+import { toaster } from "../../../../utils";
+import { reportErrorsAndSubmit } from "../../../../utils/forms";
+import { ScrollView } from "../../../ScrollView";
 
 interface IModalServiceProps {
   onHide: CallbackFunction;

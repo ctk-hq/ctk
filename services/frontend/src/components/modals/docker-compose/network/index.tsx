@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
 import { XIcon } from "@heroicons/react/outline";
 import CreateNetworkModal from "./CreateNetworkModal";
-import { CallbackFunction, IEditNetworkForm } from "../../../types";
+import { CallbackFunction, IEditNetworkForm } from "../../../../types";
 import EditNetworkModal from "./EditNetworkModal";
-import { attachUUID, toaster } from "../../../utils";
+import { attachUUID, toaster } from "../../../../utils";
 import { getFinalValues } from "./form-utils";
 import EmptyNetworks from "./EmptyNetworks";
 import NetworkList from "./NetworkList";

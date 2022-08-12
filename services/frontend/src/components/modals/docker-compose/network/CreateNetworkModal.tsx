@@ -2,12 +2,12 @@ import { FunctionComponent, ReactElement, useMemo, useState } from "react";
 import { Formik } from "formik";
 import General from "./General";
 import IPAM from "./IPAM";
-import { CallbackFunction } from "../../../types";
+import { CallbackFunction } from "../../../../types";
 import { getInitialValues, tabs, validationSchema } from "./form-utils";
-import { classNames } from "../../../utils/styles";
+import { classNames } from "../../../../utils/styles";
 import { Button, styled } from "@mui/joy";
-import { reportErrorsAndSubmit } from "../../../utils/forms";
-import { ScrollView } from "../../ScrollView";
+import { reportErrorsAndSubmit } from "../../../../utils/forms";
+import { ScrollView } from "../../../ScrollView";
 
 interface ICreateNetworkModalProps {
   onCreateNetwork: CallbackFunction;

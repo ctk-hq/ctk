@@ -1,50 +1,50 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Formik } from "formik";
+
 import { XIcon } from "@heroicons/react/outline";
 import General from "./General";
-import type {
-  CallbackFunction,
-  IEditVolumeForm,
-  IVolumeNodeItem
-} from "../../../types";
+import Data from "./Data";
+import type { CallbackFunction, IServiceNodeItem } from "../../../../types";
 import {
-  getFinalValues,
   getInitialValues,
-  tabs,
-  validationSchema
+  getFinalValues,
+  validationSchema,
+  tabs
 } from "./form-utils";
-import { classNames } from "../../../utils/styles";
-import { toaster } from "../../../utils";
-import { reportErrorsAndSubmit } from "../../../utils/forms";
-import { ScrollView } from "../../ScrollView";
+import Environment from "./Environment";
+import Build from "./Build";
+import Deploy from "./Deploy";
+import { classNames } from "../../../../utils/styles";
+import { toaster } from "../../../../utils";
+import { reportErrorsAndSubmit } from "../../../../utils/forms";
+import { ScrollView } from "../../../ScrollView";
 
-interface IEditVolumeModal {
-  node: IVolumeNodeItem;
+export interface IModalServiceProps {
+  node: IServiceNodeItem;
   onHide: CallbackFunction;
   onUpdateEndpoint: CallbackFunction;
 }
 
-const EditVolumeModal = (props: IEditVolumeModal) => {
+const ModalServiceEdit = (props: IModalServiceProps) => {
   const { node, onHide, onUpdateEndpoint } = props;
   const [openTab, setOpenTab] = useState("General");
-  const [selectedNode, setSelectedNode] = useState<IVolumeNodeItem>();
+  const [selectedNode, setSelectedNode] = useState<IServiceNodeItem>();
 
-  useEffect(() => {
-    if (node) {
-      setSelectedNode(node);
-    }
-  }, [node]);
-
-  const handleUpdate = (values: IEditVolumeForm) => {
+  const handleUpdate = (values: any) => {
     onUpdateEndpoint(getFinalValues(values, selectedNode));
-
-    toaster(`Updated "${values.entryName}" volume successfully`, "success");
+    toaster(`Updated "${values.serviceName}" service successfully`, "success");
   };
 
   const initialValues = useMemo(
     () => getInitialValues(selectedNode),
     [selectedNode]
   );
+
+  useEffect(() => {
+    if (node) {
+      setSelectedNode(node);
+    }
+  }, [node]);
 
   return (
     <div className="fixed z-50 inset-0 overflow-y-auto">
@@ -56,7 +56,7 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
         <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
             <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
-              <h3 className="text-sm font-semibold">Edit top level volumes</h3>
+              <h3 className="text-sm font-semibold">Edit service</h3>
               <button
                 className="p-1 ml-auto text-black float-right outline-none focus:outline-none"
                 onClick={onHide}
@@ -109,6 +109,10 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
                       className="relative px-4 py-3 flex-auto"
                     >
                       {openTab === "General" && <General />}
+                      {openTab === "Environment" && <Environment />}
+                      {openTab === "Data" && <Data />}
+                      {openTab === "Build" && <Build />}
+                      {openTab === "Deploy" && <Deploy />}
                     </ScrollView>
 
                     <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
@@ -131,4 +135,4 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
   );
 };
 
-export default EditVolumeModal;
+export default ModalServiceEdit;
