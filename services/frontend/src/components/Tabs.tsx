@@ -1,7 +1,10 @@
 import { styled } from "@mui/joy";
 import { FunctionComponent, ReactElement, ReactNode } from "react";
+import { TabContext } from "../contexts";
 
 export interface ITabsProps {
+  value: string;
+  onChange: (newValue: string) => void;
   children: ReactNode;
 }
 
@@ -30,11 +33,15 @@ const Nav = styled("nav")`
 const Tabs: FunctionComponent<ITabsProps> = (
   props: ITabsProps
 ): ReactElement => {
-  const { children } = props;
+  const { children, value, onChange } = props;
 
   return (
     <Root>
-      <Nav aria-label="Tabs">{children}</Nav>
+      <Nav>
+        <TabContext.Provider value={{ value, onChange }}>
+          {children}
+        </TabContext.Provider>
+      </Nav>
     </Root>
   );
 };
