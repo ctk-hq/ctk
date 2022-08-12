@@ -515,3 +515,8 @@ export interface IEditNetworkForm {
     value: string;
   }[];
 }
+
+export interface ITabContext {
+  value: string;
+  onChange: (newValue: string) => void;
+}
