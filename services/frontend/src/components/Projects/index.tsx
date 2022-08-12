@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PROJECTS_FETCH_LIMIT } from "../../constants";
-import ModalImport from "../Modal/import";
+import ModalImport from "../modals/import";
 import { IProject } from "../../types";
 import { toaster } from "../../utils";
 import Spinner from "../../components/global/Spinner";
@@ -9,7 +9,7 @@ import PreviewBlock from "./PreviewBlock";
 import { useProjects } from "../../hooks/useProjects";
 import { PlusIcon } from "@heroicons/react/outline";
 import { importProject } from "../../hooks/useImportProject";
-import { IImportFinalValues } from "../Modal/import/form-utils";
+import { IImportFinalValues } from "../modals/import/form-utils";
 
 const Projects = () => {
   const navigate = useNavigate();

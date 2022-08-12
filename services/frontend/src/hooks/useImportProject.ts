@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IImportFinalValues } from "../components/Modal/import/form-utils";
+import { IImportFinalValues } from "../components/modals/import/form-utils";
 import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys } from "../utils";
 
