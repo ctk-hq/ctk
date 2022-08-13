@@ -13,10 +13,11 @@ import {
   tabs,
   validationSchema
 } from "./form-utils";
-import { classNames } from "../../../../utils/styles";
 import { toaster } from "../../../../utils";
 import { reportErrorsAndSubmit } from "../../../../utils/forms";
 import { ScrollView } from "../../../ScrollView";
+import Tabs from "../../../Tabs";
+import Tab from "../../../Tab";
 
 interface IEditVolumeModal {
   node: IVolumeNodeItem;
@@ -76,33 +77,11 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
               >
                 {(formik) => (
                   <>
-                    <div className="border-b border-gray-200 px-4 md:px-8">
-                      <nav
-                        className="-mb-px flex space-x-4 md:space-x-8"
-                        aria-label="Tabs"
-                      >
-                        {tabs.map((tab) => (
-                          <a
-                            key={tab.name}
-                            href={tab.href}
-                            className={classNames(
-                              tab.name === openTab
-                                ? "border-indigo-500 text-indigo-600"
-                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-                              "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm",
-                              tab.hidden ? "hidden" : ""
-                            )}
-                            aria-current={tab.current ? "page" : undefined}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setOpenTab(tab.name);
-                            }}
-                          >
-                            {tab.name}
-                          </a>
-                        ))}
-                      </nav>
-                    </div>
+                    <Tabs value={openTab} onChange={setOpenTab}>
+                      {tabs.map((tab) => (
+                        <Tab key={tab.name} value={tab.name} title={tab.name} />
+                      ))}
+                    </Tabs>
 
                     <ScrollView
                       height="500px"
