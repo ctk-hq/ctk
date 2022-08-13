@@ -33,7 +33,7 @@ import { generateHttp } from "../../services/generate";
 import { Canvas } from "../Canvas";
 import Spinner from "../global/Spinner";
 import ModalConfirmDelete from "../modals/ConfirmDelete";
-import ModalServiceCreate from "../modals/docker-compose/service/Create";
+import CreateServiceModal from "../modals/docker-compose/service/Create";
 import ModalServiceEdit from "../modals/docker-compose/service/Edit";
 import ModalNetwork from "../modals/docker-compose/network";
 import CreateVolumeModal from "../modals/docker-compose/volume/CreateVolumeModal";
@@ -459,7 +459,7 @@ export default function Project(props: IProjectProps) {
           ) : null}
 
           {showModalCreateService ? (
-            <ModalServiceCreate
+            <CreateServiceModal
               onHide={() => setShowModalCreateService(false)}
               onAddEndpoint={(values: any) => onAddEndpoint(values)}
             />

@@ -11,37 +11,37 @@ import {
   packArrayAsObject,
   packArrayAsStrings
 } from "../../../../utils/forms";
+import General from "./General";
+import Environment from "./Environment";
+import Data from "./Data";
+import Build from "./Build";
+import Deploy from "./Deploy";
 
 export const tabs = [
   {
-    name: "General",
-    href: "#",
-    current: true,
-    hidden: false
+    value: "general",
+    title: "General",
+    component: General
   },
   {
-    name: "Environment",
-    href: "#",
-    current: false,
-    hidden: false
+    value: "environment",
+    title: "Environment",
+    component: Environment
   },
   {
-    name: "Data",
-    href: "#",
-    current: false,
-    hidden: false
+    value: "data",
+    title: "Data",
+    component: Data
   },
   {
-    name: "Build",
-    href: "#",
-    current: false,
-    hidden: false
+    value: "build",
+    title: "Build",
+    component: Build
   },
   {
-    name: "Deploy",
-    href: "#",
-    current: false,
-    hidden: false
+    value: "deploy",
+    title: "Deploy",
+    component: Deploy
   }
 ];
 
