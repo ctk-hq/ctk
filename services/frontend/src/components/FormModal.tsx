@@ -1,4 +1,10 @@
-import { ReactElement, useCallback, useState } from "react";
+import {
+  Fragment,
+  FunctionComponent,
+  useCallback,
+  useMemo,
+  useState
+} from "react";
 import { Formik } from "formik";
 import { Button, styled } from "@mui/joy";
 
@@ -8,14 +14,21 @@ import Modal from "./Modal";
 import Tabs from "./Tabs";
 import Tab from "./Tab";
 
+export interface ITab {
+  value: string;
+  title: string;
+  component: FunctionComponent;
+}
+
 export interface IFormModalProps {
   title: string;
-  tabs: { value: string; title: string }[];
+  tabs: ITab[];
   onHide: () => void;
-  initialValues: any;
+  getFinalValues: (values: any, selectedNode?: any) => any;
+  getInitialValues: (selectedNode?: any) => any;
   validationSchema: any;
-  onCreate: (values: any, formik: any) => void;
-  renderTabs: (current: string) => ReactElement;
+  onCreate: (finalValues: any, values: any, formik: any) => void;
+  selectedNode?: any;
 }
 
 const StyledScrollView = styled(ScrollView)`
@@ -45,18 +58,38 @@ const FormModal = (props: IFormModalProps) => {
   const {
     title,
     tabs,
-    initialValues,
+    getInitialValues,
+    getFinalValues,
     validationSchema,
     onHide,
     onCreate,
-    renderTabs
+    selectedNode
   } = props;
+
   const [openTab, setOpenTab] = useState(() => tabs[0].value);
 
-  const handleCreate = useCallback((values: any, formik: any) => {
-    onCreate(values, formik);
-    onHide();
-  }, []);
+  const initialValues = useMemo(
+    () => getInitialValues(selectedNode),
+    [getInitialValues, selectedNode]
+  );
+
+  const handleCreate = useCallback(
+    (values: any, formik: any) => {
+      onCreate(getFinalValues(values, selectedNode), values, formik);
+      formik.resetForm();
+      onHide();
+    },
+    [getFinalValues, onCreate, onHide]
+  );
+
+  const renderTab = (tab: ITab) => {
+    const Component = tab.component;
+    return (
+      <Fragment key={tab.value}>
+        {openTab === tab.value && <Component />}
+      </Fragment>
+    );
+  };
 
   return (
     <Modal onHide={onHide} title={title}>
@@ -75,7 +108,7 @@ const FormModal = (props: IFormModalProps) => {
             </Tabs>
 
             <StyledScrollView height="500px">
-              {renderTabs(openTab)}
+              {tabs.map(renderTab)}
             </StyledScrollView>
 
             <Actions>
