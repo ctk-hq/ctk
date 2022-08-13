@@ -9,8 +9,6 @@ export interface ITabsProps {
 }
 
 const Root = styled("div")`
-  padding-left: 1rem;
-  padding-right: 1rem;
   border-bottom-width: 1px;
   border-color: #e5e7eb;
 
@@ -22,12 +20,8 @@ const Root = styled("div")`
 
 const Nav = styled("nav")`
   display: flex;
+  flex-direction: row;
   margin-bottom: -1px;
-  margin-left: 1rem;
-
-  @media (min-width: 768px) {
-    margin-left: 2rem;
-  }
 `;
 
 const Tabs: FunctionComponent<ITabsProps> = (
