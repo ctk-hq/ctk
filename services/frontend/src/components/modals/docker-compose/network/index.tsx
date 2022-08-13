@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { XIcon } from "@heroicons/react/outline";
 import CreateNetworkModal from "./CreateNetworkModal";
 import { CallbackFunction, IEditNetworkForm } from "../../../../types";
 import EditNetworkModal from "./EditNetworkModal";
@@ -8,6 +7,7 @@ import { getFinalValues } from "./form-utils";
 import EmptyNetworks from "./EmptyNetworks";
 import NetworkList from "./NetworkList";
 import { styled } from "@mui/joy";
+import Modal from "../../../Modal";
 
 interface IModalNetworkProps {
   networks: Record<string, any>;
@@ -84,60 +84,41 @@ const ModalNetwork = (props: IModalNetworkProps) => {
   const networkKeys = Object.keys(networks);
 
   return (
-    <div className="fixed z-50 inset-0 overflow-y-auto">
-      <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none">
-        <div
-          onClick={onHide}
-          className="opacity-25 fixed inset-0 z-40 bg-black"
-        ></div>
-        <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
-          <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
-              <h3 className="text-sm font-semibold">Networks</h3>
-              <button
-                className="p-1 ml-auto text-black float-right outline-none focus:outline-none"
-                onClick={onHide}
-              >
-                <span className="block outline-none focus:outline-none">
-                  <XIcon className="w-4" />
-                </span>
-              </button>
-            </div>
+    <Modal
+      title={selectedNetwork ? "Edit network" : "Create network"}
+      onHide={onHide}
+    >
+      {networkKeys.length === 0 && !showCreate && (
+        <EmptyNetworks onCreate={handleNew} />
+      )}
 
-            {networkKeys.length === 0 && !showCreate && (
-              <EmptyNetworks onCreate={handleNew} />
+      {(networkKeys.length > 0 || showCreate) && (
+        <Container>
+          {networkKeys.length > 0 && (
+            <NetworkList
+              networks={networks}
+              onNew={handleNew}
+              onRemove={handleRemove}
+              onEdit={handleEdit}
+              selectedUuid={selectedNetwork?.key}
+            />
+          )}
+
+          <NetworkFormContainer>
+            {!selectedNetwork && (
+              <CreateNetworkModal onCreateNetwork={handleCreate} />
             )}
 
-            {(networkKeys.length > 0 || showCreate) && (
-              <Container>
-                {networkKeys.length > 0 && (
-                  <NetworkList
-                    networks={networks}
-                    onNew={handleNew}
-                    onRemove={handleRemove}
-                    onEdit={handleEdit}
-                    selectedUuid={selectedNetwork?.key}
-                  />
-                )}
-
-                <NetworkFormContainer>
-                  {!selectedNetwork && (
-                    <CreateNetworkModal onCreateNetwork={handleCreate} />
-                  )}
-
-                  {selectedNetwork && (
-                    <EditNetworkModal
-                      network={selectedNetwork}
-                      onUpdateNetwork={handleUpdate}
-                    />
-                  )}
-                </NetworkFormContainer>
-              </Container>
+            {selectedNetwork && (
+              <EditNetworkModal
+                network={selectedNetwork}
+                onUpdateNetwork={handleUpdate}
+              />
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </NetworkFormContainer>
+        </Container>
+      )}
+    </Modal>
   );
 };
 
