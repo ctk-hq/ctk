@@ -21,6 +21,7 @@ const Root = styled("div")`
 const Nav = styled("nav")`
   display: flex;
   flex-direction: row;
+  column-gap: ${({ theme }) => theme.spacing(3)};
   margin-bottom: -1px;
 `;
 

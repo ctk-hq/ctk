@@ -24,6 +24,7 @@ const Root = styled("div")<IRootProps>(({ hidden, active }) => ({
   fontWeight: 500,
   whiteSpace: "nowrap",
   borderBottomWidth: 2,
+  cursor: "pointer",
 
   ...(active
     ? { color: "#4f46e5", borderColor: "#6366f1" }
