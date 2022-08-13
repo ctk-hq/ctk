@@ -36,7 +36,7 @@ const CreateVolumeModal = (props: ICreateVolumeModalProps) => {
   const initialValues = useMemo(() => getInitialValues(), []);
 
   return (
-    <Modal onHide={onHide} title="Add top level volume">
+    <Modal onHide={onHide} title="Add volume">
       <Formik
         initialValues={initialValues}
         enableReinitialize={true}
