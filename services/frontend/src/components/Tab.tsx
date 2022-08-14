@@ -14,7 +14,9 @@ interface IRootProps {
   hidden?: boolean;
 }
 
-const Root = styled("div")<IRootProps>(({ hidden, active }) => ({
+const Root = styled("div", {
+  shouldForwardProp: (name) => !["hidden", "active"].includes(name.toString())
+})<IRootProps>(({ hidden, active }) => ({
   paddingLeft: "0.25rem",
   paddingRight: "0.25rem",
   paddingTop: "1rem",
