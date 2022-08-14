@@ -75,11 +75,10 @@ const FormModal = (props: IFormModalProps) => {
 
   const handleCreate = useCallback(
     (values: any, formik: any) => {
-      onCreate(getFinalValues(values, selectedNode), values, formik);
       formik.resetForm();
-      onHide();
+      onCreate(getFinalValues(values, selectedNode), values, formik);
     },
-    [getFinalValues, onCreate, onHide]
+    [getFinalValues, onCreate]
   );
 
   const renderTab = (tab: ITab) => {

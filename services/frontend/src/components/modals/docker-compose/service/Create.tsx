@@ -23,6 +23,7 @@ const CreateServiceModal = (props: IModalServiceProps) => {
 
   const handleCreate = useCallback(
     (finalValues: IServiceNodeItem, values: IEditServiceForm) => {
+      onHide();
       onAddEndpoint(finalValues);
       toaster(
         `Created "${values.serviceName}" service successfully`,
