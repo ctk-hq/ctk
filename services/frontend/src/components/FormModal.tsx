@@ -75,7 +75,6 @@ const FormModal = (props: IFormModalProps) => {
 
   const handleCreate = useCallback(
     (values: any, formik: any) => {
-      formik.resetForm();
       onCreate(getFinalValues(values, selectedNode), values, formik);
     },
     [getFinalValues, onCreate]
