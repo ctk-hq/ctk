@@ -1,6 +1,6 @@
 import { styled } from "@mui/joy";
-import TextField from "../../global/FormElements/TextField";
-import Records from "../../Records";
+import TextField from "../../../global/FormElements/TextField";
+import Records from "../../../Records";
 
 const Root = styled("div")`
   display: flex;

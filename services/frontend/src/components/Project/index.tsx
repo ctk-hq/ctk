@@ -32,12 +32,12 @@ import { checkHttpStatus } from "../../services/helpers";
 import { generateHttp } from "../../services/generate";
 import { Canvas } from "../Canvas";
 import Spinner from "../global/Spinner";
-import ModalConfirmDelete from "../Modal/ConfirmDelete";
-import ModalServiceCreate from "../Modal/service/Create";
-import ModalServiceEdit from "../Modal/service/Edit";
-import ModalNetwork from "../Modal/network";
-import CreateVolumeModal from "../Modal/volume/CreateVolumeModal";
-import EditVolumeModal from "../Modal/volume/EditVolumeModal";
+import ModalConfirmDelete from "../modals/ConfirmDelete";
+import CreateServiceModal from "../modals/docker-compose/service/Create";
+import ModalServiceEdit from "../modals/docker-compose/service/Edit";
+import ModalNetwork from "../modals/docker-compose/network";
+import CreateVolumeModal from "../modals/docker-compose/volume/CreateVolumeModal";
+import EditVolumeModal from "../modals/docker-compose/volume/EditVolumeModal";
 import CodeEditor from "../CodeEditor";
 import { useTitle } from "../../hooks";
 import VisibilitySwitch from "../global/VisibilitySwitch";
@@ -459,7 +459,7 @@ export default function Project(props: IProjectProps) {
           ) : null}
 
           {showModalCreateService ? (
-            <ModalServiceCreate
+            <CreateServiceModal
               onHide={() => setShowModalCreateService(false)}
               onAddEndpoint={(values: any) => onAddEndpoint(values)}
             />

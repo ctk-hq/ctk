@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { TrashIcon } from "@heroicons/react/outline";
 import { truncateStr } from "../../utils";
 import { IProject } from "../../types";
-import ModalConfirmDelete from "../../components/Modal/ConfirmDelete";
+import ModalConfirmDelete from "../modals/ConfirmDelete";
 import { useDeleteProject } from "../../hooks/useProject";
 
 interface IPreviewBlockProps {

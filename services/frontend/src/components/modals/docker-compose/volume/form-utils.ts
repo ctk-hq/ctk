@@ -1,6 +1,7 @@
 import * as yup from "yup";
-import { IEditVolumeForm, IVolumeNodeItem } from "../../../types";
-import { pruneObject } from "../../../utils/forms";
+import { IEditVolumeForm, IVolumeNodeItem } from "../../../../types";
+import { pruneObject } from "../../../../utils/forms";
+import General from "./General";
 
 export const validationSchema = yup.object({
   entryName: yup
@@ -74,9 +75,8 @@ export const getFinalValues = (
 
 export const tabs = [
   {
-    name: "General",
-    href: "#",
-    current: true,
-    hidden: false
+    title: "General",
+    value: "general",
+    component: General
   }
 ];

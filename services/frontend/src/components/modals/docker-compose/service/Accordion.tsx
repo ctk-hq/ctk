@@ -2,7 +2,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/outline";
 import { styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
 import { FunctionComponent, ReactElement, ReactNode } from "react";
-import { useAccordionState } from "../../../hooks";
+import { useAccordionState } from "../../../../hooks";
 
 export interface IAccordionProps {
   id: string;

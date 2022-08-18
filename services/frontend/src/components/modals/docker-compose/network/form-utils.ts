@@ -4,8 +4,8 @@ import {
   IIPAM,
   INetworkNodeItem,
   IPAMConfig
-} from "../../../types";
-import { pruneArray, pruneObject } from "../../../utils/forms";
+} from "../../../../types";
+import { pruneArray, pruneObject } from "../../../../utils/forms";
 
 export const validationSchema = yup.object({
   entryName: yup

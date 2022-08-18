@@ -1,5 +1,5 @@
 import { styled } from "@mui/joy";
-import Records from "../../Records";
+import Records from "../../../Records";
 
 const Root = styled("div")`
   display: flex;

@@ -1,7 +1,6 @@
 import { styled } from "@mui/joy";
-
-import TextField from "../../global/FormElements/TextField";
-import Records from "../../Records";
+import TextField from "../../../global/FormElements/TextField";
+import Records from "../../../Records";
 
 const Root = styled("div")`
   display: flex;
@@ -32,7 +31,7 @@ const General = () => {
       </Group>
 
       <Group>
-        <TextField label="Volume name" name="volumeName" required={true} />
+        <TextField label="Network name" name="networkName" required={true} />
       </Group>
 
       <Records
@@ -48,7 +47,7 @@ const General = () => {
           {
             name: `labels[${index}].value`,
             placeholder: "Value",
-            required: true,
+            required: false,
             type: "text"
           }
         ]}
