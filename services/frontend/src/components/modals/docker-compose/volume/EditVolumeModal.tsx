@@ -39,10 +39,13 @@ const EditVolumeModal = (props: IEditVolumeModal) => {
 
   return (
     <FormModal
-      title="Edit volume"
+      title="Volumes > Edit"
+      resourceType="volume"
       tabs={tabs}
       getInitialValues={getInitialValues}
       getFinalValues={getFinalValues}
+      items={["test"]}
+      getText={() => "test"}
       selectedNode={selectedNode}
       validationSchema={validationSchema}
       onHide={onHide}

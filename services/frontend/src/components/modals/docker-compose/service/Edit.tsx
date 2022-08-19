@@ -40,10 +40,13 @@ const ModalServiceEdit = (props: IModalServiceProps) => {
 
   return (
     <FormModal
-      title="Edit service"
+      title="Services > Edit"
+      resourceType="service"
       tabs={tabs}
+      items={["test"]}
       getInitialValues={getInitialValues}
       getFinalValues={getFinalValues}
+      getText={() => "test"}
       validationSchema={validationSchema}
       onHide={onHide}
       onCreate={handleUpdate}

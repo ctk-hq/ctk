@@ -2,10 +2,10 @@ import { useCallback, useState } from "react";
 import CreateNetworkModal from "./CreateNetworkModal";
 import { CallbackFunction, IEditNetworkForm } from "../../../../types";
 import EditNetworkModal from "./EditNetworkModal";
-import { attachUUID, toaster } from "../../../../utils";
+import { attachUUID, toaster, truncateStr } from "../../../../utils";
 import { getFinalValues } from "./form-utils";
 import EmptyNetworks from "./EmptyNetworks";
-import NetworkList from "./NetworkList";
+import ResourceList from "../../../ResourceList";
 import { styled } from "@mui/joy";
 import Modal from "../../../Modal";
 
@@ -95,12 +95,16 @@ const ModalNetwork = (props: IModalNetworkProps) => {
       {(networkKeys.length > 0 || showCreate) && (
         <Container>
           {networkKeys.length > 0 && (
-            <NetworkList
-              networks={networks}
+            <ResourceList
+              items={networkKeys}
+              newActionText="New network"
+              getText={(uuid: string) =>
+                truncateStr(networks[uuid].canvasConfig.node_name, 10)
+              }
               onNew={handleNew}
               onRemove={handleRemove}
               onEdit={handleEdit}
-              selectedUuid={selectedNetwork?.key}
+              selectedItem={selectedNetwork?.key}
             />
           )}
 

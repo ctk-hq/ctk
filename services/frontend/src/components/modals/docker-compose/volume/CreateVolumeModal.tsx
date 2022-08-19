@@ -32,10 +32,13 @@ const CreateVolumeModal = (props: ICreateVolumeModalProps) => {
 
   return (
     <FormModal
-      title="Add volume"
+      title="Volumes > New"
+      resourceType="volume"
       tabs={tabs}
+      items={["test"]}
       getInitialValues={getInitialValues}
       getFinalValues={getFinalValues}
+      getText={() => "test"}
       validationSchema={validationSchema}
       onHide={onHide}
       onCreate={handleCreate}
