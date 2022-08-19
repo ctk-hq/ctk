@@ -151,11 +151,6 @@ export default function Project(props: IProjectProps) {
     }
   };
 
-  const setViewHeight = () => {
-    const vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty("--vh", `${vh}px`);
-  };
-
   const copy = () => {
     navigator.clipboard.writeText(formattedCode);
     setCopyText("Copied");
@@ -231,19 +226,6 @@ export default function Project(props: IProjectProps) {
   const onCanvasUpdate = (updatedCanvasPosition: any) => {
     setCanvasPosition({ ...canvasPosition, ...updatedCanvasPosition });
   };
-
-  useEffect(() => {
-    const handler = () => {
-      setViewHeight();
-    };
-
-    window.addEventListener("resize", handler);
-    setViewHeight();
-
-    return () => {
-      window.removeEventListener("resize", handler);
-    };
-  }, []);
 
   const onAddEndpoint = (values: any) => {
     const sections = flattenLibraries(nodeLibraries);
