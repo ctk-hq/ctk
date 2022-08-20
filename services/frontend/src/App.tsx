@@ -25,6 +25,7 @@ import ProtectedRoute from "./partials/ProtectedRoute";
 
 import "./index.css";
 import { lightTheme } from "./utils/theme";
+import { SuperFormProvider } from "./components/SuperFormProvider";
 
 const queryClient = new QueryClient();
 
@@ -86,56 +87,60 @@ export default function App() {
   return (
     <CssVarsProvider theme={lightTheme}>
       <QueryClientProvider client={queryClient}>
-        <div>
-          <Toaster />
-          <SideBar isAuthenticated={isAuthenticated} state={state} />
-          <Routes>
-            <Route
-              path="/projects/:uuid"
-              element={<Project isAuthenticated={isAuthenticated} />}
-            />
+        <SuperFormProvider>
+          <div>
+            <Toaster />
+            <SideBar isAuthenticated={isAuthenticated} state={state} />
+            <Routes>
+              <Route
+                path="/projects/:uuid"
+                element={<Project isAuthenticated={isAuthenticated} />}
+              />
 
-            <Route
-              path="/projects/new"
-              element={<Project isAuthenticated={isAuthenticated} />}
-            />
+              <Route
+                path="/projects/new"
+                element={<Project isAuthenticated={isAuthenticated} />}
+              />
 
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute
-                  {...defaultProtectedRouteProps}
-                  outlet={<Projects />}
-                />
-              }
-            />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute
+                    {...defaultProtectedRouteProps}
+                    outlet={<Projects />}
+                  />
+                }
+              />
 
-            <Route
-              path="/projects/"
-              element={
-                <ProtectedRoute
-                  {...defaultProtectedRouteProps}
-                  outlet={<Projects />}
-                />
-              }
-            />
+              <Route
+                path="/projects/"
+                element={
+                  <ProtectedRoute
+                    {...defaultProtectedRouteProps}
+                    outlet={<Projects />}
+                  />
+                }
+              />
 
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute
-                  {...defaultProtectedRouteProps}
-                  outlet={<Profile dispatch={dispatch} state={state} />}
-                />
-              }
-            />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute
+                    {...defaultProtectedRouteProps}
+                    outlet={<Profile dispatch={dispatch} state={state} />}
+                  />
+                }
+              />
 
-            <Route path="/signup" element={<Signup dispatch={dispatch} />} />
-            <Route path="/login" element={<Login dispatch={dispatch} />} />
-            <Route path="/github/cb" element={<GitHub dispatch={dispatch} />} />
-          </Routes>
-        </div>
-
+              <Route path="/signup" element={<Signup dispatch={dispatch} />} />
+              <Route path="/login" element={<Login dispatch={dispatch} />} />
+              <Route
+                path="/github/cb"
+                element={<GitHub dispatch={dispatch} />}
+              />
+            </Routes>
+          </div>
+        </SuperFormProvider>
         <ReactQueryDevtools initialIsOpen={true} />
       </QueryClientProvider>
     </CssVarsProvider>
