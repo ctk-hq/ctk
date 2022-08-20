@@ -89,15 +89,11 @@ export default function App() {
   }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
-    const handler = () => {
-      setViewHeight();
-    };
-
-    window.addEventListener("resize", handler);
     setViewHeight();
+    window.addEventListener("resize", setViewHeight);
 
     return () => {
-      window.removeEventListener("resize", handler);
+      window.removeEventListener("resize", setViewHeight);
     };
   }, []);
 
