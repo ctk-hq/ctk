@@ -1,5 +1,6 @@
 import { AnchorId } from "@jsplumb/common";
 import { Dictionary } from "lodash";
+import { FunctionComponent } from "react";
 import { KeyValuePair } from "tailwindcss/types/config";
 import { string } from "yup";
 import { NodeGroupType } from "./enums";
@@ -519,4 +520,10 @@ export interface IEditNetworkForm {
 export interface ITabContext {
   value: string;
   onChange: (newValue: string) => void;
+}
+
+/* -- SuperForm -- */
+
+export interface ISuperFormContext {
+  types: Record<string, FunctionComponent>;
 }
