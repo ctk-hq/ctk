@@ -1,6 +1,6 @@
 import { AnchorId } from "@jsplumb/common";
 import { Dictionary } from "lodash";
-import { FunctionComponent } from "react";
+import { FunctionComponent, ReactNode } from "react";
 import { KeyValuePair } from "tailwindcss/types/config";
 import { string } from "yup";
 import { NodeGroupType } from "./enums";
@@ -526,15 +526,30 @@ export interface ITabContext {
 
 export interface ISuperFormContext {
   types: Record<string, FunctionComponent>;
+  renderField: (field: IFormField) => ReactNode;
 }
 
 export interface IFormField {
   id: string;
-  type: "group" | "text" | "integer" | "toggle" | "accordion" | "records";
+  type:
+    | "grid-row"
+    | "grid-column"
+    | "text"
+    | "integer"
+    | "toggle"
+    | "accordion"
+    | "records";
 }
 
-export interface IGroupField {
-  fields: IFormField[];
+export interface IGridRowField<T extends IFormField> extends IFormField {
+  type: "grid-row";
+  fields: T[];
+}
+
+export interface IGridColumnField<T extends IFormField> extends IFormField {
+  type: "grid-column";
+  spans: number[];
+  fields: T[];
 }
 
 export interface IValueField extends IFormField {
@@ -547,8 +562,9 @@ export interface ISingleRowField extends IValueField {
 
 export interface ITextField extends ISingleRowField {
   type: "text";
-  label: string;
-  required: boolean;
+  label?: string;
+  placeholder?: string;
+  required?: boolean;
 }
 
 export interface IIntegerField extends ISingleRowField {
@@ -566,12 +582,24 @@ export interface IToggleField extends ISingleRowField {
   }[];
 }
 
-export interface IRecordsField extends IValueField {
+export interface IRecordsField<T extends IFormField> extends IValueField {
+  type: "records";
+  title: string;
   defaultOpen?: boolean;
-  fields: (index: number) => IFormField[];
+  fields: (index: number) => T[];
   newValue: any;
 }
 
 export interface IAccordionField extends IFormField {
+  type: "accordion";
   title: string;
 }
+
+export type TFinalFormField =
+  | IGridColumnField<TFinalFormField>
+  | IGridRowField<TFinalFormField>
+  | ITextField
+  | IIntegerField
+  | IToggleField
+  | IRecordsField<TFinalFormField>
+  | IAccordionField;
