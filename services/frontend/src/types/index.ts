@@ -527,3 +527,51 @@ export interface ITabContext {
 export interface ISuperFormContext {
   types: Record<string, FunctionComponent>;
 }
+
+export interface IFormField {
+  id: string;
+  type: "group" | "text" | "integer" | "toggle" | "accordion" | "records";
+}
+
+export interface IGroupField {
+  fields: IFormField[];
+}
+
+export interface IValueField extends IFormField {
+  name: string;
+}
+
+export interface ISingleRowField extends IValueField {
+  help?: string;
+}
+
+export interface ITextField extends ISingleRowField {
+  type: "text";
+  label: string;
+  required: boolean;
+}
+
+export interface IIntegerField extends ISingleRowField {
+  type: "integer";
+  label: string;
+  required: boolean;
+}
+
+export interface IToggleField extends ISingleRowField {
+  type: "toggle";
+  label: string;
+  options: {
+    text: string;
+    value: string;
+  }[];
+}
+
+export interface IRecordsField extends IValueField {
+  defaultOpen?: boolean;
+  fields: (index: number) => IFormField[];
+  newValue: any;
+}
+
+export interface IAccordionField extends IFormField {
+  title: string;
+}
