@@ -1,6 +1,7 @@
 import {
   Fragment,
   FunctionComponent,
+  ReactNode,
   useCallback,
   useMemo,
   useState
@@ -13,6 +14,7 @@ import { ScrollView } from "./ScrollView";
 import Modal from "./Modal";
 import Tabs from "./Tabs";
 import Tab from "./Tab";
+import ResourceList from "./ResourceList";
 
 export interface ITab {
   value: string;
@@ -23,12 +25,15 @@ export interface ITab {
 export interface IFormModalProps {
   title: string;
   tabs: ITab[];
+  items: string[];
   onHide: () => void;
   getFinalValues: (values: any, selectedNode?: any) => any;
   getInitialValues: (selectedNode?: any) => any;
+  getText: (item: string) => ReactNode;
   validationSchema: any;
   onCreate: (finalValues: any, values: any, formik: any) => void;
   selectedNode?: any;
+  resourceType: string;
 }
 
 const StyledScrollView = styled(ScrollView)`
@@ -38,6 +43,16 @@ const StyledScrollView = styled(ScrollView)`
   padding-left: 1rem;
   padding-right: 1rem;
   flex: 1 1 auto;
+`;
+
+const Container = styled("div")`
+  display: flex;
+  flex-direction: row;
+`;
+
+const FormContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
 `;
 
 const Actions = styled("div")`
@@ -58,12 +73,15 @@ const FormModal = (props: IFormModalProps) => {
   const {
     title,
     tabs,
+    items,
+    validationSchema,
     getInitialValues,
     getFinalValues,
-    validationSchema,
+    getText,
     onHide,
     onCreate,
-    selectedNode
+    selectedNode,
+    resourceType
   } = props;
 
   const [openTab, setOpenTab] = useState(() => tabs[0].value);
@@ -89,32 +107,52 @@ const FormModal = (props: IFormModalProps) => {
     );
   };
 
+  const handleNew = () => null;
+  const handleRemove = () => null;
+  const handleEdit = () => null;
+  const selectedItem = undefined as any;
+
   return (
     <Modal onHide={onHide} title={title}>
-      <Formik
-        initialValues={initialValues}
-        enableReinitialize={true}
-        onSubmit={handleCreate}
-        validationSchema={validationSchema}
-      >
-        {(formik) => (
-          <>
-            <Tabs value={openTab} onChange={setOpenTab}>
-              {tabs.map((tab) => (
-                <Tab key={tab.value} value={tab.value} title={tab.title} />
-              ))}
-            </Tabs>
-
-            <StyledScrollView height="500px">
-              {tabs.map(renderTab)}
-            </StyledScrollView>
-
-            <Actions>
-              <Button onClick={reportErrorsAndSubmit(formik)}>Save</Button>
-            </Actions>
-          </>
+      <Container>
+        {items.length > 0 && (
+          <ResourceList
+            items={items}
+            newActionText={`New ${resourceType}`}
+            getText={getText}
+            onNew={handleNew}
+            onRemove={handleRemove}
+            onEdit={handleEdit}
+            selectedItem={selectedItem?.key}
+          />
         )}
-      </Formik>
+        <FormContainer>
+          <Formik
+            initialValues={initialValues}
+            enableReinitialize={true}
+            onSubmit={handleCreate}
+            validationSchema={validationSchema}
+          >
+            {(formik) => (
+              <>
+                <Tabs value={openTab} onChange={setOpenTab}>
+                  {tabs.map((tab) => (
+                    <Tab key={tab.value} value={tab.value} title={tab.title} />
+                  ))}
+                </Tabs>
+
+                <StyledScrollView height="500px">
+                  {tabs.map(renderTab)}
+                </StyledScrollView>
+
+                <Actions>
+                  <Button onClick={reportErrorsAndSubmit(formik)}>Save</Button>
+                </Actions>
+              </>
+            )}
+          </Formik>
+        </FormContainer>
+      </Container>
     </Modal>
   );
 };

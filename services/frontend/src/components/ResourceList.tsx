@@ -1,15 +1,16 @@
 import { MinusSmIcon, PlusIcon } from "@heroicons/react/outline";
 import { Button, styled } from "@mui/joy";
 import IconButton from "@mui/joy/IconButton";
-import { FunctionComponent, ReactElement } from "react";
-import { truncateStr } from "../../../../utils";
+import { FunctionComponent, ReactElement, ReactNode } from "react";
 
-export interface INetworkListProps {
-  networks: Record<string, any>;
-  selectedUuid: string;
-  onEdit: (networkUuid: string) => void;
+export interface IResourceListProps {
+  items: string[];
+  selectedItem: string;
+  newActionText: string;
+  getText: (uuid: string) => ReactNode;
+  onEdit: (item: string) => void;
   onNew: () => void;
-  onRemove: (networkUuid: string) => void;
+  onRemove: (item: string) => void;
 }
 
 interface IListItemProps {
@@ -58,35 +59,41 @@ const RemoveButton = styled(IconButton)`
   max-height: 16px;
 `;
 
-const NetworkList: FunctionComponent<INetworkListProps> = (
-  props: INetworkListProps
+const ResourceList: FunctionComponent<IResourceListProps> = (
+  props: IResourceListProps
 ): ReactElement => {
-  const { onNew, onRemove, onEdit, networks, selectedUuid } = props;
+  const {
+    onNew,
+    onRemove,
+    onEdit,
+    getText,
+    items,
+    selectedItem,
+    newActionText
+  } = props;
 
   const handleEdit = (networkUuid: string) => () => onEdit(networkUuid);
 
-  const handleRemove = (e: any, networkUuid: string) => {
-    e.stopPropagation();
+  const handleRemove = (networkUuid: string) => (event: any) => {
+    event.stopPropagation();
     onRemove(networkUuid);
   };
 
   return (
     <Root>
       <Top>
-        {Object.keys(networks).map((networkUuid: string) => (
+        {items.map((item: string) => (
           <ListItem
-            key={networkUuid}
-            onClick={handleEdit(networkUuid)}
-            selected={networkUuid === selectedUuid}
+            key={item}
+            onClick={handleEdit(item)}
+            selected={item === selectedItem}
           >
-            <ListItemText>
-              {truncateStr(networks[networkUuid].canvasConfig.node_name, 10)}
-            </ListItemText>
+            <ListItemText>{getText(item)}</ListItemText>
             <RemoveButton
               variant="soft"
               size="sm"
               color="danger"
-              onClick={(e) => handleRemove(e, networkUuid)}
+              onClick={handleRemove(item)}
             >
               <MinusSmIcon className="h-4 w-4" />
             </RemoveButton>
@@ -97,11 +104,11 @@ const NetworkList: FunctionComponent<INetworkListProps> = (
       <Bottom>
         <Button variant="plain" size="sm" onClick={onNew}>
           <PlusIcon className="h-4 w-4 mr-2" />
-          New network
+          {newActionText}
         </Button>
       </Bottom>
     </Root>
   );
 };
 
-export default NetworkList;
+export default ResourceList;

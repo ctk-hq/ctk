@@ -35,10 +35,13 @@ const CreateServiceModal = (props: IModalServiceProps) => {
 
   return (
     <FormModal
-      title="Create service"
+      title="Services > New"
+      resourceType="service"
       tabs={tabs}
+      items={["test"]}
       getInitialValues={getInitialValues}
       getFinalValues={getFinalValues}
+      getText={() => "test"}
       validationSchema={validationSchema}
       onHide={onHide}
       onCreate={handleCreate}
