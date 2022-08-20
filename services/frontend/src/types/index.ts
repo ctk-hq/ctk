@@ -1,5 +1,6 @@
 import { AnchorId } from "@jsplumb/common";
 import { Dictionary } from "lodash";
+import { FunctionComponent, ReactNode } from "react";
 import { KeyValuePair } from "tailwindcss/types/config";
 import { string } from "yup";
 import { NodeGroupType } from "./enums";
@@ -520,3 +521,85 @@ export interface ITabContext {
   value: string;
   onChange: (newValue: string) => void;
 }
+
+/* -- SuperForm -- */
+
+export interface ISuperFormContext {
+  types: Record<string, FunctionComponent>;
+  renderField: (field: IFormField) => ReactNode;
+}
+
+export interface IFormField {
+  id: string;
+  type:
+    | "grid-row"
+    | "grid-column"
+    | "text"
+    | "integer"
+    | "toggle"
+    | "accordion"
+    | "records";
+}
+
+export interface IGridRowField<T extends IFormField> extends IFormField {
+  type: "grid-row";
+  fields: T[];
+}
+
+export interface IGridColumnField<T extends IFormField> extends IFormField {
+  type: "grid-column";
+  spans: number[];
+  fields: T[];
+}
+
+export interface IValueField extends IFormField {
+  name: string;
+}
+
+export interface ISingleRowField extends IValueField {
+  help?: string;
+}
+
+export interface ITextField extends ISingleRowField {
+  type: "text";
+  label?: string;
+  placeholder?: string;
+  required?: boolean;
+}
+
+export interface IIntegerField extends ISingleRowField {
+  type: "integer";
+  label: string;
+  required: boolean;
+}
+
+export interface IToggleField extends ISingleRowField {
+  type: "toggle";
+  label: string;
+  options: {
+    text: string;
+    value: string;
+  }[];
+}
+
+export interface IRecordsField<T extends IFormField> extends IValueField {
+  type: "records";
+  title: string;
+  defaultOpen?: boolean;
+  fields: (index: number) => T[];
+  newValue: any;
+}
+
+export interface IAccordionField extends IFormField {
+  type: "accordion";
+  title: string;
+}
+
+export type TFinalFormField =
+  | IGridColumnField<TFinalFormField>
+  | IGridRowField<TFinalFormField>
+  | ITextField
+  | IIntegerField
+  | IToggleField
+  | IRecordsField<TFinalFormField>
+  | IAccordionField;
