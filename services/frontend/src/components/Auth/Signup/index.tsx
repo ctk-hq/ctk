@@ -210,7 +210,7 @@ const Signup = (props: IProfileProps) => {
                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-2.5 py-1.5 bg-green-600 text-sm font-medium text-white hover:bg-green-700 sm:w-auto text-sm"
               >
                 <div className="flex justify-center items-center space-x-2">
-                  {signingUp && <Spinner className="w-5 h-5 text-green-300" />}
+                  {signingUp && <Spinner className="w-4 h-4 text-green-300" />}
                   <span>Signup</span>
                 </div>
               </button>

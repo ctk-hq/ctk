@@ -39,6 +39,11 @@ export default function App() {
     authenticationPath: "/login"
   };
 
+  const setViewHeight = () => {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       self()
@@ -82,6 +87,15 @@ export default function App() {
         });
     }
   }, [dispatch, isAuthenticated]);
+
+  useEffect(() => {
+    setViewHeight();
+    window.addEventListener("resize", setViewHeight);
+
+    return () => {
+      window.removeEventListener("resize", setViewHeight);
+    };
+  }, []);
 
   return (
     <CssVarsProvider theme={lightTheme}>

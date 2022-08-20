@@ -77,12 +77,6 @@ const Projects = () => {
             </div>
 
             <div className="px-4 sm:px-6 md:px-8">
-              {(isFetching || isLoading) && (
-                <div className="flex justify-center items-center mx-auto mt-10">
-                  <Spinner className="w-6 h-6 text-blue-600" />
-                </div>
-              )}
-
               {!isFetching && !isLoading && (
                 <>
                   <div className="py-4">
@@ -187,6 +181,12 @@ const Projects = () => {
           </div>
         </main>
       </div>
+
+      {(isFetching || isLoading) && (
+        <div className="flex items-center justify-center items-stretch min-h-screen align-middle">
+          <Spinner className="w-4 h-4 m-auto dark:text-blue-400 text-blue-600"></Spinner>
+        </div>
+      )}
     </>
   );
 };

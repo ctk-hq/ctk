@@ -59,7 +59,7 @@ const GitHub = (props: IGitHubProps) => {
       <div className="flex">
         {loading && (
           <div className="flex flex-row items-center space-x-2">
-            <Spinner className="w-6 h-6 text-blue-600" />
+            <Spinner className="w-4 h-4 text-blue-600" />
             <span className="text-base text-gray-800">logging in...</span>
           </div>
         )}
