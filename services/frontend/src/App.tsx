@@ -14,7 +14,8 @@ import { refresh, self } from "./services/auth";
 
 import SideBar from "./components/global/SideBar";
 import Projects from "./components/Projects";
-import Project from "./components/Project";
+import KubernetesProject from "./components/Project/kubernetes";
+import DockerComposeProject from "./components/Project/docker-compose";
 import Profile from "./components/Profile";
 import Signup from "./components/Auth/Signup";
 import Login from "./components/Auth/Login";
@@ -107,13 +108,31 @@ export default function App() {
             <SideBar isAuthenticated={isAuthenticated} state={state} />
             <Routes>
               <Route
-                path="/projects/:uuid"
-                element={<Project isAuthenticated={isAuthenticated} />}
+                path="/projects/kubernetes/:uuid"
+                element={
+                  <KubernetesProject isAuthenticated={isAuthenticated} />
+                }
               />
 
               <Route
-                path="/projects/new"
-                element={<Project isAuthenticated={isAuthenticated} />}
+                path="/projects/docker-compose/:uuid"
+                element={
+                  <DockerComposeProject isAuthenticated={isAuthenticated} />
+                }
+              />
+
+              <Route
+                path="/projects/kubernetes/new"
+                element={
+                  <KubernetesProject isAuthenticated={isAuthenticated} />
+                }
+              />
+
+              <Route
+                path="/projects/docker-compose/new"
+                element={
+                  <DockerComposeProject isAuthenticated={isAuthenticated} />
+                }
               />
 
               <Route

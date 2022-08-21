@@ -3,49 +3,50 @@ import { useParams } from "react-router-dom";
 import { debounce, Dictionary, omit } from "lodash";
 import YAML from "yaml";
 import { GlobeAltIcon, CubeIcon, FolderAddIcon } from "@heroicons/react/solid";
+import randomWords from "random-words";
 import {
   IProjectPayload,
   IServiceNodeItem,
   IVolumeNodeItem,
   IServiceNodePosition,
   IProject
-} from "../../types";
-import eventBus from "../../events/eventBus";
+} from "../../../types";
+import eventBus from "../../../events/eventBus";
 import { useMutation } from "react-query";
 import {
   useProject,
   useUpdateProject,
   createProject
-} from "../../hooks/useProject";
-import useWindowDimensions from "../../hooks/useWindowDimensions";
-import { generatePayload } from "../../utils/generators";
-import { nodeLibraries } from "../../utils/data/libraries";
+} from "../../../hooks/useProject";
+import useWindowDimensions from "../../../hooks/useWindowDimensions";
+import { generatePayload } from "../../../utils/generators";
+import { nodeLibraries } from "../../../utils/data/libraries";
 import {
   getClientNodeItem,
   flattenLibraries,
   ensure,
   getClientNodesAndConnections,
   getMatchingSetIndex
-} from "../../utils";
-import { checkHttpStatus } from "../../services/helpers";
-import { generateHttp } from "../../services/generate";
-import { Canvas } from "../Canvas";
-import Spinner from "../global/Spinner";
-import ModalConfirmDelete from "../modals/ConfirmDelete";
-import CreateServiceModal from "../modals/docker-compose/service/Create";
-import ModalServiceEdit from "../modals/docker-compose/service/Edit";
-import ModalNetwork from "../modals/docker-compose/network";
-import CreateVolumeModal from "../modals/docker-compose/volume/CreateVolumeModal";
-import EditVolumeModal from "../modals/docker-compose/volume/EditVolumeModal";
-import CodeEditor from "../CodeEditor";
-import { useTitle } from "../../hooks";
-import VisibilitySwitch from "../global/VisibilitySwitch";
+} from "../../../utils";
+import { checkHttpStatus } from "../../../services/helpers";
+import { generateHttp } from "../../../services/generate";
+import { Canvas } from "../../Canvas";
+import Spinner from "../../global/Spinner";
+import ModalConfirmDelete from "../../modals/ConfirmDelete";
+import CreateServiceModal from "../../modals/docker-compose/service/Create";
+import ModalServiceEdit from "../../modals/docker-compose/service/Edit";
+import ModalNetwork from "../../modals/docker-compose/network";
+import CreateVolumeModal from "../../modals/docker-compose/volume/CreateVolumeModal";
+import EditVolumeModal from "../../modals/docker-compose/volume/EditVolumeModal";
+import CodeEditor from "../../CodeEditor";
+import { useTitle } from "../../../hooks";
+import VisibilitySwitch from "../../global/VisibilitySwitch";
 
 interface IProjectProps {
   isAuthenticated: boolean;
 }
 
-export default function Project(props: IProjectProps) {
+export default function DockerComposeProject(props: IProjectProps) {
   const { isAuthenticated } = props;
   const { uuid } = useParams<{ uuid: string }>();
   const { height } = useWindowDimensions();
@@ -78,7 +79,14 @@ export default function Project(props: IProjectProps) {
   const [nodes, setNodes] = useState<Record<string, any>>({});
   const [connections, setConnections] = useState<[[string, string]] | []>([]);
   const [networks, setNetworks] = useState<Record<string, any>>({});
-  const [projectName, setProjectName] = useState("Untitled");
+  const [projectName, setProjectName] = useState(
+    () =>
+      randomWords({
+        wordsPerString: 2,
+        exactly: 1,
+        separator: "-"
+      } as any)[0]
+  );
 
   const [canvasPosition, setCanvasPosition] = useState({
     top: 0,
@@ -126,6 +134,7 @@ export default function Project(props: IProjectProps) {
     const payload: IProjectPayload = {
       name: projectName,
       visibility: +isVisible,
+      project_type: 1,
       data: {
         canvas: {
           position: canvasPosition,
@@ -174,6 +183,14 @@ export default function Project(props: IProjectProps) {
     setCanvasPosition(canvasData.canvas.position);
   }, [data]);
 
+  const debouncedOnCodeChange = useMemo(
+    () =>
+      debounce((code: string) => {
+        //formik.setFieldValue("code", e, false);
+      }, 700),
+    []
+  );
+
   const debouncedOnGraphUpdate = useMemo(
     () =>
       debounce((payload) => {
@@ -194,6 +211,10 @@ export default function Project(props: IProjectProps) {
       }, 600),
     []
   );
+
+  const onCodeUpdate = (code: string) => {
+    debouncedOnCodeChange(code);
+  };
 
   const onGraphUpdate = (graphData: any) => {
     const data = { ...graphData };
@@ -638,8 +659,8 @@ export default function Project(props: IProjectProps) {
                 <CodeEditor
                   data={formattedCode}
                   language={language}
-                  onChange={() => {
-                    return;
+                  onChange={(e: any) => {
+                    onCodeUpdate(e);
                   }}
                   disabled={true}
                   lineWrapping={false}
