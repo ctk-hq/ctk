@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { useParams } from "react-router-dom";
 import { debounce, Dictionary, omit } from "lodash";
 import YAML from "yaml";
 import { GlobeAltIcon, CubeIcon, FolderAddIcon } from "@heroicons/react/solid";
@@ -13,11 +12,7 @@ import {
 } from "../../../types";
 import eventBus from "../../../events/eventBus";
 import { useMutation } from "react-query";
-import {
-  useProject,
-  useUpdateProject,
-  createProject
-} from "../../../hooks/useProject";
+import { useUpdateProject, createProject } from "../../../hooks/useProject";
 import useWindowDimensions from "../../../hooks/useWindowDimensions";
 import { generatePayload } from "../../../utils/generators";
 import { nodeLibraries } from "../../../utils/data/libraries";
@@ -39,18 +34,18 @@ import ModalNetwork from "../../modals/docker-compose/network";
 import CreateVolumeModal from "../../modals/docker-compose/volume/CreateVolumeModal";
 import EditVolumeModal from "../../modals/docker-compose/volume/EditVolumeModal";
 import CodeEditor from "../../CodeEditor";
-import { useTitle } from "../../../hooks";
 import VisibilitySwitch from "../../global/VisibilitySwitch";
 
-interface IProjectProps {
+interface IDockerComposeProjectProps {
   isAuthenticated: boolean;
+  data: IProject | null;
 }
 
-export default function DockerComposeProject(props: IProjectProps) {
-  const { isAuthenticated } = props;
-  const { uuid } = useParams<{ uuid: string }>();
+export default function DockerComposeProject(
+  props: IDockerComposeProjectProps
+) {
+  const { isAuthenticated, data } = props;
   const { height } = useWindowDimensions();
-  const { data, error, isFetching } = useProject(uuid);
   const stateNodesRef =
     useRef<Dictionary<IServiceNodeItem | IVolumeNodeItem>>();
   const stateConnectionsRef = useRef<[[string, string]] | []>();
@@ -93,7 +88,7 @@ export default function DockerComposeProject(props: IProjectProps) {
     left: 0,
     scale: 1
   });
-  const updateProjectMutation = useUpdateProject(uuid);
+  const updateProjectMutation = useUpdateProject(data?.uuid);
   const createProjectMutation = useMutation(
     (payload: IProjectPayload) => {
       return createProject(payload);
@@ -103,13 +98,6 @@ export default function DockerComposeProject(props: IProjectProps) {
         window.location.replace(`/projects/${project.uuid}`);
       }
     }
-  );
-
-  useTitle(
-    [
-      isFetching ? "" : data ? data.name : "New project",
-      "Container Toolkit"
-    ].join(" | ")
   );
 
   stateNodesRef.current = nodes;
@@ -134,7 +122,7 @@ export default function DockerComposeProject(props: IProjectProps) {
     const payload: IProjectPayload = {
       name: projectName,
       visibility: +isVisible,
-      project_type: 1,
+      project_type: 0,
       data: {
         canvas: {
           position: canvasPosition,
@@ -145,7 +133,7 @@ export default function DockerComposeProject(props: IProjectProps) {
       }
     };
 
-    if (uuid) {
+    if (data && data.uuid) {
       updateProjectMutation.mutate(payload);
     } else {
       createProjectMutation.mutate(payload);
@@ -420,286 +408,251 @@ export default function DockerComposeProject(props: IProjectProps) {
     });
   }, [version]);
 
-  if (!isFetching) {
-    if (!error) {
-      return (
-        <>
-          {showNetworksModal ? (
-            <ModalNetwork
-              networks={networks}
-              onHide={() => setShowNetworksModal(false)}
-              onCreateNetwork={(values: any) => onCreateNetwork(values)}
-              onUpdateNetwork={(values: any) => onUpdateNetwork(values)}
-              onDeleteNetwork={(uuid: string) => onDeleteNetwork(uuid)}
+  return (
+    <>
+      {showNetworksModal ? (
+        <ModalNetwork
+          networks={networks}
+          onHide={() => setShowNetworksModal(false)}
+          onCreateNetwork={(values: any) => onCreateNetwork(values)}
+          onUpdateNetwork={(values: any) => onUpdateNetwork(values)}
+          onDeleteNetwork={(uuid: string) => onDeleteNetwork(uuid)}
+        />
+      ) : null}
+
+      {showVolumesModal ? (
+        <CreateVolumeModal
+          onHide={() => setShowVolumesModal(false)}
+          onAddEndpoint={(values: any) => onAddEndpoint(values)}
+        />
+      ) : null}
+
+      {showModalCreateService ? (
+        <CreateServiceModal
+          onHide={() => setShowModalCreateService(false)}
+          onAddEndpoint={(values: any) => onAddEndpoint(values)}
+        />
+      ) : null}
+
+      {serviceToEdit ? (
+        <ModalServiceEdit
+          node={serviceToEdit}
+          onHide={() => setServiceToEdit(null)}
+          onUpdateEndpoint={(values: any) => onUpdateEndpoint(values)}
+        />
+      ) : null}
+
+      {serviceToDelete ? (
+        <ModalConfirmDelete
+          onHide={() => setServiceToDelete(null)}
+          onConfirm={() => {
+            onRemoveEndpoint(serviceToDelete);
+            setServiceToDelete(null);
+          }}
+        />
+      ) : null}
+
+      {volumeToEdit ? (
+        <EditVolumeModal
+          node={volumeToEdit}
+          onHide={() => setVolumeToEdit(null)}
+          onUpdateEndpoint={(values: any) => onUpdateEndpoint(values)}
+        />
+      ) : null}
+
+      {volumeToDelete ? (
+        <ModalConfirmDelete
+          onHide={() => setServiceToDelete(null)}
+          onConfirm={() => {
+            onRemoveEndpoint(volumeToDelete);
+            setVolumeToDelete(null);
+          }}
+        />
+      ) : null}
+
+      <div className="md:pl-16 flex flex-col flex-1">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <form
+            className="flex flex-col space-y-2 md:space-y-0 md:flex-row md:justify-between items-center"
+            autoComplete="off"
+          >
+            <input
+              className={`
+              bg-gray-100
+              appearance-none
+              w-full
+              md:w-1/2
+              lg:w-1/3
+              block
+              text-gray-700
+              border
+              border-gray-100
+              dark:bg-gray-900
+              dark:text-white
+              dark:border-gray-900
+              rounded
+              py-2
+              px-3
+              leading-tight
+              focus:outline-none
+              focus:border-indigo-400
+              focus:ring-0
+            `}
+              type="text"
+              placeholder="Project name"
+              autoComplete="off"
+              id="name"
+              name="name"
+              onChange={handleNameChange}
+              value={projectName}
             />
-          ) : null}
 
-          {showVolumesModal ? (
-            <CreateVolumeModal
-              onHide={() => setShowVolumesModal(false)}
-              onAddEndpoint={(values: any) => onAddEndpoint(values)}
-            />
-          ) : null}
-
-          {showModalCreateService ? (
-            <CreateServiceModal
-              onHide={() => setShowModalCreateService(false)}
-              onAddEndpoint={(values: any) => onAddEndpoint(values)}
-            />
-          ) : null}
-
-          {serviceToEdit ? (
-            <ModalServiceEdit
-              node={serviceToEdit}
-              onHide={() => setServiceToEdit(null)}
-              onUpdateEndpoint={(values: any) => onUpdateEndpoint(values)}
-            />
-          ) : null}
-
-          {serviceToDelete ? (
-            <ModalConfirmDelete
-              onHide={() => setServiceToDelete(null)}
-              onConfirm={() => {
-                onRemoveEndpoint(serviceToDelete);
-                setServiceToDelete(null);
-              }}
-            />
-          ) : null}
-
-          {volumeToEdit ? (
-            <EditVolumeModal
-              node={volumeToEdit}
-              onHide={() => setVolumeToEdit(null)}
-              onUpdateEndpoint={(values: any) => onUpdateEndpoint(values)}
-            />
-          ) : null}
-
-          {volumeToDelete ? (
-            <ModalConfirmDelete
-              onHide={() => setServiceToDelete(null)}
-              onConfirm={() => {
-                onRemoveEndpoint(volumeToDelete);
-                setVolumeToDelete(null);
-              }}
-            />
-          ) : null}
-
-          <div className="md:pl-16 flex flex-col flex-1">
-            <div className="px-4 py-3 border-b border-gray-200">
-              <form
-                className="flex flex-col space-y-2 md:space-y-0 md:flex-row md:justify-between items-center"
-                autoComplete="off"
-              >
-                <input
-                  className={`
-                  bg-gray-100
-                  appearance-none
-                  w-full
-                  md:w-1/2
-                  lg:w-1/3
-                  block
-                  text-gray-700
-                  border
-                  border-gray-100
-                  dark:bg-gray-900
-                  dark:text-white
-                  dark:border-gray-900
-                  rounded
-                  py-2
-                  px-3
-                  leading-tight
-                  focus:outline-none
-                  focus:border-indigo-400
-                  focus:ring-0
-                `}
-                  type="text"
-                  placeholder="Project name"
-                  autoComplete="off"
-                  id="name"
-                  name="name"
-                  onChange={handleNameChange}
-                  value={projectName}
-                />
-
-                <div className="flex flex-col space-y-2 w-full justify-end mb-4  md:flex-row md:space-y-0 md:space-x-2 md:mb-0">
-                  {isAuthenticated && (
-                    <VisibilitySwitch
-                      isVisible={isVisible}
-                      onToggle={() => {
-                        setIsVisible(!isVisible);
-                      }}
-                    />
-                  )}
-
-                  <button
-                    onClick={() => onSave()}
-                    type="button"
-                    className="btn-util text-white bg-green-600 hover:bg-green-700 sm:w-auto"
-                  >
-                    <div className="flex justify-center items-center space-x-2 mx-auto">
-                      {updateProjectMutation.isLoading && (
-                        <Spinner className="w-4 h-4 text-green-300" />
-                      )}
-                      {createProjectMutation.isLoading && (
-                        <Spinner className="w-4 h-4 text-green-300" />
-                      )}
-                      <span>Save</span>
-                    </div>
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <div className="flex flex-grow relative">
-              <div
-                className="w-full overflow-hidden md:w-2/3 z-40"
-                style={{ height: height - 64 }}
-              >
-                <div className="relative h-full">
-                  <div className="absolute top-0 right-0 z-40">
-                    <div className="flex space-x-2 p-2">
-                      <button
-                        className="flex space-x-1 btn-util"
-                        type="button"
-                        onClick={() => setShowModalCreateService(true)}
-                      >
-                        <CubeIcon className="w-4" />
-                        <span>Add service</span>
-                      </button>
-
-                      <button
-                        className="flex space-x-1 btn-util"
-                        type="button"
-                        onClick={() => setShowVolumesModal(true)}
-                      >
-                        <FolderAddIcon className="w-4" />
-                        <span>Add volume</span>
-                      </button>
-
-                      <button
-                        className="flex space-x-1 btn-util"
-                        type="button"
-                        onClick={() => setShowNetworksModal(true)}
-                      >
-                        <GlobeAltIcon className="w-4" />
-                        <span>Networks</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <Canvas
-                    nodes={nodes}
-                    connections={connections}
-                    canvasPosition={canvasPosition}
-                    onNodeUpdate={(node: IServiceNodePosition) =>
-                      onNodeUpdate(node)
-                    }
-                    onGraphUpdate={(graphData: any) => onGraphUpdate(graphData)}
-                    onCanvasUpdate={(canvasData: any) =>
-                      onCanvasUpdate(canvasData)
-                    }
-                    onConnectionAttached={(connectionData: any) =>
-                      onConnectionAttached(connectionData)
-                    }
-                    onConnectionDetached={(connectionData: any) =>
-                      onConnectionDetached(connectionData)
-                    }
-                    setServiceToEdit={(node: IServiceNodeItem) =>
-                      setServiceToEdit(node)
-                    }
-                    setServiceToDelete={(node: IServiceNodeItem) =>
-                      setServiceToDelete(node)
-                    }
-                    setVolumeToEdit={(node: IVolumeNodeItem) =>
-                      setVolumeToEdit(node)
-                    }
-                    setVolumeToDelete={(node: IVolumeNodeItem) =>
-                      setVolumeToDelete(node)
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="group code-column w-1/2 md:w-1/3 absolute top-0 right-0 sm:relative z-40 md:z-30">
-                <div
-                  className={`absolute top-0 left-0 right-0 z-10 flex justify-end p-1 space-x-2 group-hover:visible invisible`}
-                >
-                  <select
-                    id="version"
-                    onChange={versionChange}
-                    value={version}
-                    className="input-util w-min pr-8"
-                  >
-                    <option value="1">v 1</option>
-                    <option value="2">v 2</option>
-                    <option value="3">v 3</option>
-                  </select>
-
-                  <button
-                    className={`btn-util ${
-                      language === "json" ? `btn-util-selected` : ``
-                    }`}
-                    onClick={() => setLanguage("json")}
-                  >
-                    json
-                  </button>
-                  <button
-                    className={`btn-util ${
-                      language === "yaml" ? `btn-util-selected` : ``
-                    }`}
-                    onClick={() => setLanguage("yaml")}
-                  >
-                    yaml
-                  </button>
-                  <button className="btn-util" type="button" onClick={copy}>
-                    {copyText}
-                  </button>
-                </div>
-
-                <CodeEditor
-                  data={formattedCode}
-                  language={language}
-                  onChange={(e: any) => {
-                    onCodeUpdate(e);
+            <div className="flex flex-col space-y-2 w-full justify-end mb-4  md:flex-row md:space-y-0 md:space-x-2 md:mb-0">
+              {isAuthenticated && (
+                <VisibilitySwitch
+                  isVisible={isVisible}
+                  onToggle={() => {
+                    setIsVisible(!isVisible);
                   }}
-                  disabled={true}
-                  lineWrapping={false}
-                  height={height - 64}
                 />
+              )}
+
+              <button
+                onClick={() => onSave()}
+                type="button"
+                className="btn-util text-white bg-green-600 hover:bg-green-700 sm:w-auto"
+              >
+                <div className="flex justify-center items-center space-x-2 mx-auto">
+                  {updateProjectMutation.isLoading && (
+                    <Spinner className="w-4 h-4 text-green-300" />
+                  )}
+                  {createProjectMutation.isLoading && (
+                    <Spinner className="w-4 h-4 text-green-300" />
+                  )}
+                  <span>Save</span>
+                </div>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="flex flex-grow relative">
+          <div
+            className="w-full overflow-hidden md:w-2/3 z-40"
+            style={{ height: height - 64 }}
+          >
+            <div className="relative h-full">
+              <div className="absolute top-0 right-0 z-40">
+                <div className="flex space-x-2 p-2">
+                  <button
+                    className="flex space-x-1 btn-util"
+                    type="button"
+                    onClick={() => setShowModalCreateService(true)}
+                  >
+                    <CubeIcon className="w-4" />
+                    <span>Add service</span>
+                  </button>
+
+                  <button
+                    className="flex space-x-1 btn-util"
+                    type="button"
+                    onClick={() => setShowVolumesModal(true)}
+                  >
+                    <FolderAddIcon className="w-4" />
+                    <span>Add volume</span>
+                  </button>
+
+                  <button
+                    className="flex space-x-1 btn-util"
+                    type="button"
+                    onClick={() => setShowNetworksModal(true)}
+                  >
+                    <GlobeAltIcon className="w-4" />
+                    <span>Networks</span>
+                  </button>
+                </div>
               </div>
+
+              <Canvas
+                nodes={nodes}
+                connections={connections}
+                canvasPosition={canvasPosition}
+                onNodeUpdate={(node: IServiceNodePosition) =>
+                  onNodeUpdate(node)
+                }
+                onGraphUpdate={(graphData: any) => onGraphUpdate(graphData)}
+                onCanvasUpdate={(canvasData: any) => onCanvasUpdate(canvasData)}
+                onConnectionAttached={(connectionData: any) =>
+                  onConnectionAttached(connectionData)
+                }
+                onConnectionDetached={(connectionData: any) =>
+                  onConnectionDetached(connectionData)
+                }
+                setServiceToEdit={(node: IServiceNodeItem) =>
+                  setServiceToEdit(node)
+                }
+                setServiceToDelete={(node: IServiceNodeItem) =>
+                  setServiceToDelete(node)
+                }
+                setVolumeToEdit={(node: IVolumeNodeItem) =>
+                  setVolumeToEdit(node)
+                }
+                setVolumeToDelete={(node: IVolumeNodeItem) =>
+                  setVolumeToDelete(node)
+                }
+              />
             </div>
           </div>
-        </>
-      );
-    }
 
-    if (error) {
-      return (
-        <div
-          className="text-center"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "calc(60vh - 120px)"
-          }}
-        >
-          <h3 className="text-2xl font-medium text-gray-900">
-            {(error as any)?.response.status === 404 ? <>404</> : <>Oops...</>}
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Either this project does not exist, it is private or the link is
-            wrong.
-          </p>
+          <div className="group code-column w-1/2 md:w-1/3 absolute top-0 right-0 sm:relative z-40 md:z-30">
+            <div
+              className={`absolute top-0 left-0 right-0 z-10 flex justify-end p-1 space-x-2 group-hover:visible invisible`}
+            >
+              <select
+                id="version"
+                onChange={versionChange}
+                value={version}
+                className="input-util w-min pr-8"
+              >
+                <option value="1">v 1</option>
+                <option value="2">v 2</option>
+                <option value="3">v 3</option>
+              </select>
+
+              <button
+                className={`btn-util ${
+                  language === "json" ? `btn-util-selected` : ``
+                }`}
+                onClick={() => setLanguage("json")}
+              >
+                json
+              </button>
+              <button
+                className={`btn-util ${
+                  language === "yaml" ? `btn-util-selected` : ``
+                }`}
+                onClick={() => setLanguage("yaml")}
+              >
+                yaml
+              </button>
+              <button className="btn-util" type="button" onClick={copy}>
+                {copyText}
+              </button>
+            </div>
+
+            <CodeEditor
+              data={formattedCode}
+              language={language}
+              onChange={(e: any) => {
+                onCodeUpdate(e);
+              }}
+              disabled={true}
+              lineWrapping={false}
+              height={height - 64}
+            />
+          </div>
         </div>
-      );
-    }
-  }
-
-  return (
-    <div className="flex items-center justify-center items-stretch min-h-screen align-middle">
-      <Spinner className="w-4 h-4 m-auto dark:text-blue-400 text-blue-600"></Spinner>
-    </div>
+      </div>
+    </>
   );
 }

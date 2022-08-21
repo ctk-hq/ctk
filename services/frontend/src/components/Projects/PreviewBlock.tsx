@@ -25,14 +25,8 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
     setIsHovering(false);
   };
 
-  const handleClick = (e: any) => {
-    if (project.project_type === 0) {
-      navigate(`/projects/docker-compose/${project.uuid}`);
-    }
-
-    if (project.project_type === 1) {
-      navigate(`/projects/kubernetes/${project.uuid}`);
-    }
+  const handleClick = () => {
+    navigate(`/projects/${project.uuid}`);
   };
 
   const onDelete = (e: any) => {

@@ -24,6 +24,7 @@ export interface IProject {
   uuid: string;
   data: string;
   project_type: number;
+  visibility: number;
   created_at: string;
   modified_at: string;
 }
@@ -351,6 +352,12 @@ export interface IProjectPayload {
       connections: any;
       networks: any;
     };
+  };
+}
+
+export interface IGenerateKubernetesPayload {
+  data: {
+    services: Record<string, Partial<IService>>;
   };
 }
 

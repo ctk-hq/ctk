@@ -1,4 +1,4 @@
-import { IGeneratePayload } from "../types";
+import { IGeneratePayload, IGenerateKubernetesPayload } from "../types";
 
 export const generatePayload = (payload: any): IGeneratePayload => {
   const nodes = payload["nodes"];
@@ -26,6 +26,26 @@ export const generatePayload = (payload: any): IGeneratePayload => {
     if (nodes[key].type === "VOLUME") {
       base.data.volumes[nodes[key].canvasConfig.node_name] =
         nodes[key].volumeConfig;
+    }
+  });
+
+  return base;
+};
+
+export const generateKubernetesPayload = (
+  payload: any
+): IGenerateKubernetesPayload => {
+  const nodes = payload["nodes"];
+  const base: IGenerateKubernetesPayload = {
+    data: {
+      services: {}
+    }
+  };
+
+  Object.keys(nodes).forEach((key) => {
+    if (nodes[key].type === "SERVICE") {
+      base.data.services[nodes[key].canvasConfig.node_name] =
+        nodes[key].serviceConfig;
     }
   });
 
