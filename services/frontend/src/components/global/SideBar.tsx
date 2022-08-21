@@ -1,9 +1,11 @@
 import { useLocation } from "react-router-dom";
 import { BookOpenIcon, PlusIcon } from "@heroicons/react/outline";
 import { Link } from "react-router-dom";
+import ModalNewProject from "../modals/new-project";
 import UserMenu from "./UserMenu";
 import Logo from "./logo";
 import { classNames } from "../../utils/styles";
+import { useState } from "react";
 
 interface ISideBarProps {
   state: any;
@@ -21,20 +23,17 @@ export default function SideBar(props: ISideBarProps) {
       icon: BookOpenIcon,
       current: pathname.match(projRegex) || pathname == "/" ? true : false,
       visible: isAuthenticated
-    },
-    {
-      name: "New project",
-      href: "/projects/new",
-      icon: PlusIcon,
-      current: false,
-      visible: true
     }
   ];
-
+  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const userName = state.user ? state.user.username : "";
 
   return (
     <>
+      {showNewProjectModal ? (
+        <ModalNewProject onHide={() => setShowNewProjectModal(false)} />
+      ) : null}
+
       <div className="md:flex md:w-16 md:flex-col md:fixed md:inset-y-0">
         <div className="flex justify-between flex-col sm:flex-row md:flex-col md:flex-grow md:pt-5 bg-blue-700 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 mx-auto p-2 ">
@@ -67,6 +66,20 @@ export default function SideBar(props: ISideBarProps) {
                   );
                 }
               })}
+
+              <button
+                onClick={() => setShowNewProjectModal(true)}
+                className={classNames(
+                  "text-blue-100 hover:bg-blue-600",
+                  "group flex items-center justify-center p-2 text-sm font-medium rounded-md"
+                )}
+              >
+                <PlusIcon
+                  className="mr-3 sm:mr-0 flex-shrink-0 h-5 w-5"
+                  aria-hidden="true"
+                />
+                <span className="sm:hidden">New project</span>
+              </button>
             </nav>
 
             <UserMenu
