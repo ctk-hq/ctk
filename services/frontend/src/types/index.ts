@@ -23,6 +23,7 @@ export interface IProject {
   name: string;
   uuid: string;
   data: string;
+  project_type: number;
   created_at: string;
   modified_at: string;
 }
@@ -338,6 +339,7 @@ export interface INetworkNodeItem extends INodeItem {
 export interface IProjectPayload {
   name: string;
   visibility: number;
+  project_type: number;
   data: {
     canvas: {
       position: {
