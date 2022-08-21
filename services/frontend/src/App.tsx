@@ -82,7 +82,7 @@ export default function App() {
                   }
                 }
               })
-              .catch(() => {
+              .catch((err) => {
                 localStorage.removeItem(LOCAL_STORAGE);
                 navigate("/login");
               });

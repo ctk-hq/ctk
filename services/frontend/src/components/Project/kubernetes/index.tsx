@@ -142,6 +142,14 @@ export default function KubernetesProject(props: IProjectProps) {
     setCanvasPosition(canvasData.canvas.position);
   }, [data]);
 
+  const debouncedOnCodeChange = useMemo(
+    () =>
+      debounce((code: string) => {
+        //formik.setFieldValue("code", e, false);
+      }, 700),
+    []
+  );
+
   const debouncedOnGraphUpdate = useMemo(
     () =>
       debounce((payload) => {
@@ -162,6 +170,10 @@ export default function KubernetesProject(props: IProjectProps) {
       }, 600),
     []
   );
+
+  const onCodeUpdate = (code: string) => {
+    debouncedOnCodeChange(code);
+  };
 
   const onGraphUpdate = (graphData: any) => {
     const data = { ...graphData };
@@ -496,8 +508,8 @@ export default function KubernetesProject(props: IProjectProps) {
             <CodeEditor
               data={formattedCode}
               language={language}
-              onChange={() => {
-                return;
+              onChange={(e: any) => {
+                onCodeUpdate(e);
               }}
               disabled={true}
               lineWrapping={false}
