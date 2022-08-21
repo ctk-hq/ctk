@@ -96,6 +96,7 @@ class ProjectImportAPIView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         org = get_user_org(request.user)
         data = { **request.data }
+        project_type = data.get("project_type", 0)
 
         project = copy.deepcopy(base_project)
         req = requests.get(data["url"], allow_redirects=True)
@@ -140,6 +141,7 @@ class ProjectImportAPIView(generics.CreateAPIView):
 
         try:
             obj = Project.objects.get(uuid=project_uuid, org=org)
+            obj.project_type = project_type
             obj.data = json.dumps(project)
             obj.visibility = data["visibility"]
             obj.save()

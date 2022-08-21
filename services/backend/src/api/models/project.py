@@ -10,6 +10,7 @@ class Project(models.Model):
         related_name="projects",
         on_delete=models.CASCADE,
     )
+    project_type = models.SmallIntegerField(blank=False, null=False, default="0")
     visibility = models.SmallIntegerField(blank=False, null=False, default="1")
     name = models.CharField(max_length=500, blank=False, null=False, default="Untitled")
     uuid = models.CharField(max_length=500, blank=True, null=True, unique=True)
