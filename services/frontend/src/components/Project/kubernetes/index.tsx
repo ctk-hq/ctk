@@ -1,11 +1,10 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { debounce, Dictionary, omit } from "lodash";
 import YAML from "yaml";
-import { GlobeAltIcon, CubeIcon, FolderAddIcon } from "@heroicons/react/solid";
+import { CubeIcon } from "@heroicons/react/solid";
 import {
-  IProjectPayload,
+  IKubernetesProjectPayload,
   IServiceNodeItem,
-  IVolumeNodeItem,
   IServiceNodePosition,
   IProject
 } from "../../../types";
@@ -15,6 +14,7 @@ import { useUpdateProject, createProject } from "../../../hooks/useProject";
 import useWindowDimensions from "../../../hooks/useWindowDimensions";
 import { generateKubernetesPayload } from "../../../utils/generators";
 import { nodeLibraries } from "../../../utils/data/libraries";
+import { defaultProjectName } from "../project-utils";
 import {
   getClientNodeItem,
   flattenLibraries,
@@ -29,9 +29,6 @@ import Spinner from "../../global/Spinner";
 import ModalConfirmDelete from "../../modals/ConfirmDelete";
 import CreateServiceModal from "../../modals/docker-compose/service/Create";
 import ModalServiceEdit from "../../modals/docker-compose/service/Edit";
-import ModalNetwork from "../../modals/docker-compose/network";
-import CreateVolumeModal from "../../modals/docker-compose/volume/CreateVolumeModal";
-import EditVolumeModal from "../../modals/docker-compose/volume/EditVolumeModal";
 import CodeEditor from "../../CodeEditor";
 import VisibilitySwitch from "../../global/VisibilitySwitch";
 
@@ -43,35 +40,23 @@ interface IProjectProps {
 export default function KubernetesProject(props: IProjectProps) {
   const { isAuthenticated, data } = props;
   const { height } = useWindowDimensions();
-  const stateNodesRef =
-    useRef<Dictionary<IServiceNodeItem | IVolumeNodeItem>>();
+  const stateNodesRef = useRef<Dictionary<IServiceNodeItem>>();
   const stateConnectionsRef = useRef<[[string, string]] | []>();
-  const stateNetworksRef = useRef({});
 
   const [isVisible, setIsVisible] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string>();
   const [formattedCode, setFormattedCode] = useState<string>("");
   const [showModalCreateService, setShowModalCreateService] = useState(false);
-  const [showVolumesModal, setShowVolumesModal] = useState(false);
-  const [showNetworksModal, setShowNetworksModal] = useState(false);
   const [serviceToEdit, setServiceToEdit] = useState<IServiceNodeItem | null>(
     null
   );
   const [serviceToDelete, setServiceToDelete] =
     useState<IServiceNodeItem | null>(null);
-  const [volumeToEdit, setVolumeToEdit] = useState<IVolumeNodeItem | null>(
-    null
-  );
-  const [volumeToDelete, setVolumeToDelete] = useState<IVolumeNodeItem | null>(
-    null
-  );
   const [language, setLanguage] = useState("yaml");
   const [copyText, setCopyText] = useState("Copy");
   const [nodes, setNodes] = useState<Record<string, any>>({});
   const [connections, setConnections] = useState<[[string, string]] | []>([]);
-  const [networks, setNetworks] = useState<Record<string, any>>({});
-  const [projectName, setProjectName] = useState("Untitled");
-
+  const [projectName, setProjectName] = useState(() => defaultProjectName());
   const [canvasPosition, setCanvasPosition] = useState({
     top: 0,
     left: 0,
@@ -79,7 +64,7 @@ export default function KubernetesProject(props: IProjectProps) {
   });
   const updateProjectMutation = useUpdateProject(data?.uuid);
   const createProjectMutation = useMutation(
-    (payload: IProjectPayload) => {
+    (payload: IKubernetesProjectPayload) => {
       return createProject(payload);
     },
     {
@@ -91,7 +76,6 @@ export default function KubernetesProject(props: IProjectProps) {
 
   stateNodesRef.current = nodes;
   stateConnectionsRef.current = connections;
-  stateNetworksRef.current = networks;
 
   const handleNameChange = (e: any) => {
     setProjectName(e.target.value);
@@ -108,7 +92,7 @@ export default function KubernetesProject(props: IProjectProps) {
   };
 
   const onSave = () => {
-    const payload: IProjectPayload = {
+    const payload: IKubernetesProjectPayload = {
       name: projectName,
       visibility: +isVisible,
       project_type: 1,
@@ -116,8 +100,7 @@ export default function KubernetesProject(props: IProjectProps) {
         canvas: {
           position: canvasPosition,
           nodes: nodes,
-          connections: connections,
-          networks: networks
+          connections: connections
         }
       }
     };
@@ -156,7 +139,6 @@ export default function KubernetesProject(props: IProjectProps) {
     setIsVisible(Boolean(data.visibility));
     setNodes(clientNodeItems);
     setConnections(canvasData.canvas.connections);
-    setNetworks(canvasData.canvas.networks);
     setCanvasPosition(canvasData.canvas.position);
   }, [data]);
 
@@ -183,7 +165,6 @@ export default function KubernetesProject(props: IProjectProps) {
 
   const onGraphUpdate = (graphData: any) => {
     const data = { ...graphData };
-    data.networks = stateNetworksRef.current;
     const payload = generateKubernetesPayload(data);
     debouncedOnGraphUpdate(payload);
   };
@@ -204,33 +185,9 @@ export default function KubernetesProject(props: IProjectProps) {
     };
     setNodes({ ...nodes, [clientNodeItem.key]: clientNodeItem });
 
-    if (clientNodeItem.type === "VOLUME") {
-      setVolumeToEdit(clientNodeItem as unknown as IVolumeNodeItem);
-    }
-
     if (clientNodeItem.type === "SERVICE") {
       setServiceToEdit(clientNodeItem as unknown as IServiceNodeItem);
     }
-  };
-
-  const onCreateNetwork = (values: any) => {
-    setNetworks({ ...networks, [values.key]: values });
-  };
-
-  const onUpdateNetwork = (values: any) => {
-    setNetworks({ ...networks, [values.key]: values });
-  };
-
-  const onDeleteNetwork = (uuid: string) => {
-    const _networks = Object.keys(networks).reduce((ret: any, key) => {
-      if (networks[key].key !== uuid) {
-        ret[key] = networks[key];
-      }
-
-      return ret;
-    }, {});
-
-    setNetworks({ ..._networks });
   };
 
   const onUpdateEndpoint = (nodeItem: IServiceNodeItem) => {
@@ -353,7 +310,7 @@ export default function KubernetesProject(props: IProjectProps) {
     }
   };
 
-  const onRemoveEndpoint = (node: IServiceNodeItem | IVolumeNodeItem) => {
+  const onRemoveEndpoint = (node: IServiceNodeItem) => {
     setNodes({ ...omit(nodes, node.key) });
     eventBus.dispatch("NODE_DELETED", { message: { node: node } });
   };
@@ -374,23 +331,6 @@ export default function KubernetesProject(props: IProjectProps) {
 
   return (
     <>
-      {showNetworksModal ? (
-        <ModalNetwork
-          networks={networks}
-          onHide={() => setShowNetworksModal(false)}
-          onCreateNetwork={(values: any) => onCreateNetwork(values)}
-          onUpdateNetwork={(values: any) => onUpdateNetwork(values)}
-          onDeleteNetwork={(uuid: string) => onDeleteNetwork(uuid)}
-        />
-      ) : null}
-
-      {showVolumesModal ? (
-        <CreateVolumeModal
-          onHide={() => setShowVolumesModal(false)}
-          onAddEndpoint={(values: any) => onAddEndpoint(values)}
-        />
-      ) : null}
-
       {showModalCreateService ? (
         <CreateServiceModal
           onHide={() => setShowModalCreateService(false)}
@@ -412,24 +352,6 @@ export default function KubernetesProject(props: IProjectProps) {
           onConfirm={() => {
             onRemoveEndpoint(serviceToDelete);
             setServiceToDelete(null);
-          }}
-        />
-      ) : null}
-
-      {volumeToEdit ? (
-        <EditVolumeModal
-          node={volumeToEdit}
-          onHide={() => setVolumeToEdit(null)}
-          onUpdateEndpoint={(values: any) => onUpdateEndpoint(values)}
-        />
-      ) : null}
-
-      {volumeToDelete ? (
-        <ModalConfirmDelete
-          onHide={() => setServiceToDelete(null)}
-          onConfirm={() => {
-            onRemoveEndpoint(volumeToDelete);
-            setVolumeToDelete(null);
           }}
         />
       ) : null}
@@ -516,24 +438,6 @@ export default function KubernetesProject(props: IProjectProps) {
                     <CubeIcon className="w-4" />
                     <span>Add service</span>
                   </button>
-
-                  <button
-                    className="flex space-x-1 btn-util"
-                    type="button"
-                    onClick={() => setShowVolumesModal(true)}
-                  >
-                    <FolderAddIcon className="w-4" />
-                    <span>Add volume</span>
-                  </button>
-
-                  <button
-                    className="flex space-x-1 btn-util"
-                    type="button"
-                    onClick={() => setShowNetworksModal(true)}
-                  >
-                    <GlobeAltIcon className="w-4" />
-                    <span>Networks</span>
-                  </button>
                 </div>
               </div>
 
@@ -558,12 +462,8 @@ export default function KubernetesProject(props: IProjectProps) {
                 setServiceToDelete={(node: IServiceNodeItem) =>
                   setServiceToDelete(node)
                 }
-                setVolumeToEdit={(node: IVolumeNodeItem) =>
-                  setVolumeToEdit(node)
-                }
-                setVolumeToDelete={(node: IVolumeNodeItem) =>
-                  setVolumeToDelete(node)
-                }
+                setVolumeToEdit={null}
+                setVolumeToDelete={null}
               />
             </div>
           </div>

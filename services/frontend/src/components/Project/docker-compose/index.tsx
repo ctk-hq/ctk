@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { debounce, Dictionary, omit } from "lodash";
 import YAML from "yaml";
 import { GlobeAltIcon, CubeIcon, FolderAddIcon } from "@heroicons/react/solid";
-import randomWords from "random-words";
 import {
   IProjectPayload,
   IServiceNodeItem,
@@ -16,6 +15,7 @@ import { useUpdateProject, createProject } from "../../../hooks/useProject";
 import useWindowDimensions from "../../../hooks/useWindowDimensions";
 import { generatePayload } from "../../../utils/generators";
 import { nodeLibraries } from "../../../utils/data/libraries";
+import { defaultProjectName } from "../project-utils";
 import {
   getClientNodeItem,
   flattenLibraries,
@@ -74,15 +74,7 @@ export default function DockerComposeProject(
   const [nodes, setNodes] = useState<Record<string, any>>({});
   const [connections, setConnections] = useState<[[string, string]] | []>([]);
   const [networks, setNetworks] = useState<Record<string, any>>({});
-  const [projectName, setProjectName] = useState(
-    () =>
-      randomWords({
-        wordsPerString: 2,
-        exactly: 1,
-        separator: "-"
-      } as any)[0]
-  );
-
+  const [projectName, setProjectName] = useState(() => defaultProjectName());
   const [canvasPosition, setCanvasPosition] = useState({
     top: 0,
     left: 0,

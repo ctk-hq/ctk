@@ -25,8 +25,8 @@ interface ICanvasProps {
   onConnectionDetached: CallbackFunction;
   setServiceToEdit: CallbackFunction;
   setServiceToDelete: CallbackFunction;
-  setVolumeToEdit: CallbackFunction;
-  setVolumeToDelete: CallbackFunction;
+  setVolumeToEdit: CallbackFunction | null;
+  setVolumeToDelete: CallbackFunction | null;
 }
 
 export const Canvas: FC<ICanvasProps> = (props) => {
@@ -190,7 +190,7 @@ export const Canvas: FC<ICanvasProps> = (props) => {
                 );
               }
 
-              if (x.type === "VOLUME") {
+              if (x.type === "VOLUME" && setVolumeToEdit && setVolumeToDelete) {
                 x = x as IVolumeNodeItem;
                 return (
                   <VolumeNode

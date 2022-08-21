@@ -3,7 +3,7 @@ import _ from "lodash";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys, toaster } from "../utils";
-import { IProject, IProjectPayload } from "../types";
+import { IProject } from "../types";
 import useLocalStorageJWTKeys from "./useLocalStorageJWTKeys";
 
 interface IProjectsReturn {
@@ -13,7 +13,7 @@ interface IProjectsReturn {
   results: IProject[];
 }
 
-export const createProject = async (project: IProjectPayload) => {
+export const createProject = async (project: any) => {
   const jwtKeys = getLocalStorageJWTKeys();
   const requestConfig = {
     method: "post",
@@ -116,7 +116,7 @@ export const useUpdateProject = (uuid: string | undefined) => {
   const queryClient = useQueryClient();
 
   return useMutation(
-    async (projectData: IProjectPayload) => {
+    async (projectData: any) => {
       if (!uuid) {
         return;
       }
