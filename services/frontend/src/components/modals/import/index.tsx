@@ -26,6 +26,13 @@ const FormContainer = styled("div")`
   justify-content: space-between;
 `;
 
+const FormRowBlock = styled("div")`
+  margin: 6px 0 0 0;
+  display: flex;
+  flex-direction: row;
+  gap: ${({ theme }) => theme.spacing(1)};
+`;
+
 const ModalImport = (props: IModalImportProps) => {
   const { onHide, onImport, importing } = props;
 
@@ -74,19 +81,24 @@ const ModalImport = (props: IModalImportProps) => {
                       className="relative px-4 py-3 flex-auto"
                       height={""}
                     >
-                      <TextField label="yaml url" name="url" required={true} />
+                      <TextField label="YAML URL" name="url" required={true} />
 
-                      <label htmlFor="visibility" className="lbl-util">
-                        Visibility
-                      </label>
+                      <FormRowBlock>
+                        <label
+                          htmlFor="visibility"
+                          className="block text-xs font-bold text-gray-700"
+                        >
+                          Make project public
+                        </label>
 
-                      <input
-                        id="visibility"
-                        name="visibility"
-                        className="checkbox-util"
-                        type="checkbox"
-                        onChange={formik.handleChange}
-                      />
+                        <input
+                          id="visibility"
+                          name="visibility"
+                          className="checkbox-util"
+                          type="checkbox"
+                          onChange={formik.handleChange}
+                        />
+                      </FormRowBlock>
 
                       {importing && <>importing</>}
                     </ScrollView>
