@@ -195,7 +195,7 @@ export const validationSchema = yup.object({
       limits: yup.object({
         cpus: yup.string(),
         memory: yup.string(),
-        pids: yup.string()
+        pids: yup.number().typeError("PIDs should be an integer")
       }),
       reservations: yup.object({
         cpus: yup.string(),
@@ -205,11 +205,11 @@ export const validationSchema = yup.object({
     restartPolicy: yup.object({
       condition: yup.string().oneOf(["", "none", "on-failure", "any"]),
       delay: yup.string(),
-      maxAttempts: yup.string(),
+      maxAttempts: yup.number().typeError("max attempts should be an integer"),
       window: yup.string()
     }),
     rollbackConfig: yup.object({
-      parallelism: yup.string(),
+      parallelism: yup.number().typeError("parallelism should be an integer"),
       delay: yup.string(),
       failureAction: yup.string().oneOf(["", "continue", "pause"]),
       monitor: yup.string(),
@@ -217,7 +217,7 @@ export const validationSchema = yup.object({
       order: yup.string().oneOf(["", "stop-first", "start-first"])
     }),
     updateConfig: yup.object({
-      parallelism: yup.string(),
+      parallelism: yup.number().typeError("parallelism should be an integer"),
       delay: yup.string(),
       failureAction: yup.string().oneOf(["", "continue", "pause"]),
       monitor: yup.string(),

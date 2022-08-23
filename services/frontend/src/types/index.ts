@@ -2,7 +2,6 @@ import { AnchorId } from "@jsplumb/common";
 import { Dictionary } from "lodash";
 import { FunctionComponent, ReactNode } from "react";
 import { KeyValuePair } from "tailwindcss/types/config";
-import { string } from "yup";
 import { NodeGroupType } from "./enums";
 
 type KeyValPair = {
