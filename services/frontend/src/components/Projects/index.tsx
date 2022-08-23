@@ -107,14 +107,14 @@ const Projects = () => {
                           flexDirection: "column",
                           justifyContent: "center",
                           alignItems: "center",
-                          minHeight: "calc(60vh - 120px)"
+                          minHeight: "calc(100vh - 160px)"
                         }}
                       >
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">
+                        <h3 className="mt-2 text-lg font-medium text-gray-900">
                           No projects
                         </h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Get started by creating a new project.
+                        <p className="mt-1 text-base text-gray-500">
+                          Get started by creating a new project
                         </p>
                         <div className="flex flex-col md:flex-row mt-6 items-center space-y-2 md:space-y-0 space-x-2">
                           <button onClick={onImportClick} className="btn-util">
@@ -127,7 +127,7 @@ const Projects = () => {
                                 className="h-3 w-3"
                                 aria-hidden="true"
                               />
-                              <span>New Project</span>
+                              <span>New project</span>
                             </span>
                           </Link>
                         </div>
