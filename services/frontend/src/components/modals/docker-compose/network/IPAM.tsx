@@ -1,7 +1,6 @@
 import { FunctionComponent, ReactElement } from "react";
 import { styled } from "@mui/joy";
 import TextField from "../../../global/FormElements/TextField";
-import { IFieldType } from "../../../Record";
 import Records from "../../../Records";
 
 const Root = styled("div")`
@@ -133,10 +132,9 @@ const IPAM: FunctionComponent = (): ReactElement => {
             {elements[3]}
           </Configuration>
         )}
-        renderField={(
-          element: ReactElement,
-          field: IFieldType
-        ): ReactElement => <Field>{element}</Field>}
+        renderField={(element: ReactElement): ReactElement => (
+          <Field>{element}</Field>
+        )}
         renderRemove={(element: ReactElement): ReactElement => (
           <Remove>{element}</Remove>
         )}

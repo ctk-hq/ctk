@@ -31,7 +31,7 @@ const Projects = () => {
         navigate(`/projects/${resp.name}`);
         toaster(`Imported!`, "success");
       })
-      .catch((e: any) => {
+      .catch(() => {
         toaster(`Something went wrong!`, "error");
       })
       .finally(() => {

@@ -174,14 +174,6 @@ export default function Project(props: IProjectProps) {
     setCanvasPosition(canvasData.canvas.position);
   }, [data]);
 
-  const debouncedOnCodeChange = useMemo(
-    () =>
-      debounce((code: string) => {
-        //formik.setFieldValue("code", e, false);
-      }, 700),
-    []
-  );
-
   const debouncedOnGraphUpdate = useMemo(
     () =>
       debounce((payload) => {
@@ -202,10 +194,6 @@ export default function Project(props: IProjectProps) {
       }, 600),
     []
   );
-
-  const onCodeUpdate = (code: string) => {
-    debouncedOnCodeChange(code);
-  };
 
   const onGraphUpdate = (graphData: any) => {
     const data = { ...graphData };
@@ -650,8 +638,8 @@ export default function Project(props: IProjectProps) {
                 <CodeEditor
                   data={formattedCode}
                   language={language}
-                  onChange={(e: any) => {
-                    onCodeUpdate(e);
+                  onChange={() => {
+                    return;
                   }}
                   disabled={true}
                   lineWrapping={false}

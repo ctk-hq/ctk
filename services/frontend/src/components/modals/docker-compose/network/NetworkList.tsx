@@ -86,7 +86,7 @@ const NetworkList: FunctionComponent<INetworkListProps> = (
               variant="soft"
               size="sm"
               color="danger"
-              onClick={(e) => handleRemove(e, networkUuid)}
+              onClick={(e: any) => handleRemove(e, networkUuid)}
             >
               <MinusSmIcon className="h-4 w-4" />
             </RemoveButton>

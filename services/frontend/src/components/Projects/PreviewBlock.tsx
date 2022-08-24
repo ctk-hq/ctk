@@ -25,7 +25,7 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
     setIsHovering(false);
   };
 
-  const handleClick = (e: any) => {
+  const handleClick = () => {
     navigate(`/projects/${project.uuid}`);
   };
 
