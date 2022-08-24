@@ -37,7 +37,7 @@ const ModalImport = (props: IModalImportProps) => {
   const { onHide, onImport, importing } = props;
 
   const handleCreate = useCallback(
-    (values: IImportForm, formik: any) => {
+    (values: IImportForm) => {
       const result = getFinalValues(values);
       onImport(result);
       toaster(`Importing...`, "success");

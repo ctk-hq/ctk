@@ -1,5 +1,5 @@
-import { styled } from "@mui/joy";
 import { FunctionComponent, ReactElement, ReactNode } from "react";
+import { styled } from "@mui/joy";
 import { TabContext } from "../contexts";
 
 export interface ITabsProps {
