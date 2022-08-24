@@ -49,7 +49,7 @@ const Projects = () => {
         />
       ) : null}
 
-      <div className="md:pl-16 flex flex-col flex-1">
+      <div className="md:pl-16 flex flex-col flex-1 h-screen">
         <main>
           <div className="py-6">
             <div className="flex flex-col sm:flex-row justify-between px-4 sm:px-6 md:px-8">

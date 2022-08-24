@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { styled } from "@mui/joy";
 import CreateNetworkModal from "./CreateNetworkModal";
 import { CallbackFunction, IEditNetworkForm } from "../../../../types";
 import EditNetworkModal from "./EditNetworkModal";
@@ -6,7 +7,6 @@ import { attachUUID, toaster } from "../../../../utils";
 import { getFinalValues } from "./form-utils";
 import EmptyNetworks from "./EmptyNetworks";
 import NetworkList from "./NetworkList";
-import { styled } from "@mui/joy";
 import Modal from "../../../Modal";
 
 interface IModalNetworkProps {
