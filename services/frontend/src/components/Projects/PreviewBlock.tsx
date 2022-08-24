@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrashIcon } from "@heroicons/react/outline";
+import K8sLogo from "../../components/global/k8s-logo";
+import DockerLogo from "../../components/global/docker-logo";
 import { truncateStr } from "../../utils";
 import { IProject } from "../../types";
 import ModalConfirmDelete from "../modals/ConfirmDelete";
@@ -60,6 +62,9 @@ const PreviewBlock = (props: IPreviewBlockProps) => {
           hover:bg-gray-200
         `}
       >
+        {project.project_type === 0 && <DockerLogo />}
+        {project.project_type === 1 && <K8sLogo />}
+
         <div className="flex-1 min-w-0">{truncateStr(project.name, 25)}</div>
 
         {isHovering && (
