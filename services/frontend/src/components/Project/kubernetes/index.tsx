@@ -496,8 +496,8 @@ export default function KubernetesProject(props: IProjectProps) {
             <CodeEditor
               data={formattedCode}
               language={language}
-              onChange={(e: any) => {
-                onCodeUpdate(e);
+              onChange={() => {
+                return;
               }}
               disabled={true}
               lineWrapping={false}
