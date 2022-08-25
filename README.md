@@ -1,5 +1,7 @@
 # Container ToolKit
 
+Visually generate docker compose manifests and deploy apps to AWS ECS (coming soon).
+
 ![Alt text](https://ctk-public.s3.amazonaws.com/ui.png?raw=true "UI")
 
 ## Local setup and development
