@@ -149,11 +149,15 @@ export interface IService {
   credential_spec: KeyValPair;
   depends_on:
     | string[]
-    | {
-        [key: string]: {
-          condition: string;
-        };
-      };
+    | Record<
+        string,
+        {
+          condition:
+            | "service_started"
+            | "service_healthy"
+            | "service_completed_successfully";
+        }
+      >;
   deploy?: {
     endpoint_mode?: "vip" | "dnsrr";
     labels?: string[] | Record<string, string>;
@@ -480,7 +484,13 @@ export interface IEditServiceForm {
     key: string;
     value: string;
   }[];
-  dependsOn: string[];
+  dependsOn: {
+    serviceName: string;
+    condition:
+      | "service_started"
+      | "service_healthy"
+      | "service_completed_successfully";
+  }[];
   workingDir: string;
 }
 

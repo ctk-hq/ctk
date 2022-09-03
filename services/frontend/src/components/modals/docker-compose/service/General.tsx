@@ -222,14 +222,38 @@ const General = () => {
             title: "Depends on",
             fields: (index: number): TFinalFormField[] => [
               {
-                id: `dependsOn[${index}]`,
+                id: `dependsOn[${index}].serviceName`,
                 type: "text",
-                name: `dependsOn[${index}]`,
+                name: `dependsOn[${index}].serviceName`,
                 placeholder: "Service name",
-                required: false
+                required: true
+              },
+              {
+                id: `dependsOn[${index}].condition`,
+                type: "toggle",
+                name: `dependsOn[${index}].condition`,
+                label: "Condition",
+                required: true,
+                options: [
+                  {
+                    value: "service_started",
+                    text: "Service started"
+                  },
+                  {
+                    value: "service_healthy",
+                    text: "Service healthy"
+                  },
+                  {
+                    value: "service_completed_successfully",
+                    text: "Service completed successfully"
+                  }
+                ]
               }
             ],
-            newValue: ""
+            newValue: {
+              serviceName: "",
+              condition: "service_started"
+            }
           },
           {
             id: "networks",

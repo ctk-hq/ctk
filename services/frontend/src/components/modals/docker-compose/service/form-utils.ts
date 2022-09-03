@@ -278,8 +278,42 @@ export const validationSchema = yup.object({
       key: yup.string().required("Key is required"),
       value: yup.string()
     })
-  )
+  ),
+  dependsOn: yup.array(
+    yup.object({
+      serviceName: yup.string().required("Service name is required"),
+      condition: yup
+        .string()
+        .oneOf(
+          [
+            "service_started",
+            "service_healthy",
+            "service_completed_successfully"
+          ],
+          "Condition should be one of: service_started, service_healthy, or service_completed_successfully."
+        )
+    })
+  ),
+  workingDir: yup.string()
 });
+
+const extractDependsOn = (object: string[] | any) => {
+  if (!object) {
+    return object;
+  }
+
+  if (Array.isArray(object)) {
+    return object.map((item) => ({
+      serviceName: item,
+      condition: "service_started"
+    }));
+  }
+
+  return Object.keys(object).map((key) => ({
+    serviceName: key,
+    condition: object[key].condition
+  }));
+};
 
 export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   if (!node) {
@@ -456,8 +490,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
             initialValues.deploy.labels
         }
       : initialValues.deploy,
-    dependsOn:
-      (depends_on as string[]) ?? (initialValues.dependsOn as string[]),
+    dependsOn: extractDependsOn(depends_on) ?? initialValues.dependsOn,
     entrypoint: (entrypoint as string) ?? (initialValues.entrypoint as string),
     envFile: (env_file as string) ?? (initialValues.envFile as string),
     imageName,
@@ -606,7 +639,16 @@ export const getFinalValues = (
         }),
         labels: packArrayAsObject(deploy.labels, "key", "value")
       }),
-      depends_on: pruneArray(dependsOn),
+      depends_on: pruneObject(
+        Object.fromEntries(
+          dependsOn.map((item) => [
+            item.serviceName,
+            {
+              condition: item.condition
+            }
+          ])
+        )
+      ),
       entrypoint: pruneString(entrypoint),
       env_file: pruneString(envFile),
       image: pruneString(
