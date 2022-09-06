@@ -12,7 +12,7 @@ endif
 build-image :
 	docker build -t $(ORGANIZATION)/$(CONTAINER):$(VERSION) .
 
-deploy :
+run :
 	docker run --rm --name $(CONTAINER) \
 		--env AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
 		--env AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
