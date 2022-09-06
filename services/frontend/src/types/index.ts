@@ -21,6 +21,7 @@ export interface IServiceNodePosition {
 export interface IProject {
   id: number;
   name: string;
+  visibility: number;
   uuid: string;
   data: string;
   created_at: string;
