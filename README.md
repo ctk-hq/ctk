@@ -1,6 +1,6 @@
 # Container ToolKit
 
-Visually generate docker compose manifests and deploy apps to AWS ECS (coming soon).
+Visually generate docker compose & kubernetes manifests.
 
 ![Alt text](https://ctk-public.s3.amazonaws.com/ui.png?raw=true "UI")
 
@@ -26,12 +26,6 @@ make dev_server
 ```
 
 ... this command will bring up the backend, the database, sync migrations,
-
-## Project roadmap
-
-- Kubernetes manifest generation.
-- ECS deployment.
-- K8S deployment.
 
 ## Docs
 
