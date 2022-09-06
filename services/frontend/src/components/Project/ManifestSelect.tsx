@@ -9,7 +9,7 @@ interface IButtonProps {
 
 const Button = styled("button", {
   shouldForwardProp: (name) => name !== "selected"
-})<IButtonProps>`
+}) <IButtonProps>`
   filter: grayscale(${({ selected }) => (selected ? "0%" : "100%")});
   opacity: ${({ selected }) => (selected ? "100%" : "80%")};
 
