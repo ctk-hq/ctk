@@ -1,5 +1,8 @@
 import io
+import os
 import contextlib
+import random
+import string
 from ruamel.yaml import YAML
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
@@ -58,11 +61,11 @@ def sequence_indent_one(s):
 
     return ret_val
 
-def get_version(verion):
+def get_version(version):
     try:
-        return int(verion)
+        return int(version)
     except ValueError:
-        return float(verion)
+        return float(version)
 
 def generate(services, volumes, networks, version="3", return_format='yaml'):
     if return_format != 'yaml':
@@ -95,8 +98,23 @@ def generate(services, volumes, networks, version="3", return_format='yaml'):
 
     if volumes:
         ret_yaml.dump({'volumes': volumes}, s)
-        s.write('\n')
 
     s.seek(0)
+    return s.read()
 
-    return s
+def clean_dict(dic, omit=None):
+  if type(dic) is dict:
+    for key, item in dic.copy().items():
+      if omit and key in omit:
+        del dic[key]
+      elif type(item) is dict:
+        dic[key] = clean_dict(item, omit)
+
+  return dic
+
+def get_random_string(length):
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for _ in range(length))
+
+def read_dir(path):
+    return [f for f in os.listdir(path) if os.path.isfile(f"{path}/{f}")]

@@ -6,4 +6,4 @@ class ViewGenericAPIView(generics.GenericAPIView):
     permission_classes = []
 
     def get(self, request):
-        return Response({}, status=status.HTTP_404_NOT_FOUND)
+        return Response({}, status=status.HTTP_200_OK)
