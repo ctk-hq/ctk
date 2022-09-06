@@ -137,6 +137,7 @@ export const useUpdateProject = (uuid: string | undefined) => {
     },
     {
       onSuccess: (projectData) => {
+        toaster("Project saved!", "success");
         queryClient.setQueryData(["projects", uuid], projectData);
       }
     }
@@ -157,9 +158,9 @@ export const useDeleteProject = (uuid: string | undefined) => {
         return data;
       } catch (err: any) {
         if (err.response.status === 404) {
-          // console.error("Resource could not be found!");
+          toaster("Resource could not be found!", "error");
         } else {
-          // console.error(err.message);
+          toaster(err.message, "error");
         }
       }
     },
@@ -180,6 +181,7 @@ export const useDeleteProject = (uuid: string | undefined) => {
         } else {
           queryClient.invalidateQueries(["projects"]);
         }
+        toaster("Project deleted!", "success");
       }
     }
   );
