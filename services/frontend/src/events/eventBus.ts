@@ -7,7 +7,7 @@ const eventBus = {
   },
   dispatch(
     event: string,
-    data: { message: { id: string } | { id: string } | { node: any } }
+    data: { message: { id: string } | { data: any } | { node: any } }
   ) {
     document.dispatchEvent(new CustomEvent(event, { detail: data }));
   },
