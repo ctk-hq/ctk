@@ -281,6 +281,63 @@ export const validationSchema = yup.object({
   )
 });
 
+const extractVolumes = (volumes: undefined | string[] | any[]) => {
+  if (!volumes) {
+    return [];
+  }
+
+  if (!Array.isArray(volumes)) {
+    throw new Error("Volumes should be an array.");
+  }
+
+  if (volumes.length === 0) {
+    return [];
+  }
+
+  const expectedType = typeof volumes[0];
+
+  return volumes.map((volume) => {
+    if (typeof volume !== expectedType) {
+      throw new Error("All the volumes should be of the same type.");
+    }
+
+    let type,
+      source,
+      target,
+      readOnly,
+      bind,
+      volumeNoCopy,
+      tmpfsSize,
+      tmpfsMode,
+      consistency;
+    if (expectedType === "string") {
+      [name, containerPath, accessMode] = volume.split(":");
+    } else {
+      type = volume.type;
+      source = volume.source;
+      target = volume.target;
+      readOnly = volume.read_only;
+      bind = volume.bind;
+      volumeNoCopy = volume.volume?.nocopy;
+      tmpfsSize = volume.tmpfs?.size;
+      tmpfsMode = volume.tmpfs?.mode;
+      consistency = volume.consistency;
+    }
+
+    return {
+      type,
+      source,
+      target,
+      readOnly,
+      bind,
+      volumeNoCopy,
+      tmpfsSize,
+      tmpfsMode,
+      consistency
+    };
+  });
+};
+
 export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   if (!node) {
     return {
@@ -467,14 +524,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     environmentVariables:
       extractObjectOrArray("=", "key", "value", environment) ??
       initialValues.environmentVariables,
-    volumes: volumes0.map((volume) => {
-      const [name, containerPath, accessMode] = volume.split(":");
-      return {
-        name,
-        containerPath,
-        accessMode
-      };
-    }),
+    volumes: extractVolumes(volumes0),
     networks: (networks as string[]) ?? (initialValues.networks as string[]),
     ports: ports0.map((port) => {
       const slashIndex = port.lastIndexOf("/");
