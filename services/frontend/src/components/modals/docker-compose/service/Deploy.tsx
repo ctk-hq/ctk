@@ -1,4 +1,4 @@
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 import { useParams } from "react-router-dom";
 import TextField from "../../../global/FormElements/TextField";
 import Toggle from "../../../global/FormElements/Toggle";

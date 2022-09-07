@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 import CreateNetworkModal from "./CreateNetworkModal";
 import { CallbackFunction, IEditNetworkForm } from "../../../../types";
 import EditNetworkModal from "./EditNetworkModal";

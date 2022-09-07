@@ -1,5 +1,5 @@
 import { FunctionComponent, ReactElement } from "react";
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 import lodash from "lodash";
 import { useFormikContext } from "formik";
 

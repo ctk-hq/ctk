@@ -1,6 +1,5 @@
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/outline";
-import { styled } from "@mui/joy";
-import IconButton from "@mui/joy/IconButton";
+import { IconButton, styled } from "@mui/material";
 import { FunctionComponent, ReactElement, ReactNode } from "react";
 import { useAccordionState } from "../../../../hooks";
 
@@ -57,7 +56,7 @@ const Accordion: FunctionComponent<IAccordionProps> = (
     <Root>
       <Top onClick={toggle}>
         <Title>{title}</Title>
-        <ExpandButton size="sm" variant="plain">
+        <ExpandButton size="small">
           {open && <ChevronUpIcon className="h-5 w-5" />}
           {!open && <ChevronDownIcon className="h-5 w-5" />}
         </ExpandButton>

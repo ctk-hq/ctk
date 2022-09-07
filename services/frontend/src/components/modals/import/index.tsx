@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { Formik } from "formik";
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 import { XIcon } from "@heroicons/react/outline";
 import { CallbackFunction } from "../../../types";
 import { IImportForm } from "./form-utils";

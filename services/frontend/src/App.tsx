@@ -3,7 +3,6 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
-import { CssVarsProvider } from "@mui/joy/styles";
 
 import { LOCAL_STORAGE } from "./constants";
 import { reducer, initialState } from "./reducers";
@@ -26,6 +25,7 @@ import ProtectedRoute from "./partials/ProtectedRoute";
 import "./index.css";
 import { lightTheme } from "./utils/theme";
 import { SuperFormProvider } from "./components/SuperFormProvider";
+import { ThemeProvider } from "@mui/material";
 
 const queryClient = new QueryClient();
 
@@ -99,7 +99,7 @@ export default function App() {
   }, []);
 
   return (
-    <CssVarsProvider theme={lightTheme}>
+    <ThemeProvider theme={lightTheme}>
       <QueryClientProvider client={queryClient}>
         <SuperFormProvider>
           <div>
@@ -157,6 +157,6 @@ export default function App() {
         </SuperFormProvider>
         <ReactQueryDevtools initialIsOpen={true} />
       </QueryClientProvider>
-    </CssVarsProvider>
+    </ThemeProvider>
   );
 }

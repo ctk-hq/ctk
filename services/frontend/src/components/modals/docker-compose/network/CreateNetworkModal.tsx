@@ -1,6 +1,6 @@
 import { FunctionComponent, ReactElement, useMemo, useState } from "react";
 import { Formik } from "formik";
-import { Button, styled } from "@mui/joy";
+import { Button, styled } from "@mui/material";
 import General from "./General";
 import IPAM from "./IPAM";
 import { CallbackFunction } from "../../../../types";
@@ -20,6 +20,10 @@ const Actions = styled("div")`
   justify-content: flex-end;
   align-items: center;
   padding: ${({ theme }) => theme.spacing(1)};
+`;
+
+const CreateButton = styled(Button)`
+  text-transform: none;
 `;
 
 const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
@@ -50,13 +54,15 @@ const CreateNetworkModal: FunctionComponent<ICreateNetworkModalProps> = (
           </ScrollView>
 
           <Actions>
-            <Button
-              size="sm"
-              variant="solid"
+            <CreateButton
+              size="small"
+              variant="contained"
+              disableElevation={true}
+              disableRipple={true}
               onClick={reportErrorsAndSubmit(formik)}
             >
               Create
-            </Button>
+            </CreateButton>
           </Actions>
         </>
       )}

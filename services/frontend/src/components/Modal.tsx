@@ -1,6 +1,6 @@
 import { FunctionComponent, ReactElement, ReactNode } from "react";
 import { XIcon } from "@heroicons/react/outline";
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 
 export interface IModalProps {
   title: string;

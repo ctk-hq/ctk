@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 import { useTabContext } from "../hooks";
 
 export interface ITabProps {

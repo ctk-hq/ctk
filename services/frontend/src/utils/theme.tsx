@@ -1,13 +1,9 @@
-import { extendTheme } from "@mui/joy/styles";
+import { createTheme } from "@mui/material";
 
-export const lightTheme = extendTheme({
-  colorSchemes: {
-    light: {
-      palette: {
-        primary: {
-          mainChannel: "#4f46e5"
-        }
-      }
+export const lightTheme = createTheme({
+  palette: {
+    primary: {
+      main: "#4f46e5"
     }
   }
 });
