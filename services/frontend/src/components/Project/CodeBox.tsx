@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import YAML from "yaml";
 import { debounce } from "lodash";
+import { manifestTypes } from "../../constants";
 import { generatePayload } from "../../utils/generators";
 import { checkHttpStatus } from "../../services/helpers";
 import { generateHttp } from "../../services/generate";
@@ -12,19 +13,19 @@ import useWindowDimensions from "../../hooks/useWindowDimensions";
 
 const CodeBox = () => {
   const versionRef = useRef<string>();
-  const manifestRef = useRef<number>();
+  const manifestRef = useRef<string>();
   const [language, setLanguage] = useState("yaml");
   const [version, setVersion] = useState("3");
   const [copyText, setCopyText] = useState("Copy");
   const [generatedCode, setGeneratedCode] = useState<string>("");
   const [formattedCode, setFormattedCode] = useState<string>("");
-  const [manifest, setManifest] = useState(0);
+  const [manifest, setManifest] = useState(manifestTypes.DOCKER_COMPOSE);
   const { height } = useWindowDimensions();
 
   versionRef.current = version;
   manifestRef.current = manifest;
 
-  const getCode = (payload: any, manifest: number) => {
+  const getCode = (payload: any, manifest: string) => {
     generateHttp(JSON.stringify(payload), manifest)
       .then(checkHttpStatus)
       .then((data) => {
@@ -34,13 +35,11 @@ const CodeBox = () => {
           setGeneratedCode("");
         }
 
-        if (data["error"].length) {
+        if (data["error"]) {
           setGeneratedCode("");
           toaster(`error ${data["error"]}`, "error");
         }
-      })
-      .catch(() => undefined)
-      .finally(() => undefined);
+      });
   };
 
   const debouncedOnGraphUpdate = useMemo(

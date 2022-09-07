@@ -1,5 +1,6 @@
 import { styled } from "@mui/material";
 import { useCallback, useState } from "react";
+import { manifestTypes } from "../../constants";
 import DcLogo from "../global/dc-logo";
 import K8sLogo from "../global/k8s-logo";
 
@@ -24,25 +25,33 @@ interface IManifestSelectProps {
 
 const ManifestSelect = (props: IManifestSelectProps) => {
   const { setManifest } = props;
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(manifestTypes.DOCKER_COMPOSE);
 
   const handleK8s = useCallback(() => {
-    setManifest(1);
-    setSelected(1);
+    setManifest(manifestTypes.KUBERNETES);
+    setSelected(manifestTypes.KUBERNETES);
   }, []);
 
   const handleDC = useCallback(() => {
-    setManifest(0);
-    setSelected(0);
+    setManifest(manifestTypes.DOCKER_COMPOSE);
+    setSelected(manifestTypes.DOCKER_COMPOSE);
   }, []);
 
   return (
     <>
-      <Button selected={selected === 1} type="button" onClick={handleK8s}>
+      <Button
+        selected={selected === manifestTypes.KUBERNETES}
+        type="button"
+        onClick={handleK8s}
+      >
         <K8sLogo />
       </Button>
 
-      <Button selected={selected === 0} type="button" onClick={handleDC}>
+      <Button
+        selected={selected === manifestTypes.DOCKER_COMPOSE}
+        type="button"
+        onClick={handleDC}
+      >
         <DcLogo />
       </Button>
     </>
