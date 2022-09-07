@@ -1,5 +1,5 @@
 import { FunctionComponent, HTMLProps, ReactElement, ReactNode } from "react";
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 
 export interface IScrollViewProps extends HTMLProps<HTMLDivElement> {
   children: ReactNode;

@@ -1,6 +1,5 @@
 import { MinusSmIcon, PlusIcon } from "@heroicons/react/outline";
-import { Button, styled } from "@mui/joy";
-import IconButton from "@mui/joy/IconButton";
+import { IconButton, Button, styled } from "@mui/material";
 import { FunctionComponent, ReactElement } from "react";
 import { truncateStr } from "../../../../utils";
 
@@ -58,6 +57,10 @@ const RemoveButton = styled(IconButton)`
   max-height: 16px;
 `;
 
+const NewButton = styled(Button)`
+  text-transform: none;
+`;
+
 const NetworkList: FunctionComponent<INetworkListProps> = (
   props: INetworkListProps
 ): ReactElement => {
@@ -83,9 +86,8 @@ const NetworkList: FunctionComponent<INetworkListProps> = (
               {truncateStr(networks[networkUuid].canvasConfig.node_name, 10)}
             </ListItemText>
             <RemoveButton
-              variant="soft"
-              size="sm"
-              color="danger"
+              size="small"
+              color="warning"
               onClick={(e: any) => handleRemove(e, networkUuid)}
             >
               <MinusSmIcon className="h-4 w-4" />
@@ -95,10 +97,16 @@ const NetworkList: FunctionComponent<INetworkListProps> = (
       </Top>
 
       <Bottom>
-        <Button variant="plain" size="sm" onClick={onNew}>
+        <NewButton
+          variant="text"
+          size="small"
+          onClick={onNew}
+          disableElevation={true}
+          disableRipple={true}
+        >
           <PlusIcon className="h-4 w-4 mr-2" />
           New network
-        </Button>
+        </NewButton>
       </Bottom>
     </Root>
   );

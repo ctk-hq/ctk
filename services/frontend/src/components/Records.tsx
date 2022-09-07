@@ -1,5 +1,5 @@
 import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
-import { styled } from "@mui/joy";
+import { IconButton, styled } from "@mui/material";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -8,7 +8,6 @@ import {
 import Record, { IFieldType } from "./Record";
 import { useFormikContext } from "formik";
 import lodash from "lodash";
-import IconButton from "@mui/joy/IconButton";
 import { useAccordionState } from "../hooks";
 import { useParams } from "react-router-dom";
 
@@ -142,7 +141,7 @@ const Records: FunctionComponent<IRecordsProps> = (
       <Top onClick={toggle}>
         {title && <GroupTitle>{title}</GroupTitle>}
         {collapsible && (
-          <ExpandButton size="sm" variant="plain">
+          <ExpandButton size="small">
             {open && <ChevronUpIcon className="h-5 w-5" />}
             {!open && <ChevronDownIcon className="h-5 w-5" />}
           </ExpandButton>
@@ -171,7 +170,7 @@ const Records: FunctionComponent<IRecordsProps> = (
       )}
 
       {(!collapsible || open) && (
-        <AddButton size="sm" variant="soft" onClick={handleNew}>
+        <AddButton size="small" onClick={handleNew}>
           <PlusIcon className="h-4 w-4" />
         </AddButton>
       )}

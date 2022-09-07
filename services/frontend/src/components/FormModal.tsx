@@ -6,7 +6,7 @@ import {
   useState
 } from "react";
 import { Formik } from "formik";
-import { Button, styled } from "@mui/joy";
+import { Button, styled } from "@mui/material";
 
 import { reportErrorsAndSubmit } from "../utils/forms";
 import { ScrollView } from "./ScrollView";
@@ -52,6 +52,10 @@ const Actions = styled("div")`
   border-bottom-left-radius: 0.25rem;
   border-top-width: 1px;
   border-style: solid;
+`;
+
+const SaveButton = styled(Button)`
+  text-transform: none;
 `;
 
 const FormModal = (props: IFormModalProps) => {
@@ -110,7 +114,15 @@ const FormModal = (props: IFormModalProps) => {
             </StyledScrollView>
 
             <Actions>
-              <Button onClick={reportErrorsAndSubmit(formik)}>Save</Button>
+              <SaveButton
+                variant="contained"
+                disableElevation={true}
+                disableRipple={true}
+                size="small"
+                onClick={reportErrorsAndSubmit(formik)}
+              >
+                Save
+              </SaveButton>
             </Actions>
           </>
         )}

@@ -1,5 +1,5 @@
 import { FunctionComponent, ReactElement } from "react";
-import { Button, styled } from "@mui/joy";
+import { Button, styled } from "@mui/material";
 import { PlusIcon } from "@heroicons/react/outline";
 
 const Root = styled("div")`
@@ -13,6 +13,7 @@ const Root = styled("div")`
 
 const AddButton = styled(Button)`
   margin-top: ${({ theme }) => theme.spacing(1)};
+  text-transform: none;
 `;
 
 const Description = styled("p")`
@@ -34,7 +35,13 @@ const EmptyNetworks: FunctionComponent<IEmptyNetworksProps> = (
     <Root>
       <Description>No top-level networks available</Description>
 
-      <AddButton size="sm" variant="plain" onClick={onCreate}>
+      <AddButton
+        size="small"
+        variant="text"
+        onClick={onCreate}
+        disableElevation={true}
+        disableRipple={true}
+      >
         <PlusIcon className="h-4 w-4 mr-2" />
         New network
       </AddButton>

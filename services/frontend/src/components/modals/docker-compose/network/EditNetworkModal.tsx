@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Formik } from "formik";
-import { Button, styled } from "@mui/joy";
+import { Button, styled } from "@mui/material";
 import General from "./General";
 import IPAM from "./IPAM";
 import { CallbackFunction } from "../../../../types";
@@ -21,6 +21,10 @@ const Actions = styled("div")`
   justify-content: flex-end;
   align-items: center;
   padding: ${({ theme }) => theme.spacing(1)};
+`;
+
+const SaveButton = styled(Button)`
+  text-transform: none;
 `;
 
 const EditNetworkModal = (props: IEditNetworkModalProps) => {
@@ -52,13 +56,15 @@ const EditNetworkModal = (props: IEditNetworkModalProps) => {
           </ScrollView>
 
           <Actions>
-            <Button
-              size="sm"
-              variant="solid"
+            <SaveButton
+              size="small"
+              variant="contained"
               onClick={reportErrorsAndSubmit(formik)}
+              disableElevation={true}
+              disableRipple={true}
             >
               Save
-            </Button>
+            </SaveButton>
           </Actions>
         </>
       )}

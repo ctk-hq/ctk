@@ -1,5 +1,5 @@
 import { FunctionComponent, ReactElement, ReactNode } from "react";
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 import { useSuperForm } from "../hooks";
 import { IFormField } from "../types";
 

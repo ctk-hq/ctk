@@ -1,4 +1,4 @@
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 import { TFinalFormField } from "../../../../types";
 import { SuperForm } from "../../../SuperForm";
 

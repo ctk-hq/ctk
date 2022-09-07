@@ -5,8 +5,7 @@ import {
   useCallback,
   useMemo
 } from "react";
-import { styled } from "@mui/joy";
-import IconButton from "@mui/joy/IconButton";
+import { IconButton, styled } from "@mui/material";
 import { MinusSmIcon } from "@heroicons/react/solid";
 import TextField from "./global/FormElements/TextField";
 import Toggle from "./global/FormElements/Toggle";
@@ -119,12 +118,7 @@ const Record: FunctionComponent<IRecordProps> = (
       )}
       {renderRemoveWrapper(
         <div className="flex justify-end content-end">
-          <RemoveButton
-            variant="soft"
-            size="sm"
-            color="danger"
-            onClick={handleRemove}
-          >
+          <RemoveButton size="small" color="warning" onClick={handleRemove}>
             <MinusSmIcon className="h-5 w-5" />
           </RemoveButton>
         </div>
