@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CallbackFunction, IProject } from "../../types";
 import Spinner from "../global/Spinner";
 import VisibilitySwitch from "../global/VisibilitySwitch";
@@ -15,18 +15,18 @@ const ManifestSelect = (props: IManifestSelectProps) => {
   const [visibility, setVisibility] = useState(false);
   const [projectName, setProjectName] = useState("Untitled");
 
-  const handleNameChange = (e: any) => {
+  const handleNameChange = useCallback((e: any) => {
     setProjectName(e.target.value);
-  };
+  }, []);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     const data: any = {
       name: projectName,
       visibility: +visibility
     };
 
     onSave(data);
-  };
+  }, []);
 
   useEffect(() => {
     if (!projectData) {
