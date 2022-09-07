@@ -1,4 +1,4 @@
-import { styled } from "@mui/joy";
+import { styled } from "@mui/material";
 import { useCallback, useState } from "react";
 import DcLogo from "../global/dc-logo";
 import K8sLogo from "../global/k8s-logo";
@@ -9,7 +9,7 @@ interface IButtonProps {
 
 const Button = styled("button", {
   shouldForwardProp: (name) => name !== "selected"
-}) <IButtonProps>`
+})<IButtonProps>`
   filter: grayscale(${({ selected }) => (selected ? "0%" : "100%")});
   opacity: ${({ selected }) => (selected ? "100%" : "80%")};
 
