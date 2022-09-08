@@ -8,7 +8,7 @@ import {
   IVolumeNodeItem,
   IServiceNodePosition,
   IProject,
-  IProjectPayload,
+  IProjectPayload
 } from "../../types";
 import eventBus from "../../events/eventBus";
 import {
