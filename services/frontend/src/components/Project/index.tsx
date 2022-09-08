@@ -8,7 +8,8 @@ import {
   IServiceNodeItem,
   IVolumeNodeItem,
   IServiceNodePosition,
-  IProject
+  IProject,
+  IEditServiceFormDependsOn
 } from "../../types";
 import eventBus from "../../events/eventBus";
 import { useMutation } from "react-query";
@@ -40,6 +41,7 @@ import EditVolumeModal from "../modals/docker-compose/volume/EditVolumeModal";
 import CodeEditor from "../CodeEditor";
 import { useTitle } from "../../hooks";
 import VisibilitySwitch from "../global/VisibilitySwitch";
+import _ from "lodash";
 
 interface IProjectProps {
   isAuthenticated: boolean;
@@ -248,6 +250,22 @@ export default function Project(props: IProjectProps) {
     setNetworks({ ..._networks });
   };
 
+  const getDependsOnKeys = (dependsOn: any): string[] => {
+    let dependsOnKeys: string[] = [];
+
+    if (dependsOn) {
+      if (dependsOn.constructor === Object) {
+        dependsOnKeys = Object.keys(dependsOn);
+      }
+
+      if (Array.isArray(dependsOn)) {
+        dependsOnKeys = dependsOn as [];
+      }
+    }
+
+    return dependsOnKeys;
+  };
+
   const onUpdateEndpoint = (nodeItem: IServiceNodeItem) => {
     const key = nodeItem.key;
 
@@ -266,23 +284,21 @@ export default function Project(props: IProjectProps) {
       });
     }
 
-    if (
-      nodeItem.serviceConfig?.depends_on &&
-      Array.isArray(nodeItem.serviceConfig.depends_on)
-    ) {
-      nodeItem.serviceConfig.depends_on.forEach((dep: string) => {
-        const depObject = Object.keys(nodes).find((key: string) => {
-          const node = nodes[key];
-          if (node.canvasConfig.node_name === dep) {
-            return node;
-          }
-        });
+    const dependsOnData = nodeItem.serviceConfig.depends_on;
+    const dependsOnKeys = getDependsOnKeys(dependsOnData);
 
-        if (depObject) {
-          onConnectionAttached([key, depObject]);
+    dependsOnKeys.forEach((dep: string) => {
+      const depObject = Object.keys(nodes).find((key: string) => {
+        const node = nodes[key];
+        if (node.canvasConfig.node_name === dep) {
+          return node;
         }
       });
-    }
+
+      if (depObject) {
+        onConnectionAttached([key, depObject]);
+      }
+    });
 
     setNodes({ ...nodes, [nodeItem.key]: nodeItem });
   };
@@ -301,19 +317,25 @@ export default function Project(props: IProjectProps) {
       } as IServiceNodeItem;
       const targetNode = stateNodesRef.current[data[1]];
       const targetServiceName = targetNode.canvasConfig.node_name;
-      const sourceDependsOn = sourceNode.serviceConfig.depends_on as string[];
+      const sourceDependsOn = sourceNode.serviceConfig.depends_on as any;
 
-      if (sourceDependsOn && sourceDependsOn.length) {
-        if (targetServiceName) {
-          const filtered = sourceDependsOn.filter(
-            (nodeName: string) => nodeName !== targetServiceName
-          );
+      if (targetServiceName) {
+        const dependsOnKeys = getDependsOnKeys(sourceDependsOn);
 
-          if (filtered.length) {
-            sourceNode.serviceConfig.depends_on = filtered;
-          } else {
-            delete sourceNode.serviceConfig.depends_on;
+        dependsOnKeys.forEach((key: string) => {
+          if (key === targetServiceName) {
+            if (Array.isArray(sourceDependsOn)) {
+              _.remove(sourceDependsOn, (key) => key === targetServiceName);
+            }
+
+            if (sourceDependsOn && sourceDependsOn.constructor === Object) {
+              delete sourceDependsOn[key];
+            }
           }
+        });
+
+        if (!getDependsOnKeys(sourceDependsOn).length) {
+          delete sourceNode.serviceConfig.depends_on;
         }
       }
     }
@@ -337,12 +359,21 @@ export default function Project(props: IProjectProps) {
       } as IServiceNodeItem;
       const targetNode = stateNodesRef.current[data[1]];
       const targetServiceName = targetNode.canvasConfig.node_name;
-      let sourceDependsOn = sourceNode.serviceConfig.depends_on as string[];
+      let sourceDependsOn = sourceNode.serviceConfig.depends_on as any;
+      const dependsOnKeys = getDependsOnKeys(sourceDependsOn);
 
-      if (sourceDependsOn && sourceDependsOn.length) {
+      if (sourceDependsOn) {
         if (targetServiceName) {
-          if (!sourceDependsOn.includes(targetServiceName)) {
-            sourceDependsOn.push(targetServiceName);
+          if (!dependsOnKeys.includes(targetServiceName)) {
+            if (Array.isArray(sourceDependsOn)) {
+              sourceDependsOn.push(targetServiceName);
+            }
+
+            if (sourceDependsOn.constructor === Object) {
+              sourceDependsOn[targetServiceName] = {
+                condition: "service_healthy"
+              };
+            }
           }
         }
       } else {
