@@ -484,14 +484,16 @@ export interface IEditServiceForm {
     key: string;
     value: string;
   }[];
-  dependsOn: {
-    serviceName: string;
-    condition:
-      | "service_started"
-      | "service_healthy"
-      | "service_completed_successfully";
-  }[];
+  dependsOn: IEditServiceFormDependsOn[];
   workingDir: string;
+}
+
+export interface IEditServiceFormDependsOn {
+  serviceName: string;
+  condition:
+    | "service_started"
+    | "service_healthy"
+    | "service_completed_successfully";
 }
 
 export interface IEditVolumeForm {

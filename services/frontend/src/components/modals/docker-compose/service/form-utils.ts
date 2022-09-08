@@ -1,4 +1,8 @@
-import type { IEditServiceForm, IServiceNodeItem } from "../../../../types";
+import type {
+  IEditServiceForm,
+  IEditServiceFormDependsOn,
+  IServiceNodeItem
+} from "../../../../types";
 import * as yup from "yup";
 import {
   checkArray,
@@ -533,6 +537,31 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   };
 };
 
+const getFinalDependsOn = (dependsOn: IEditServiceFormDependsOn[]) => {
+  let shortForm = true;
+  for (const item of dependsOn) {
+    if (item.condition !== "service_started") {
+      shortForm = false;
+      break;
+    }
+  }
+
+  if (shortForm) {
+    return pruneArray(dependsOn.map((item) => item.serviceName));
+  }
+
+  return pruneObject(
+    Object.fromEntries(
+      dependsOn.map((item) => [
+        item.serviceName,
+        {
+          condition: item.condition
+        }
+      ])
+    )
+  );
+};
+
 export const getFinalValues = (
   values: IEditServiceForm,
   previous?: IServiceNodeItem
@@ -639,16 +668,7 @@ export const getFinalValues = (
         }),
         labels: packArrayAsObject(deploy.labels, "key", "value")
       }),
-      depends_on: pruneObject(
-        Object.fromEntries(
-          dependsOn.map((item) => [
-            item.serviceName,
-            {
-              condition: item.condition
-            }
-          ])
-        )
-      ),
+      depends_on: getFinalDependsOn(dependsOn),
       entrypoint: pruneString(entrypoint),
       env_file: pruneString(envFile),
       image: pruneString(
