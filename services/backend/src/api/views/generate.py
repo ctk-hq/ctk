@@ -1,3 +1,4 @@
+import contextlib
 import re
 import io
 import shutil
@@ -50,7 +51,9 @@ class GenerateK8sView(generics.GenericAPIView):
         }
         workdir = f"/tmp/{get_random_string(8)}"
         request_data = json.loads(request.data)
-        omitted = clean_dict(request_data["data"], ["env_file", "build", "secrets"])
+        omitted = clean_dict(
+            request_data["data"],
+            ["env_file", "build", "secrets", "profiles"])
         docker_compose_code = generate_docker_compose(omitted)
         path = Path(workdir)
         path.mkdir(exist_ok=True)
@@ -85,12 +88,17 @@ class GenerateK8sView(generics.GenericAPIView):
                 yaml.explicit_start = True
                 data = yaml.load(f)
 
-                del data["metadata"]["annotations"]
-                del data["spec"]["template"]["metadata"]["annotations"]
+                with contextlib.suppress(KeyError):
+                    del data["metadata"]["annotations"]
+                with contextlib.suppress(KeyError):
+                    del data["spec"]["template"]["metadata"]["annotations"]
 
                 buf = io.BytesIO()
                 yaml.dump(data, buf)
-                resp["code"] = buf.getvalue()
+                resp["code"] += buf.getvalue().decode()
+
+                if file != workdir_files[-1]:
+                    resp["code"] += "\n"
 
         shutil.rmtree(workdir)
         return Response(resp, status=status.HTTP_200_OK)
