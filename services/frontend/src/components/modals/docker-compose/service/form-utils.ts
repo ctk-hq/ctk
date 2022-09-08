@@ -1,4 +1,8 @@
-import type { IEditServiceForm, IServiceNodeItem } from "../../../../types";
+import type {
+  IEditServiceForm,
+  IEditServiceFormDependsOn,
+  IServiceNodeItem
+} from "../../../../types";
 import * as yup from "yup";
 import {
   checkArray,
@@ -278,8 +282,42 @@ export const validationSchema = yup.object({
       key: yup.string().required("Key is required"),
       value: yup.string()
     })
-  )
+  ),
+  dependsOn: yup.array(
+    yup.object({
+      serviceName: yup.string().required("Service name is required"),
+      condition: yup
+        .string()
+        .oneOf(
+          [
+            "service_started",
+            "service_healthy",
+            "service_completed_successfully"
+          ],
+          "Condition should be one of: service_started, service_healthy, or service_completed_successfully."
+        )
+    })
+  ),
+  workingDir: yup.string()
 });
+
+const extractDependsOn = (object: string[] | any) => {
+  if (!object) {
+    return object;
+  }
+
+  if (Array.isArray(object)) {
+    return object.map((item) => ({
+      serviceName: item,
+      condition: "service_started"
+    }));
+  }
+
+  return Object.keys(object).map((key) => ({
+    serviceName: key,
+    condition: object[key].condition
+  }));
+};
 
 export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   if (!node) {
@@ -456,8 +494,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
             initialValues.deploy.labels
         }
       : initialValues.deploy,
-    dependsOn:
-      (depends_on as string[]) ?? (initialValues.dependsOn as string[]),
+    dependsOn: extractDependsOn(depends_on) ?? initialValues.dependsOn,
     entrypoint: (entrypoint as string) ?? (initialValues.entrypoint as string),
     envFile: (env_file as string) ?? (initialValues.envFile as string),
     imageName,
@@ -498,6 +535,31 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
       extractObjectOrArray("=", "key", "value", labels) ?? initialValues.labels,
     workingDir: (working_dir as string) ?? (initialValues.workingDir as string)
   };
+};
+
+const getFinalDependsOn = (dependsOn: IEditServiceFormDependsOn[]) => {
+  let shortForm = true;
+  for (const item of dependsOn) {
+    if (item.condition !== "service_started") {
+      shortForm = false;
+      break;
+    }
+  }
+
+  if (shortForm) {
+    return pruneArray(dependsOn.map((item) => item.serviceName));
+  }
+
+  return pruneObject(
+    Object.fromEntries(
+      dependsOn.map((item) => [
+        item.serviceName,
+        {
+          condition: item.condition
+        }
+      ])
+    )
+  );
 };
 
 export const getFinalValues = (
@@ -606,7 +668,7 @@ export const getFinalValues = (
         }),
         labels: packArrayAsObject(deploy.labels, "key", "value")
       }),
-      depends_on: pruneArray(dependsOn),
+      depends_on: getFinalDependsOn(dependsOn),
       entrypoint: pruneString(entrypoint),
       env_file: pruneString(envFile),
       image: pruneString(
