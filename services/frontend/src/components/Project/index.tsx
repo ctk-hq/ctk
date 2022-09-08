@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Dictionary, omit } from "lodash";
-import _ from "lodash";
+import { Dictionary, omit, remove } from "lodash";
 import { GlobeAltIcon, CubeIcon, FolderAddIcon } from "@heroicons/react/solid";
 import {
   IServiceNodeItem,
@@ -135,9 +134,9 @@ export default function Project(props: IProjectProps) {
       data: {
         canvas: {
           position: canvasPosition,
-          nodes: nodes,
-          connections: connections,
-          networks: networks
+          nodes: stateNodesRef.current,
+          connections: stateConnectionsRef.current,
+          networks: stateNetworksRef.current
         }
       }
     };
@@ -279,7 +278,7 @@ export default function Project(props: IProjectProps) {
         dependsOnKeys.forEach((key: string) => {
           if (key === targetServiceName) {
             if (Array.isArray(sourceDependsOn)) {
-              _.remove(sourceDependsOn, (key) => key === targetServiceName);
+              remove(sourceDependsOn, (key) => key === targetServiceName);
             }
 
             if (sourceDependsOn && sourceDependsOn.constructor === Object) {

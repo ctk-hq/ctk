@@ -1,28 +1,32 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CallbackFunction, IProject } from "../../types";
 import Spinner from "../global/Spinner";
 import VisibilitySwitch from "../global/VisibilitySwitch";
 
-interface IManifestSelectProps {
+interface IHeaderProps {
   onSave: CallbackFunction;
   isLoading: boolean;
   projectData: IProject;
   isAuthenticated: boolean;
 }
 
-const ManifestSelect = (props: IManifestSelectProps) => {
+const Header = (props: IHeaderProps) => {
   const { onSave, isLoading, projectData, isAuthenticated } = props;
   const [visibility, setVisibility] = useState(false);
   const [projectName, setProjectName] = useState("Untitled");
 
+  const visibilityRef = useRef(false);
+  const projectNameRef = useRef("Untitled");
+
   const handleNameChange = useCallback((e: any) => {
     setProjectName(e.target.value);
+    projectNameRef.current = e.target.value;
   }, []);
 
   const handleSave = useCallback(() => {
     const data: any = {
-      name: projectName,
-      visibility: +visibility
+      name: projectNameRef.current,
+      visibility: +visibilityRef.current
     };
 
     onSave(data);
@@ -35,6 +39,9 @@ const ManifestSelect = (props: IManifestSelectProps) => {
 
     setProjectName(projectData.name);
     setVisibility(Boolean(projectData.visibility));
+
+    visibilityRef.current = Boolean(projectData.visibility);
+    projectNameRef.current = projectData.name;
   }, [projectData]);
 
   return (
@@ -81,6 +88,7 @@ const ManifestSelect = (props: IManifestSelectProps) => {
                 isVisible={visibility}
                 onToggle={() => {
                   setVisibility(!visibility);
+                  visibilityRef.current = !visibility;
                 }}
               />
             )}
@@ -103,4 +111,4 @@ const ManifestSelect = (props: IManifestSelectProps) => {
   );
 };
 
-export default ManifestSelect;
+export default Header;
