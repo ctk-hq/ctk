@@ -100,7 +100,6 @@ const Header = (props: IHeaderProps) => {
             >
               <div className="flex justify-center items-center space-x-2 mx-auto">
                 {isLoading && <Spinner className="w-4 h-4 text-green-300" />}
-                {isLoading && <Spinner className="w-4 h-4 text-green-300" />}
                 <span>Save</span>
               </div>
             </button>
