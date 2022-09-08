@@ -1,25 +1,21 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { debounce, Dictionary, omit } from "lodash";
-import YAML from "yaml";
+import { Dictionary, omit, remove } from "lodash";
 import { GlobeAltIcon, CubeIcon, FolderAddIcon } from "@heroicons/react/solid";
 import {
-  IProjectPayload,
   IServiceNodeItem,
   IVolumeNodeItem,
   IServiceNodePosition,
   IProject,
-  IEditServiceFormDependsOn
+  IProjectPayload
 } from "../../types";
 import eventBus from "../../events/eventBus";
-import { useMutation } from "react-query";
 import {
+  createProject,
   useProject,
-  useUpdateProject,
-  createProject
+  useUpdateProject
 } from "../../hooks/useProject";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
-import { generatePayload } from "../../utils/generators";
 import { nodeLibraries } from "../../utils/data/libraries";
 import {
   getClientNodeItem,
@@ -28,8 +24,6 @@ import {
   getClientNodesAndConnections,
   getMatchingSetIndex
 } from "../../utils";
-import { checkHttpStatus } from "../../services/helpers";
-import { generateHttp } from "../../services/generate";
 import { Canvas } from "../Canvas";
 import Spinner from "../global/Spinner";
 import ModalConfirmDelete from "../modals/ConfirmDelete";
@@ -38,10 +32,10 @@ import ModalServiceEdit from "../modals/docker-compose/service/Edit";
 import ModalNetwork from "../modals/docker-compose/network";
 import CreateVolumeModal from "../modals/docker-compose/volume/CreateVolumeModal";
 import EditVolumeModal from "../modals/docker-compose/volume/EditVolumeModal";
-import CodeEditor from "../CodeEditor";
 import { useTitle } from "../../hooks";
-import VisibilitySwitch from "../global/VisibilitySwitch";
-import _ from "lodash";
+import CodeBox from "./CodeBox";
+import Header from "./Header";
+import { useMutation } from "react-query";
 
 interface IProjectProps {
   isAuthenticated: boolean;
@@ -56,10 +50,8 @@ export default function Project(props: IProjectProps) {
     useRef<Dictionary<IServiceNodeItem | IVolumeNodeItem>>();
   const stateConnectionsRef = useRef<[[string, string]] | []>();
   const stateNetworksRef = useRef({});
+  const stateProjectRef = useRef();
 
-  const [isVisible, setIsVisible] = useState(false);
-  const [generatedCode, setGeneratedCode] = useState<string>();
-  const [formattedCode, setFormattedCode] = useState<string>("");
   const [showModalCreateService, setShowModalCreateService] = useState(false);
   const [showVolumesModal, setShowVolumesModal] = useState(false);
   const [showNetworksModal, setShowNetworksModal] = useState(false);
@@ -74,14 +66,9 @@ export default function Project(props: IProjectProps) {
   const [volumeToDelete, setVolumeToDelete] = useState<IVolumeNodeItem | null>(
     null
   );
-  const [language, setLanguage] = useState("yaml");
-  const [version, setVersion] = useState("3");
-  const [copyText, setCopyText] = useState("Copy");
   const [nodes, setNodes] = useState<Record<string, any>>({});
   const [connections, setConnections] = useState<[[string, string]] | []>([]);
   const [networks, setNetworks] = useState<Record<string, any>>({});
-  const [projectName, setProjectName] = useState("Untitled");
-
   const [canvasPosition, setCanvasPosition] = useState({
     top: 0,
     left: 0,
@@ -109,10 +96,7 @@ export default function Project(props: IProjectProps) {
   stateNodesRef.current = nodes;
   stateConnectionsRef.current = connections;
   stateNetworksRef.current = networks;
-
-  const handleNameChange = (e: any) => {
-    setProjectName(e.target.value);
-  };
+  stateProjectRef.current = data;
 
   const onNodeUpdate = (positionData: IServiceNodePosition) => {
     if (stateNodesRef.current) {
@@ -122,36 +106,6 @@ export default function Project(props: IProjectProps) {
       };
       setNodes({ ...stateNodesRef.current, [positionData.key]: node });
     }
-  };
-
-  const onSave = () => {
-    const payload: IProjectPayload = {
-      name: projectName,
-      visibility: +isVisible,
-      data: {
-        canvas: {
-          position: canvasPosition,
-          nodes: nodes,
-          connections: connections,
-          networks: networks
-        }
-      }
-    };
-
-    if (uuid) {
-      updateProjectMutation.mutate(payload);
-    } else {
-      createProjectMutation.mutate(payload);
-    }
-  };
-
-  const copy = () => {
-    navigator.clipboard.writeText(formattedCode);
-    setCopyText("Copied");
-
-    setTimeout(() => {
-      setCopyText("Copy");
-    }, 300);
   };
 
   useEffect(() => {
@@ -167,42 +121,41 @@ export default function Project(props: IProjectProps) {
       nodesAsList,
       nodeLibraries
     );
-
-    setProjectName(data.name);
-    setIsVisible(Boolean(data.visibility));
     setNodes(clientNodeItems);
     setConnections(canvasData.canvas.connections);
     setNetworks(canvasData.canvas.networks);
     setCanvasPosition(canvasData.canvas.position);
   }, [data]);
 
-  const debouncedOnGraphUpdate = useMemo(
-    () =>
-      debounce((payload) => {
-        generateHttp(JSON.stringify(payload))
-          .then(checkHttpStatus)
-          .then((data) => {
-            if (data["code"].length) {
-              for (let i = 0; i < data["code"].length; ++i) {
-                data["code"][i] = data["code"][i].replace(/(\r\n|\n|\r)/gm, "");
-              }
+  const onSave = (partial: any) => {
+    const base: IProjectPayload = {
+      name: data?.name ?? "",
+      visibility: data?.visibility ?? 0,
+      data: {
+        canvas: {
+          position: canvasPosition,
+          nodes: stateNodesRef.current,
+          connections: stateConnectionsRef.current,
+          networks: stateNetworksRef.current
+        }
+      }
+    };
 
-              const code = data["code"].join("\n");
-              setGeneratedCode(code);
-            }
-          })
-          .catch(() => undefined)
-          .finally(() => undefined);
-      }, 600),
-    []
-  );
+    const payload = { ...base, ...partial };
+
+    if (uuid) {
+      updateProjectMutation.mutate(payload);
+    } else {
+      createProjectMutation.mutate(payload);
+    }
+  };
 
   const onGraphUpdate = (graphData: any) => {
     const data = { ...graphData };
-    data.version = version;
     data.networks = stateNetworksRef.current;
-    const payload = generatePayload(data);
-    debouncedOnGraphUpdate(payload);
+    eventBus.dispatch("FETCH_CODE", {
+      message: data
+    });
   };
 
   const onCanvasUpdate = (updatedCanvasPosition: any) => {
@@ -325,7 +278,7 @@ export default function Project(props: IProjectProps) {
         dependsOnKeys.forEach((key: string) => {
           if (key === targetServiceName) {
             if (Array.isArray(sourceDependsOn)) {
-              _.remove(sourceDependsOn, (key) => key === targetServiceName);
+              remove(sourceDependsOn, (key) => key === targetServiceName);
             }
 
             if (sourceDependsOn && sourceDependsOn.constructor === Object) {
@@ -404,32 +357,6 @@ export default function Project(props: IProjectProps) {
     eventBus.dispatch("NODE_DELETED", { message: { node: node } });
   };
 
-  const versionChange = (e: any) => {
-    setVersion(e.target.value);
-  };
-
-  useEffect(() => {
-    if (!generatedCode) {
-      return;
-    }
-
-    if (language === "json") {
-      setFormattedCode(JSON.stringify(YAML.parse(generatedCode), null, 2));
-    }
-
-    if (language === "yaml") {
-      setFormattedCode(generatedCode);
-    }
-  }, [language, generatedCode]);
-
-  useEffect(() => {
-    eventBus.dispatch("GENERATE", {
-      message: {
-        id: ""
-      }
-    });
-  }, [version]);
-
   if (!isFetching) {
     if (!error) {
       return (
@@ -495,70 +422,15 @@ export default function Project(props: IProjectProps) {
           ) : null}
 
           <div className="md:pl-16 flex flex-col flex-1">
-            <div className="px-4 py-3 border-b border-gray-200">
-              <form
-                className="flex flex-col space-y-2 md:space-y-0 md:flex-row md:justify-between items-center"
-                autoComplete="off"
-              >
-                <input
-                  className={`
-                  bg-gray-100
-                  appearance-none
-                  w-full
-                  md:w-1/2
-                  lg:w-1/3
-                  block
-                  text-gray-700
-                  border
-                  border-gray-100
-                  dark:bg-gray-900
-                  dark:text-white
-                  dark:border-gray-900
-                  rounded
-                  py-2
-                  px-3
-                  leading-tight
-                  focus:outline-none
-                  focus:border-indigo-400
-                  focus:ring-0
-                `}
-                  type="text"
-                  placeholder="Project name"
-                  autoComplete="off"
-                  id="name"
-                  name="name"
-                  onChange={handleNameChange}
-                  value={projectName}
-                />
-
-                <div className="flex flex-col space-y-2 w-full justify-end mb-4  md:flex-row md:space-y-0 md:space-x-2 md:mb-0">
-                  {isAuthenticated && (
-                    <VisibilitySwitch
-                      isVisible={isVisible}
-                      onToggle={() => {
-                        setIsVisible(!isVisible);
-                      }}
-                    />
-                  )}
-
-                  <button
-                    onClick={() => onSave()}
-                    type="button"
-                    className="btn-util text-white bg-green-600 hover:bg-green-700 sm:w-auto"
-                  >
-                    <div className="flex justify-center items-center space-x-2 mx-auto">
-                      {updateProjectMutation.isLoading && (
-                        <Spinner className="w-4 h-4 text-green-300" />
-                      )}
-                      {createProjectMutation.isLoading && (
-                        <Spinner className="w-4 h-4 text-green-300" />
-                      )}
-                      <span>Save</span>
-                    </div>
-                  </button>
-                </div>
-              </form>
-            </div>
+            <Header
+              onSave={onSave}
+              isLoading={
+                updateProjectMutation.isLoading ||
+                createProjectMutation.isLoading
+              }
+              projectData={data}
+              isAuthenticated={isAuthenticated}
+            />
 
             <div className="flex flex-grow relative">
               <div
@@ -631,51 +503,7 @@ export default function Project(props: IProjectProps) {
               </div>
 
               <div className="group code-column w-1/2 md:w-1/3 absolute top-0 right-0 sm:relative z-40 md:z-30">
-                <div
-                  className={`absolute top-0 left-0 right-0 z-10 flex justify-end p-1 space-x-2 group-hover:visible invisible`}
-                >
-                  <select
-                    id="version"
-                    onChange={versionChange}
-                    value={version}
-                    className="input-util w-min pr-8"
-                  >
-                    <option value="1">v 1</option>
-                    <option value="2">v 2</option>
-                    <option value="3">v 3</option>
-                  </select>
-
-                  <button
-                    className={`btn-util ${
-                      language === "json" ? `btn-util-selected` : ``
-                    }`}
-                    onClick={() => setLanguage("json")}
-                  >
-                    json
-                  </button>
-                  <button
-                    className={`btn-util ${
-                      language === "yaml" ? `btn-util-selected` : ``
-                    }`}
-                    onClick={() => setLanguage("yaml")}
-                  >
-                    yaml
-                  </button>
-                  <button className="btn-util" type="button" onClick={copy}>
-                    {copyText}
-                  </button>
-                </div>
-
-                <CodeEditor
-                  data={formattedCode}
-                  language={language}
-                  onChange={() => {
-                    return;
-                  }}
-                  disabled={true}
-                  lineWrapping={false}
-                  height={height - 64}
-                />
+                <CodeBox />
               </div>
             </div>
           </div>

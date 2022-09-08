@@ -13,10 +13,14 @@ RUN apt-get update && \
   postgresql-contrib \
   wget \
   nano \
-  curl \
   lsof \
+  curl \
   supervisor && \
   rm -rf /var/lib/apt/lists/*
+
+RUN wget https://github.com/kubernetes/kompose/releases/download/v1.26.1/kompose_1.26.1_amd64.deb
+RUN apt install ./kompose_1.26.1_amd64.deb && \
+  rm kompose_1.26.1_amd64.deb
 
 RUN useradd uwsgi && adduser uwsgi root
 RUN useradd supervisor && adduser supervisor root
@@ -26,19 +30,12 @@ RUN pip install --upgrade pip && \
   pip install -r ./requirements.txt && \
   rm ./requirements.txt
 
-RUN touch /var/log/backend_out.log && \
-  touch /var/log/django.log
-
-RUN chmod g+w -R /var/log/
+COPY ./services/backend/src ./server
+COPY ./services/backend/configs/supervisor/api.conf /etc/supervisor/conf.d/api.conf
+COPY ./services/backend/configs/uwsgi ./configs/uwsgi
 
 EXPOSE 9000 9001
 
-COPY ./services/backend/src ./server
-COPY ./services/backend/configs/supervisor/api.conf /etc/supervisor/conf.d/api.conf
-COPY ./services/backend/configs/uwsgi ./config/uwsgi
+HEALTHCHECK CMD curl --fail http://localhost:9000/v1 || exit 1 
 
-RUN rm -rf /tmp/uwsgi && \
-  mkdir -p /tmp/uwsgi && \
-  ln -s ./config/uwsgi/uwsgi.ini /tmp/uwsgi/
-
-CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["/usr/local/bin/uwsgi", "--ini", "/home/configs/uwsgi/uwsgi.ini"]

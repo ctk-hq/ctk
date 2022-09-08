@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     "dj_rest_auth.registration",
     "storages",
     "corsheaders",
-    "axes",
     "organizations",
     "api",
 ]
@@ -69,8 +68,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "axes.middleware.AxesMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware"
 ]
 
 ROOT_URLCONF = "main.urls"
@@ -162,8 +160,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTHENTICATION_BACKENDS = [
    "django.contrib.auth.backends.ModelBackend",
-   "allauth.account.auth_backends.AuthenticationBackend",
-    "axes.backends.AxesBackend",
+   "allauth.account.auth_backends.AuthenticationBackend"
 ]
 
 REST_FRAMEWORK = {

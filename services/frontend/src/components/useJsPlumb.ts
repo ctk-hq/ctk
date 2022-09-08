@@ -433,13 +433,13 @@ export const useJsPlumb = (
 
   useEffect(() => {
     eventBus.on("GENERATE", () => {
-      if (!instance) return;
+      if (!instanceRef.current) return;
 
       if (stateRef.current) {
         onGraphUpdate({
           nodes: stateRef.current,
           connections: getConnections(
-            instance.getConnections({}, true) as Connection[]
+            instanceRef.current.getConnections({}, true) as Connection[]
           )
         });
       }
