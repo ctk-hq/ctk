@@ -2,10 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { AnchorId, AnchorLocations } from "@jsplumb/common";
 import {
   BeforeDropParams,
-  Connection,
   ConnectionDetachedParams,
   ConnectionEstablishedParams,
-  ConnectionSelection,
   EVENT_CONNECTION,
   EVENT_CONNECTION_DETACHED,
   INTERCEPT_BEFORE_DROP
@@ -17,7 +15,8 @@ import {
   EVENT_DRAG_STOP,
   EVENT_CONNECTION_DBL_CLICK,
   DragStartPayload,
-  DragStopPayload
+  DragStopPayload,
+  Connection
 } from "@jsplumb/browser-ui";
 import {
   defaultOptions,
@@ -147,7 +146,7 @@ export const useJsPlumb = (
         `,
         events: {
           click: (e: any) => {
-            instance.deleteConnection(e.overlay.component as Connection);
+            instance.deleteConnection(e.overlay.component as any);
           }
         }
       }
@@ -191,7 +190,7 @@ export const useJsPlumb = (
     instance: BrowserJsPlumbInstance,
     params: BeforeDropParams
   ) => {
-    const existingConnections: ConnectionSelection = instance.select({
+    const existingConnections = instance.select({
       source: params.sourceId as any,
       target: params.targetId as any
     });
@@ -202,9 +201,7 @@ export const useJsPlumb = (
     }
 
     if (existingConnections.length > 0) {
-      const firstConnection: Connection = {
-        ...existingConnections.get(0)
-      } as Connection;
+      const firstConnection = existingConnections.get(0);
 
       // special case to handle existing connections changing targets
       if (firstConnection.suspendedElementId) {
@@ -285,9 +282,7 @@ export const useJsPlumb = (
 
       onGraphUpdate({
         nodes: stateRef.current,
-        connections: getConnections(
-          instance.getConnections({}, true) as Connection[]
-        )
+        connections: getConnections(instance.getConnections({}, true) as any)
       });
     }
   }, [instance, addEndpoints, onGraphUpdate, stateRef.current]);
@@ -362,9 +357,7 @@ export const useJsPlumb = (
 
         onGraphUpdate({
           nodes: stateRef.current,
-          connections: getConnections(
-            this.getConnections({}, true) as Connection[]
-          )
+          connections: getConnections(this.getConnections({}, true) as any)
         });
       }
     );
@@ -387,9 +380,7 @@ export const useJsPlumb = (
 
         onGraphUpdate({
           nodes: stateRef.current,
-          connections: getConnections(
-            this.getConnections({}, true) as Connection[]
-          )
+          connections: getConnections(this.getConnections({}, true) as any)
         });
       }
     );
@@ -413,17 +404,6 @@ export const useJsPlumb = (
       }
     );
 
-    /*
-    jsPlumbInstance.bind("drag:move", function (info: any) {
-      const parentRect = jsPlumbInstance.getContainer().getBoundingClientRect()
-      const childRect = info.el.getBoundingClientRect()
-      if (childRect.right > parentRect.right) info.el.style.left = `${parentRect.width - childRect.width}px`
-      if (childRect.left < parentRect.left) info.el.style.left = '0px'
-      if (childRect.top < parentRect.top) info.el.style.top = '0px'
-      if (childRect.bottom > parentRect.bottom) info.el.style.top = `${parentRect.height - childRect.height}px`
-    });
-    */
-
     setInstance(jsPlumbInstance);
 
     return () => {
@@ -439,7 +419,7 @@ export const useJsPlumb = (
         onGraphUpdate({
           nodes: stateRef.current,
           connections: getConnections(
-            instanceRef.current.getConnections({}, true) as Connection[]
+            instanceRef.current.getConnections({}, true) as any
           )
         });
       }

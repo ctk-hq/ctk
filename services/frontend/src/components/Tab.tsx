@@ -46,7 +46,7 @@ const Tab = (props: ITabProps) => {
   const { value, title, hidden } = props;
   const { value: open, onChange } = useTabContext();
 
-  const handleClick = useCallback((event) => {
+  const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     onChange(value);
   }, []);

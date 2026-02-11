@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { BookOpenIcon, PlusIcon } from "@heroicons/react/outline";
+import { BookOpenIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import UserMenu from "./UserMenu";
 import Logo from "./logo";

@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "ignoreDeprecations": "6.0",
+    "target": "es2020",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -21,6 +22,6 @@
     "jsx": "react-jsx"
   },
   "include": [
-    "./src/**/*"
-  ],
+    "src"
+  ]
 }

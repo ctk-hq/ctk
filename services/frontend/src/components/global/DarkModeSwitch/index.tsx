@@ -1,4 +1,4 @@
-import { MoonIcon, SunIcon } from "@heroicons/react/outline";
+import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 import { useDarkMode } from "./userDarkMode";
 
 const DarkModeSwitch = () => {
@@ -7,7 +7,7 @@ const DarkModeSwitch = () => {
   return (
     <div className="flex flex items-center">
       <button
-        onClick={(e) => setIsDark(!isDark)}
+        onClick={() => setIsDark(!isDark)}
         id="theme-toggle"
         type="button"
         className="

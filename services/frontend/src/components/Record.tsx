@@ -6,7 +6,7 @@ import {
   useMemo
 } from "react";
 import { IconButton, styled } from "@mui/material";
-import { MinusSmIcon } from "@heroicons/react/solid";
+import { MinusIcon } from "@heroicons/react/24/outline";
 import TextField from "./global/FormElements/TextField";
 import Toggle from "./global/FormElements/Toggle";
 import Records, { IRecordsProps } from "./Records";
@@ -119,7 +119,7 @@ const Record: FunctionComponent<IRecordProps> = (
       {renderRemoveWrapper(
         <div className="flex justify-end content-end">
           <RemoveButton size="small" color="warning" onClick={handleRemove}>
-            <MinusSmIcon className="h-5 w-5" />
+            <MinusIcon className="h-5 w-5" />
           </RemoveButton>
         </div>
       )}

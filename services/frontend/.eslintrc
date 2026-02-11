@@ -1,6 +1,17 @@
 {
   "root": true,
+  "ignorePatterns": [
+    "build/",
+    "node_modules/"
+  ],
   "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
   "plugins": [
     "@typescript-eslint",
     "prettier"
@@ -11,13 +22,33 @@
     "plugin:@typescript-eslint/recommended",
     "prettier"
   ],
+  "overrides": [
+    {
+      "files": [
+        "postcss.config.js",
+        "tailwind.config.js"
+      ],
+      "env": {
+        "node": true
+      },
+      "parserOptions": {
+        "sourceType": "script"
+      },
+      "rules": {
+        "@typescript-eslint/no-require-imports": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "prettier/prettier": "off"
+      }
+    }
+  ],
   "rules": {
-    "no-console": 1, // Means warning
-    "prettier/prettier": 2, // Means error
-    "no-empty-function": 1,
-    "@typescript-eslint/no-empty-function": 1,
+    "no-console": "warn",
+    "prettier/prettier": "error",
+    "no-empty-function": "warn",
+    "@typescript-eslint/no-empty-function": "warn",
     "@typescript-eslint/no-explicit-any": [
-      "off"
+      "off",
+      {}
     ]
   }
 }

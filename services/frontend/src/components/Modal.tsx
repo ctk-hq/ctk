@@ -1,5 +1,5 @@
 import { FunctionComponent, ReactElement, ReactNode } from "react";
-import { XIcon } from "@heroicons/react/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { styled } from "@mui/material";
 
 export interface IModalProps {
@@ -61,7 +61,8 @@ const Content2 = styled("div")`
   border-radius: 0.5rem;
   border-width: 0;
   outline: 0;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
 `;
 
@@ -106,7 +107,7 @@ const Modal: FunctionComponent<IModalProps> = (
             <Header>
               <Title>{title}</Title>
               <CloseButton onClick={onHide}>
-                <XIcon className="w-4" />
+                <XMarkIcon className="w-4" />
               </CloseButton>
             </Header>
             {children}

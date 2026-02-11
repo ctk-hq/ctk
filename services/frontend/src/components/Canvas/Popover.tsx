@@ -1,4 +1,4 @@
-import { TrashIcon, PencilIcon } from "@heroicons/react/solid";
+import { TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
 import { CallbackFunction } from "../../types";
 
 export const Popover = ({

@@ -4,7 +4,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   PlusIcon
-} from "@heroicons/react/outline";
+} from "@heroicons/react/24/outline";
 import Record, { IFieldType } from "./Record";
 import { useFormikContext } from "formik";
 import lodash from "lodash";

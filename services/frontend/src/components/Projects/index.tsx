@@ -7,7 +7,7 @@ import { toaster } from "../../utils";
 import Spinner from "../../components/global/Spinner";
 import PreviewBlock from "./PreviewBlock";
 import { useProjects } from "../../hooks/useProjects";
-import { PlusIcon } from "@heroicons/react/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { importProject } from "../../hooks/useImportProject";
 import { IImportFinalValues } from "../modals/import/form-utils";
 
@@ -80,7 +80,14 @@ const Projects = () => {
               {!isFetching && !isLoading && (
                 <>
                   <div className="py-4">
-                    {error && (
+                    {(error as any) && (
+                      <div className="text-center">
+                        <h3 className="mt-12 text-sm font-medium text-gray-900 dark:text-white">
+                          {"Something went wrong..."}
+                        </h3>
+                      </div>
+                    )}
+                    {isError && (
                       <div className="text-center">
                         <h3 className="mt-12 text-sm font-medium text-gray-900 dark:text-white">
                           Something went wrong...

@@ -1,4 +1,4 @@
-import { SearchIcon } from "@heroicons/react/solid";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 interface ISearchProps {
   onSearchChange: any;
@@ -26,7 +26,7 @@ const Search = (props: ISearchProps) => {
         </label>
         <div className="relative w-full text-gray-400 focus-within:text-gray-400">
           <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-            <SearchIcon className="h-5 w-5" aria-hidden="true" />
+            <MagnifyingGlassIcon className="h-5 w-5" aria-hidden="true" />
           </div>
           <input
             id="search-field"

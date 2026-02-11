@@ -1,4 +1,4 @@
-import { MinusSmIcon, PlusIcon } from "@heroicons/react/outline";
+import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { IconButton, Button, styled } from "@mui/material";
 import { FunctionComponent, ReactElement } from "react";
 import { truncateStr } from "../../../../utils";
@@ -90,7 +90,7 @@ const NetworkList: FunctionComponent<INetworkListProps> = (
               color="warning"
               onClick={(e: any) => handleRemove(e, networkUuid)}
             >
-              <MinusSmIcon className="h-4 w-4" />
+              <MinusIcon className="h-4 w-4" />
             </RemoveButton>
           </ListItem>
         ))}

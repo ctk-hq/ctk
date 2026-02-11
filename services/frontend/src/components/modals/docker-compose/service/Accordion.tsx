@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/outline";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { IconButton, styled } from "@mui/material";
 import { FunctionComponent, ReactElement, ReactNode } from "react";
 import { useAccordionState } from "../../../../hooks";

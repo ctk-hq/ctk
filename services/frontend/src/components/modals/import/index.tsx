@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { Formik } from "formik";
 import { styled } from "@mui/material";
-import { XIcon } from "@heroicons/react/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { CallbackFunction } from "../../../types";
 import { IImportForm } from "./form-utils";
 import {
@@ -63,7 +63,7 @@ const ModalImport = (props: IModalImportProps) => {
                 onClick={onHide}
               >
                 <span className="block outline-none focus:outline-none">
-                  <XIcon className="w-4" />
+                  <XMarkIcon className="w-4" />
                 </span>
               </button>
             </div>

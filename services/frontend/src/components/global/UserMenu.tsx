@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { UserCircleIcon } from "@heroicons/react/solid";
+import { UserCircleIcon } from "@heroicons/react/24/outline";
 
 interface IUserMenuProps {
   username: string;

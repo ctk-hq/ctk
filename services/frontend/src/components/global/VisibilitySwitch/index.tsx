@@ -1,4 +1,4 @@
-import { EyeIcon, EyeOffIcon } from "@heroicons/react/solid";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { CallbackFunction } from "../../../types";
 
 interface IVisibilitySwitchProps {
@@ -28,7 +28,7 @@ const VisibilitySwitch = (props: IVisibilitySwitchProps) => {
         {isVisible ? (
           <EyeIcon id="theme-toggle-light-icon" className="w-5 h-5" />
         ) : (
-          <EyeOffIcon id="theme-toggle-dark-icon" className="w-5 h-5" />
+          <EyeSlashIcon id="theme-toggle-dark-icon" className="w-5 h-5" />
         )}
       </button>
     </div>

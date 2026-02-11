@@ -1,7 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Dictionary, omit, remove } from "lodash";
-import { GlobeAltIcon, CubeIcon, FolderAddIcon } from "@heroicons/react/solid";
+import {
+  GlobeAltIcon,
+  CubeIcon,
+  FolderPlusIcon
+} from "@heroicons/react/24/outline";
 import {
   IServiceNodeItem,
   IVolumeNodeItem,
@@ -454,7 +458,7 @@ export default function Project(props: IProjectProps) {
                         type="button"
                         onClick={() => setShowVolumesModal(true)}
                       >
-                        <FolderAddIcon className="w-4" />
+                        <FolderPlusIcon className="w-4" />
                         <span>Add volume</span>
                       </button>
 

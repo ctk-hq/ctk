@@ -1,6 +1,6 @@
 import { FunctionComponent, ReactElement } from "react";
 import { Button, styled } from "@mui/material";
-import { PlusIcon } from "@heroicons/react/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 
 const Root = styled("div")`
   display: flex;

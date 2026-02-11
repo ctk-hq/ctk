@@ -1,4 +1,8 @@
-import { DatabaseIcon, ServerIcon, ChipIcon } from "@heroicons/react/solid";
+import {
+  CircleStackIcon,
+  ServerIcon,
+  CpuChipIcon
+} from "@heroicons/react/24/outline";
 
 type NodeIconProps = {
   nodeType: string;
@@ -12,11 +16,11 @@ const NodeIcon = ({ nodeType }: NodeIconProps) => {
       );
     case "VOLUME":
       return (
-        <DatabaseIcon className="w-3 h-3 text-gray-500 absolute top-2 right-2" />
+        <CircleStackIcon className="w-3 h-3 text-gray-500 absolute top-2 right-2" />
       );
     case "NETWORK":
       return (
-        <ChipIcon className="w-3 h-3 text-gray-500 absolute top-2 right-2" />
+        <CpuChipIcon className="w-3 h-3 text-gray-500 absolute top-2 right-2" />
       );
     default:
       return (
