@@ -1,4 +1,4 @@
-ORGANIZATION = agolub
+ORGANIZATION = omhq
 CONTAINER = ctk-server
 VERSION = 0.1.0
 

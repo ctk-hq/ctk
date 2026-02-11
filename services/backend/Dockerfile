@@ -1,41 +1,55 @@
-FROM python:3.10-slim
+FROM python:3.12-slim AS builder
 
-WORKDIR /home
-
-RUN apt-get update && \
-  apt-get install -y \
-  software-properties-common \
-  build-essential
+WORKDIR /app
 
 RUN apt-get update && \
-  apt-get install -y \
-  postgresql \
-  postgresql-contrib \
-  wget \
-  nano \
-  lsof \
-  curl \
-  supervisor && \
-  rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    libffi-dev \
+    libssl-dev \
+    pkg-config \
+    curl \
+    unzip \
+    libfreetype6-dev \
+    libleptonica-dev \
+    libjpeg-dev \
+    zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN wget https://github.com/kubernetes/kompose/releases/download/v1.26.1/kompose_1.26.1_amd64.deb
-RUN apt install ./kompose_1.26.1_amd64.deb && \
-  rm kompose_1.26.1_amd64.deb
+COPY ./requirements.txt /tmp/requirements.txt
 
-RUN useradd uwsgi && adduser uwsgi root
-RUN useradd supervisor && adduser supervisor root
+RUN python -m pip install --upgrade pip wheel setuptools && \
+    python -m pip wheel --no-cache-dir --wheel-dir /wheels -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
 
-COPY ./services/backend/requirements.txt ./requirements.txt
-RUN pip install --upgrade pip && \
-  pip install -r ./requirements.txt && \
-  rm ./requirements.txt
+FROM python:3.12-slim
 
-COPY ./services/backend/src ./server
-COPY ./services/backend/configs/supervisor/api.conf /etc/supervisor/conf.d/api.conf
-COPY ./services/backend/configs/uwsgi ./configs/uwsgi
+WORKDIR /app
 
-EXPOSE 9000 9001
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libfreetype6 \
+    libjpeg62-turbo && \
+    rm -rf /var/lib/apt/lists/*
 
-HEALTHCHECK CMD curl --fail http://localhost:9000/v1 || exit 1 
+COPY --from=builder /wheels /wheels
+RUN python -m pip install --no-index --no-cache-dir /wheels/* && rm -rf /wheels
 
-CMD ["/usr/local/bin/uwsgi", "--ini", "/home/configs/uwsgi/uwsgi.ini"]
+# Create user with home directory for boto3/AWS SDK
+RUN groupadd -g 1000 appuser && \
+    useradd -r -u 1000 -g appuser -d /home/appuser -m -s /bin/bash appuser && \
+    chown -R appuser:appuser /app
+
+COPY ./src /app
+
+RUN chmod +x -R /app/scripts || true
+
+RUN mkdir -p /srv/static && chown -R appuser:appuser /srv/static
+
+USER appuser
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "9001"]
