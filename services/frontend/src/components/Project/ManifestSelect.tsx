@@ -14,8 +14,13 @@ const Button = styled("button", {
   filter: grayscale(${({ selected }) => (selected ? "0%" : "100%")});
   opacity: ${({ selected }) => (selected ? "100%" : "80%")};
 
-  &:hover {
+  &:hover:not(:disabled) {
     filter: grayscale(0%);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 40%;
   }
 `;
 
@@ -27,11 +32,6 @@ const ManifestSelect = (props: IManifestSelectProps) => {
   const { setManifest } = props;
   const [selected, setSelected] = useState(manifestTypes.DOCKER_COMPOSE);
 
-  const handleK8s = useCallback(() => {
-    setManifest(manifestTypes.KUBERNETES);
-    setSelected(manifestTypes.KUBERNETES);
-  }, []);
-
   const handleDC = useCallback(() => {
     setManifest(manifestTypes.DOCKER_COMPOSE);
     setSelected(manifestTypes.DOCKER_COMPOSE);
@@ -42,7 +42,7 @@ const ManifestSelect = (props: IManifestSelectProps) => {
       <Button
         selected={selected === manifestTypes.KUBERNETES}
         type="button"
-        onClick={handleK8s}
+        disabled
       >
         <K8sLogo />
       </Button>

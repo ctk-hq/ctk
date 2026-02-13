@@ -59,8 +59,17 @@ def _parse_version(version: str) -> int | float:
         return float(version)
 
 
+def _is_latest_compose_spec(version: str) -> bool:
+    return version.strip().lower() in {
+        "latest",
+        "latest (spec)",
+        "spec",
+        "compose-spec",
+    }
+
+
 def generate_docker_compose_yaml(payload: dict[str, Any]) -> str:
-    version = str(payload.get("version", "3"))
+    version = str(payload.get("version", "latest")).strip()
     services = payload.get("services")
     volumes = payload.get("volumes")
     networks = payload.get("networks")
@@ -70,27 +79,39 @@ def generate_docker_compose_yaml(payload: dict[str, Any]) -> str:
     yaml.indent(mapping=2, sequence=4, offset=2)
     yaml.preserve_quotes = True
     yaml.explicit_start = True
+    wrote_document = False
 
-    specified_version = _parse_version(version)
-    major_version = int(specified_version)
+    def dump_chunk(data: dict[str, Any], transform: Any = None) -> None:
+        nonlocal wrote_document
+        yaml.explicit_start = not wrote_document
+        if transform:
+            yaml.dump(data, output, transform=transform)
+        else:
+            yaml.dump(data, output)
+        wrote_document = True
 
-    yaml.dump({"version": DoubleQuotedScalarString(str(specified_version))}, output)
-    yaml.explicit_start = False
-    output.write("\n")
+    latest_compose_spec = _is_latest_compose_spec(version)
+    major_version = 3
 
-    if services:
-        if major_version in {2, 3}:
-            yaml.dump({"services": services}, output, transform=_sequence_indent_four)
-        elif major_version == 1:
-            yaml.dump(services, output, transform=_sequence_indent_one)
+    if not latest_compose_spec:
+        specified_version = _parse_version(version)
+        major_version = int(specified_version)
+        dump_chunk({"version": DoubleQuotedScalarString(str(specified_version))})
         output.write("\n")
 
-    if major_version in {2, 3} and networks:
-        yaml.dump({"networks": networks}, output)
+    if services:
+        if latest_compose_spec or major_version in {2, 3}:
+            dump_chunk({"services": services}, transform=_sequence_indent_four)
+        elif major_version == 1:
+            dump_chunk(services, transform=_sequence_indent_one)
+        output.write("\n")
+
+    if (latest_compose_spec or major_version in {2, 3}) and networks:
+        dump_chunk({"networks": networks})
         output.write("\n")
 
     if volumes:
-        yaml.dump({"volumes": volumes}, output)
+        dump_chunk({"volumes": volumes})
 
     output.seek(0)
     return output.read()

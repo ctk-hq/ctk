@@ -7,7 +7,6 @@ import { checkHttpStatus } from "../../services/helpers";
 import { generateHttp } from "../../services/generate";
 import { toaster } from "../../utils";
 import eventBus from "../../events/eventBus";
-import ManifestSelect from "./ManifestSelect";
 import CodeEditor from "../CodeEditor";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 
@@ -15,11 +14,11 @@ const CodeBox = () => {
   const versionRef = useRef<string>();
   const manifestRef = useRef<string>();
   const [language, setLanguage] = useState("yaml");
-  const [version, setVersion] = useState("3");
+  const [version, setVersion] = useState("latest");
   const [copyText, setCopyText] = useState("Copy");
   const [generatedCode, setGeneratedCode] = useState<string>("");
   const [formattedCode, setFormattedCode] = useState<string>("");
-  const [manifest, setManifest] = useState(manifestTypes.DOCKER_COMPOSE);
+  const [manifest] = useState(manifestTypes.DOCKER_COMPOSE);
   const { height } = useWindowDimensions();
 
   versionRef.current = version;
@@ -98,14 +97,15 @@ const CodeBox = () => {
   return (
     <>
       <div
-        className={`absolute top-0 left-0 right-0 z-10 flex justify-end p-1 space-x-2 group-hover:visible invisible`}
+        className={`absolute top-0 right-0 z-10 flex p-1 space-x-2 group-hover:visible invisible pointer-events-none`}
       >
         <select
           id="version"
           onChange={versionChange}
           value={version}
-          className="input-util w-min pr-8"
+          className="input-util w-min pr-8 pointer-events-auto"
         >
+          <option value="latest">latest (spec)</option>
           <option value="1">v 1</option>
           <option value="2">v 2</option>
           <option value="3">v 3</option>
@@ -114,7 +114,7 @@ const CodeBox = () => {
         <button
           className={`btn-util ${
             language === "json" ? `btn-util-selected` : ``
-          }`}
+          } pointer-events-auto`}
           onClick={() => setLanguage("json")}
         >
           json
@@ -122,20 +122,18 @@ const CodeBox = () => {
         <button
           className={`btn-util ${
             language === "yaml" ? `btn-util-selected` : ``
-          }`}
+          } pointer-events-auto`}
           onClick={() => setLanguage("yaml")}
         >
           yaml
         </button>
-        <button className="btn-util" type="button" onClick={copy}>
+        <button
+          className="btn-util pointer-events-auto"
+          type="button"
+          onClick={copy}
+        >
           {copyText}
         </button>
-      </div>
-
-      <div
-        className={`absolute top-10 left-0 right-0 z-10 flex justify-end p-1 space-x-2 group-hover:visible invisible`}
-      >
-        <ManifestSelect setManifest={setManifest} />
       </div>
 
       <CodeEditor
