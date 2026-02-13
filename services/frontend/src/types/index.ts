@@ -359,7 +359,7 @@ export interface IProjectPayload {
 
 export interface IGeneratePayload {
   data: {
-    version: number;
+    version: string | number;
     networks: Record<string, Partial<INetworkTopLevel>>;
     services: Record<string, Partial<IService>>;
     volumes: Record<string, Partial<IVolumeTopLevel>>;
