@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Dictionary, omit } from "lodash";
 import {
@@ -9,6 +9,7 @@ import {
 import {
   IServiceNodeItem,
   IVolumeNodeItem,
+  INetworkNodeItem,
   IServiceNodePosition,
   IProject,
   IProjectPayload
@@ -40,6 +41,7 @@ import { useTitle } from "../../hooks";
 import CodeBox from "./CodeBox";
 import Header from "./Header";
 import { useMutation } from "react-query";
+import { composeToCanvasGraph } from "../../utils/compose";
 
 interface IProjectProps {
   isAuthenticated: boolean;
@@ -55,6 +57,10 @@ export default function Project(props: IProjectProps) {
   const stateConnectionsRef = useRef<[[string, string]] | []>();
   const stateNetworksRef = useRef({});
   const stateProjectRef = useRef();
+  const suppressGraphToCodeSyncRef = useRef(false);
+  const suppressGraphToCodeSyncTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const [showModalCreateService, setShowModalCreateService] = useState(false);
   const [showVolumesModal, setShowVolumesModal] = useState(false);
@@ -101,6 +107,27 @@ export default function Project(props: IProjectProps) {
   stateConnectionsRef.current = connections;
   stateNetworksRef.current = networks;
   stateProjectRef.current = data;
+
+  const suppressGraphToCodeSync = useCallback((durationMs = 1200) => {
+    suppressGraphToCodeSyncRef.current = true;
+
+    if (suppressGraphToCodeSyncTimeoutRef.current) {
+      clearTimeout(suppressGraphToCodeSyncTimeoutRef.current);
+    }
+
+    suppressGraphToCodeSyncTimeoutRef.current = setTimeout(() => {
+      suppressGraphToCodeSyncRef.current = false;
+      suppressGraphToCodeSyncTimeoutRef.current = null;
+    }, durationMs);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (suppressGraphToCodeSyncTimeoutRef.current) {
+        clearTimeout(suppressGraphToCodeSyncTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const onNodeUpdate = (positionData: IServiceNodePosition) => {
     if (stateNodesRef.current) {
@@ -155,12 +182,41 @@ export default function Project(props: IProjectProps) {
   };
 
   const onGraphUpdate = (graphData: any) => {
+    if (suppressGraphToCodeSyncRef.current) {
+      return;
+    }
+
     const data = { ...graphData };
     data.networks = stateNetworksRef.current;
     eventBus.dispatch("FETCH_CODE", {
       message: data
     });
   };
+
+  const onCodeUpdate = useCallback(
+    (composeData: unknown): string => {
+      suppressGraphToCodeSync();
+
+      const nextGraph = composeToCanvasGraph(
+        composeData,
+        (stateNodesRef.current as Dictionary<
+          IServiceNodeItem | IVolumeNodeItem
+        >) || {},
+        (stateNetworksRef.current as Record<string, INetworkNodeItem>) || {}
+      );
+
+      stateNodesRef.current = nextGraph.nodes;
+      stateConnectionsRef.current = nextGraph.connections as [[string, string]];
+      stateNetworksRef.current = nextGraph.networks as any;
+
+      setNodes(nextGraph.nodes);
+      setConnections(nextGraph.connections as [[string, string]]);
+      setNetworks(nextGraph.networks);
+
+      return nextGraph.version;
+    },
+    [suppressGraphToCodeSync]
+  );
 
   const onCanvasUpdate = (updatedCanvasPosition: any) => {
     setCanvasPosition({ ...canvasPosition, ...updatedCanvasPosition });
@@ -692,7 +748,7 @@ export default function Project(props: IProjectProps) {
               </div>
 
               <div className="group code-column w-1/2 md:w-1/3 absolute top-0 right-0 sm:relative z-40 md:z-30">
-                <CodeBox />
+                <CodeBox onCodeUpdate={onCodeUpdate} />
               </div>
             </div>
           </div>
