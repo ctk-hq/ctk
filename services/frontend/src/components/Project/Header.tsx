@@ -63,6 +63,13 @@ const Header = (props: IHeaderProps) => {
     [handleSave]
   );
 
+  const handleVisibilityToggle = useCallback(() => {
+    const nextVisibility = !visibilityRef.current;
+    setVisibility(nextVisibility);
+    visibilityRef.current = nextVisibility;
+    handleSave();
+  }, [handleSave]);
+
   useEffect(() => {
     if (!projectData) {
       return;
@@ -118,10 +125,7 @@ const Header = (props: IHeaderProps) => {
             {isAuthenticated && (
               <VisibilitySwitch
                 isVisible={visibility}
-                onToggle={() => {
-                  setVisibility(!visibility);
-                  visibilityRef.current = !visibility;
-                }}
+                onToggle={handleVisibilityToggle}
               />
             )}
 
