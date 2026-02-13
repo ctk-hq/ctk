@@ -114,9 +114,13 @@ export const useProject = (uuid: string | undefined) => {
 
 export const useUpdateProject = (uuid: string | undefined) => {
   const queryClient = useQueryClient();
+  interface IUpdateProjectMutationPayload {
+    payload: IProjectPayload;
+    silent?: boolean;
+  }
 
   return useMutation(
-    async (projectData: IProjectPayload) => {
+    async (mutationData: IUpdateProjectMutationPayload) => {
       if (!uuid) {
         return;
       }
@@ -124,7 +128,7 @@ export const useUpdateProject = (uuid: string | undefined) => {
       try {
         const data = await updateProjectByUuid(
           uuid,
-          JSON.stringify(projectData)
+          JSON.stringify(mutationData.payload)
         );
         return data;
       } catch (err: any) {
@@ -136,8 +140,10 @@ export const useUpdateProject = (uuid: string | undefined) => {
       }
     },
     {
-      onSuccess: (projectData) => {
-        toaster("Project saved!", "success");
+      onSuccess: (projectData, mutationData) => {
+        if (!mutationData?.silent) {
+          toaster("Project saved!", "success");
+        }
         queryClient.setQueryData(["projects", uuid], projectData);
       }
     }

@@ -61,6 +61,9 @@ export default function Project(props: IProjectProps) {
   const suppressGraphToCodeSyncTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasAutosaveBaselineRef = useRef(false);
+  const lastSavedSnapshotRef = useRef<string>("");
 
   const [showModalCreateService, setShowModalCreateService] = useState(false);
   const [showVolumesModal, setShowVolumesModal] = useState(false);
@@ -159,27 +162,139 @@ export default function Project(props: IProjectProps) {
   }, [data]);
 
   const onSave = (partial: any) => {
-    const base: IProjectPayload = {
-      name: data?.name ?? "",
-      visibility: data?.visibility ?? 0,
-      data: {
-        canvas: {
-          position: canvasPosition,
-          nodes: stateNodesRef.current,
-          connections: stateConnectionsRef.current,
-          networks: stateNetworksRef.current
+    const buildPayload = (nextPartial: any = {}) => {
+      const base: IProjectPayload = {
+        name: data?.name ?? "",
+        visibility: data?.visibility ?? 0,
+        data: {
+          canvas: {
+            position: canvasPosition,
+            nodes: stateNodesRef.current,
+            connections: stateConnectionsRef.current,
+            networks: stateNetworksRef.current
+          }
         }
-      }
+      };
+
+      return { ...base, ...nextPartial };
     };
 
-    const payload = { ...base, ...partial };
+    const payload = buildPayload(partial);
+    const payloadSnapshot = JSON.stringify(payload);
+
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+      autosaveTimeoutRef.current = null;
+    }
 
     if (uuid) {
-      updateProjectMutation.mutate(payload);
-    } else {
-      createProjectMutation.mutate(payload);
+      updateProjectMutation.mutate(
+        {
+          payload,
+          silent: false
+        },
+        {
+          onSuccess: () => {
+            lastSavedSnapshotRef.current = payloadSnapshot;
+          }
+        }
+      );
+      return;
     }
+
+    createProjectMutation.mutate(payload);
   };
+
+  useEffect(() => {
+    return () => {
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    hasAutosaveBaselineRef.current = false;
+    lastSavedSnapshotRef.current = "";
+
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+      autosaveTimeoutRef.current = null;
+    }
+  }, [uuid]);
+
+  useEffect(() => {
+    if (!uuid || !data) {
+      return;
+    }
+
+    const buildPayload = () =>
+      ({
+        name: data?.name ?? "",
+        visibility: data?.visibility ?? 0,
+        data: {
+          canvas: {
+            position: canvasPosition,
+            nodes: stateNodesRef.current,
+            connections: stateConnectionsRef.current,
+            networks: stateNetworksRef.current
+          }
+        }
+      }) as IProjectPayload;
+
+    const snapshot = JSON.stringify(buildPayload());
+
+    if (!hasAutosaveBaselineRef.current) {
+      hasAutosaveBaselineRef.current = true;
+      lastSavedSnapshotRef.current = snapshot;
+      return;
+    }
+
+    if (snapshot === lastSavedSnapshotRef.current) {
+      return;
+    }
+
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+    }
+
+    autosaveTimeoutRef.current = setTimeout(() => {
+      const autosavePayload = buildPayload();
+      const autosaveSnapshot = JSON.stringify(autosavePayload);
+
+      if (autosaveSnapshot === lastSavedSnapshotRef.current) {
+        return;
+      }
+
+      updateProjectMutation.mutate(
+        {
+          payload: autosavePayload,
+          silent: true
+        },
+        {
+          onSuccess: () => {
+            lastSavedSnapshotRef.current = autosaveSnapshot;
+          }
+        }
+      );
+      autosaveTimeoutRef.current = null;
+    }, 1200);
+
+    return () => {
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+        autosaveTimeoutRef.current = null;
+      }
+    };
+  }, [
+    uuid,
+    data,
+    nodes,
+    connections,
+    networks,
+    canvasPosition,
+    updateProjectMutation
+  ]);
 
   const onGraphUpdate = (graphData: any) => {
     if (suppressGraphToCodeSyncRef.current) {
