@@ -65,8 +65,8 @@ const Login = (props: IProfileProps) => {
 
   return (
     <>
-      <div className="flex flex-col">
-        <main className="py-6 md:w-1/3 lg:w-1/4 mx-auto">
+      <div className="flex min-h-[calc(var(--vh,1vh)*100)] flex-col justify-center px-4 py-8 md:pl-16">
+        <main className="w-full max-w-md py-6 mx-auto">
           <h2 className="mb-4 px-4 sm:px-6 md:flex-row md:px-8 text-xl font-bold dark:text-white text-gray-900">
             Sign in
           </h2>
@@ -158,7 +158,7 @@ const Login = (props: IProfileProps) => {
             </Link>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-6 hidden">
             <div className="relative">
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 text-gray-800 font-medium">

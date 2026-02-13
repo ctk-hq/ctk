@@ -18,6 +18,7 @@ import Profile from "./components/Profile";
 import Signup from "./components/Auth/Signup";
 import Login from "./components/Auth/Login";
 import GitHub from "./components/Auth/GitHub";
+import Intro from "./components/Intro";
 
 import { ProtectedRouteProps } from "./partials/ProtectedRoute";
 import ProtectedRoute from "./partials/ProtectedRoute";
@@ -118,12 +119,7 @@ export default function App() {
 
               <Route
                 path="/"
-                element={
-                  <ProtectedRoute
-                    {...defaultProtectedRouteProps}
-                    outlet={<Projects />}
-                  />
-                }
+                element={isAuthenticated ? <Projects /> : <Intro />}
               />
 
               <Route

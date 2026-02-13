@@ -38,7 +38,7 @@ export default function SideBar(props: ISideBarProps) {
       <div className="md:flex md:w-16 md:flex-col md:fixed md:inset-y-0">
         <div className="flex justify-between flex-col sm:flex-row md:flex-col md:flex-grow md:pt-5 bg-blue-700 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 mx-auto p-2 ">
-            <Link to={isAuthenticated ? "/" : "login"}>
+            <Link to="/">
               <Logo />
             </Link>
           </div>
