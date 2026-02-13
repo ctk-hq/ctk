@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from "react";
 import { CallbackFunction, IProject } from "../../types";
 import Spinner from "../global/Spinner";
 import VisibilitySwitch from "../global/VisibilitySwitch";
@@ -10,6 +17,10 @@ interface IHeaderProps {
   isAuthenticated: boolean;
 }
 
+interface IHeaderSaveOptions {
+  autosave?: boolean;
+}
+
 const Header = (props: IHeaderProps) => {
   const { onSave, isLoading, projectData, isAuthenticated } = props;
   const [visibility, setVisibility] = useState(false);
@@ -18,19 +29,39 @@ const Header = (props: IHeaderProps) => {
   const visibilityRef = useRef(false);
   const projectNameRef = useRef("Untitled");
 
-  const handleNameChange = useCallback((e: any) => {
-    setProjectName(e.target.value);
-    projectNameRef.current = e.target.value;
-  }, []);
+  const handleSave = useCallback(
+    (options: IHeaderSaveOptions = {}) => {
+      const data: any = {
+        name: projectNameRef.current,
+        visibility: +visibilityRef.current
+      };
 
-  const handleSave = useCallback(() => {
-    const data: any = {
-      name: projectNameRef.current,
-      visibility: +visibilityRef.current
-    };
+      onSave(data, options);
+    },
+    [onSave]
+  );
 
-    onSave(data);
-  }, []);
+  const handleNameChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const nextName = e.target.value;
+      setProjectName(nextName);
+      projectNameRef.current = nextName;
+      handleSave({ autosave: true });
+    },
+    [handleSave]
+  );
+
+  const handleNameKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key !== "Enter") {
+        return;
+      }
+
+      e.preventDefault();
+      handleSave();
+    },
+    [handleSave]
+  );
 
   useEffect(() => {
     if (!projectData) {
@@ -79,6 +110,7 @@ const Header = (props: IHeaderProps) => {
             id="name"
             name="name"
             onChange={handleNameChange}
+            onKeyDown={handleNameKeyDown}
             value={projectName}
           />
 

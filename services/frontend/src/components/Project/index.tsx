@@ -56,7 +56,7 @@ export default function Project(props: IProjectProps) {
     useRef<Dictionary<IServiceNodeItem | IVolumeNodeItem>>();
   const stateConnectionsRef = useRef<[[string, string]] | []>();
   const stateNetworksRef = useRef({});
-  const stateProjectRef = useRef();
+  const stateProjectRef = useRef<IProject | undefined>();
   const suppressGraphToCodeSyncRef = useRef(false);
   const suppressGraphToCodeSyncTimeoutRef = useRef<ReturnType<
     typeof setTimeout
@@ -64,6 +64,9 @@ export default function Project(props: IProjectProps) {
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutosaveBaselineRef = useRef(false);
   const lastSavedSnapshotRef = useRef<string>("");
+  const pendingProjectMetaRef = useRef<
+    Partial<Pick<IProjectPayload, "name" | "visibility">>
+  >({});
 
   const [showModalCreateService, setShowModalCreateService] = useState(false);
   const [showVolumesModal, setShowVolumesModal] = useState(false);
@@ -161,11 +164,28 @@ export default function Project(props: IProjectProps) {
     setCanvasPosition(canvasData.canvas.position);
   }, [data]);
 
-  const onSave = (partial: any) => {
-    const buildPayload = (nextPartial: any = {}) => {
+  const syncPendingProjectMeta = useCallback(
+    (partial: Partial<IProjectPayload> = {}) => {
+      if (Object.prototype.hasOwnProperty.call(partial, "name")) {
+        pendingProjectMetaRef.current.name = partial.name ?? "";
+      }
+
+      if (Object.prototype.hasOwnProperty.call(partial, "visibility")) {
+        pendingProjectMetaRef.current.visibility = partial.visibility ?? 0;
+      }
+    },
+    []
+  );
+
+  const buildPayload = useCallback(
+    (partial: Partial<IProjectPayload> = {}) => {
+      const currentProject = stateProjectRef.current;
       const base: IProjectPayload = {
-        name: data?.name ?? "",
-        visibility: data?.visibility ?? 0,
+        name: pendingProjectMetaRef.current.name ?? currentProject?.name ?? "",
+        visibility:
+          pendingProjectMetaRef.current.visibility ??
+          currentProject?.visibility ??
+          0,
         data: {
           canvas: {
             position: canvasPosition,
@@ -176,8 +196,58 @@ export default function Project(props: IProjectProps) {
         }
       };
 
-      return { ...base, ...nextPartial };
-    };
+      return { ...base, ...partial };
+    },
+    [canvasPosition]
+  );
+
+  const queueAutosave = useCallback(
+    (buildAutosavePayload: () => IProjectPayload) => {
+      if (!uuid) {
+        return;
+      }
+
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+      }
+
+      autosaveTimeoutRef.current = setTimeout(() => {
+        const autosavePayload = buildAutosavePayload();
+        const autosaveSnapshot = JSON.stringify(autosavePayload);
+
+        if (autosaveSnapshot === lastSavedSnapshotRef.current) {
+          autosaveTimeoutRef.current = null;
+          return;
+        }
+
+        updateProjectMutation.mutate(
+          {
+            payload: autosavePayload,
+            silent: true
+          },
+          {
+            onSuccess: () => {
+              lastSavedSnapshotRef.current = autosaveSnapshot;
+              pendingProjectMetaRef.current = {};
+            }
+          }
+        );
+        autosaveTimeoutRef.current = null;
+      }, 1200);
+    },
+    [uuid, updateProjectMutation]
+  );
+
+  const onSave = (
+    partial: Partial<IProjectPayload> = {},
+    options: { autosave?: boolean } = {}
+  ) => {
+    syncPendingProjectMeta(partial);
+
+    if (options.autosave) {
+      queueAutosave(() => buildPayload(partial));
+      return;
+    }
 
     const payload = buildPayload(partial);
     const payloadSnapshot = JSON.stringify(payload);
@@ -196,6 +266,7 @@ export default function Project(props: IProjectProps) {
         {
           onSuccess: () => {
             lastSavedSnapshotRef.current = payloadSnapshot;
+            pendingProjectMetaRef.current = {};
           }
         }
       );
@@ -216,6 +287,7 @@ export default function Project(props: IProjectProps) {
   useEffect(() => {
     hasAutosaveBaselineRef.current = false;
     lastSavedSnapshotRef.current = "";
+    pendingProjectMetaRef.current = {};
 
     if (autosaveTimeoutRef.current) {
       clearTimeout(autosaveTimeoutRef.current);
@@ -227,20 +299,6 @@ export default function Project(props: IProjectProps) {
     if (!uuid || !data) {
       return;
     }
-
-    const buildPayload = () =>
-      ({
-        name: data?.name ?? "",
-        visibility: data?.visibility ?? 0,
-        data: {
-          canvas: {
-            position: canvasPosition,
-            nodes: stateNodesRef.current,
-            connections: stateConnectionsRef.current,
-            networks: stateNetworksRef.current
-          }
-        }
-      }) as IProjectPayload;
 
     const snapshot = JSON.stringify(buildPayload());
 
@@ -254,31 +312,7 @@ export default function Project(props: IProjectProps) {
       return;
     }
 
-    if (autosaveTimeoutRef.current) {
-      clearTimeout(autosaveTimeoutRef.current);
-    }
-
-    autosaveTimeoutRef.current = setTimeout(() => {
-      const autosavePayload = buildPayload();
-      const autosaveSnapshot = JSON.stringify(autosavePayload);
-
-      if (autosaveSnapshot === lastSavedSnapshotRef.current) {
-        return;
-      }
-
-      updateProjectMutation.mutate(
-        {
-          payload: autosavePayload,
-          silent: true
-        },
-        {
-          onSuccess: () => {
-            lastSavedSnapshotRef.current = autosaveSnapshot;
-          }
-        }
-      );
-      autosaveTimeoutRef.current = null;
-    }, 1200);
+    queueAutosave(() => buildPayload());
 
     return () => {
       if (autosaveTimeoutRef.current) {
@@ -293,7 +327,8 @@ export default function Project(props: IProjectProps) {
     connections,
     networks,
     canvasPosition,
-    updateProjectMutation
+    buildPayload,
+    queueAutosave
   ]);
 
   const onGraphUpdate = (graphData: any) => {
