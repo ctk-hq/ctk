@@ -168,6 +168,30 @@ def extract_depends_on(depends_on: Any) -> list[str]:
     return []
 
 
+def extract_service_volume_mounts(volumes: Any) -> list[str]:
+    if not isinstance(volumes, list):
+        return []
+
+    names: list[str] = []
+    seen: set[str] = set()
+
+    for mount in volumes:
+        source_name = ""
+
+        if isinstance(mount, str):
+            source_name = mount.split(":", 1)[0].strip()
+        elif isinstance(mount, dict):
+            raw_source = mount.get("source")
+            if isinstance(raw_source, str):
+                source_name = raw_source.strip()
+
+        if source_name and source_name not in seen:
+            names.append(source_name)
+            seen.add(source_name)
+
+    return names
+
+
 def normalize_position(index: int) -> dict[str, int]:
     offset = 200
     step = 150
@@ -207,6 +231,23 @@ def build_network_node(
         "outputs": [],
         "canvasConfig": {"node_name": node_name},
         "networkConfig": network_config,
+    }
+
+
+def build_volume_node(
+    node_name: str,
+    node_uuid: str,
+    volume_config: dict[str, Any],
+    index: int,
+) -> dict[str, Any]:
+    return {
+        "key": node_uuid,
+        "type": "VOLUME",
+        "position": normalize_position(index),
+        "inputs": [],
+        "outputs": [f"op_{node_uuid}"],
+        "canvasConfig": {"node_name": node_name},
+        "volumeConfig": volume_config,
     }
 
 

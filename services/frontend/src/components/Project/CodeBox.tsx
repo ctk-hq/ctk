@@ -10,9 +10,15 @@ import eventBus from "../../events/eventBus";
 import CodeEditor from "../CodeEditor";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 
-const CodeBox = () => {
+interface ICodeBoxProps {
+  onCodeUpdate: (composeData: unknown) => string;
+}
+
+const CodeBox = (props: ICodeBoxProps) => {
+  const { onCodeUpdate } = props;
   const versionRef = useRef<string>();
   const manifestRef = useRef<string>();
+  const lastGeneratedCodeRef = useRef<string>("");
   const [language, setLanguage] = useState("yaml");
   const [version, setVersion] = useState("latest");
   const [copyText, setCopyText] = useState("Copy");
@@ -49,6 +55,45 @@ const CodeBox = () => {
     []
   );
 
+  const parseComposeCode = (
+    data: string,
+    sourceLanguage: string
+  ): Record<string, unknown> | null => {
+    if (!data.trim()) {
+      return null;
+    }
+
+    try {
+      const parsed =
+        sourceLanguage === "json" ? JSON.parse(data) : YAML.parse(data);
+
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed[0]?.constructor === Object ? parsed[0] : null;
+      }
+
+      return parsed?.constructor === Object ? parsed : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const debouncedOnCodeUpdate = useMemo(
+    () =>
+      debounce((data: string, sourceLanguage: string) => {
+        const parsedCompose = parseComposeCode(data, sourceLanguage);
+
+        if (!parsedCompose) {
+          return;
+        }
+
+        const parsedVersion = onCodeUpdate(parsedCompose);
+        if (parsedVersion && parsedVersion !== versionRef.current) {
+          setVersion(parsedVersion);
+        }
+      }, 600),
+    [onCodeUpdate]
+  );
+
   const versionChange = (e: any) => {
     setVersion(e.target.value);
   };
@@ -64,14 +109,23 @@ const CodeBox = () => {
 
   useEffect(() => {
     if (language === "json") {
-      setFormattedCode(
-        JSON.stringify(YAML.parseAllDocuments(generatedCode), null, 2)
-      );
+      try {
+        const docs = YAML.parseAllDocuments(generatedCode).map((doc) =>
+          doc.toJSON()
+        );
+        const jsonValue = docs.length <= 1 ? docs[0] || {} : docs;
+        const nextCode = JSON.stringify(jsonValue, null, 2);
+        lastGeneratedCodeRef.current = nextCode;
+        setFormattedCode(nextCode);
+      } catch {
+        lastGeneratedCodeRef.current = generatedCode;
+        setFormattedCode(generatedCode);
+      }
+      return;
     }
 
-    if (language === "yaml") {
-      setFormattedCode(generatedCode);
-    }
+    lastGeneratedCodeRef.current = generatedCode;
+    setFormattedCode(generatedCode);
   }, [language, generatedCode]);
 
   useEffect(() => {
@@ -93,6 +147,13 @@ const CodeBox = () => {
       eventBus.remove("FETCH_CODE", () => undefined);
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      debouncedOnGraphUpdate.cancel();
+      debouncedOnCodeUpdate.cancel();
+    };
+  }, [debouncedOnCodeUpdate, debouncedOnGraphUpdate]);
 
   return (
     <>
@@ -139,10 +200,16 @@ const CodeBox = () => {
       <CodeEditor
         data={formattedCode}
         language={language}
-        onChange={() => {
-          return;
+        onChange={(value: string) => {
+          setFormattedCode(value);
+
+          if (value === lastGeneratedCodeRef.current) {
+            return;
+          }
+
+          debouncedOnCodeUpdate(value, language);
         }}
-        disabled={true}
+        disabled={false}
         lineWrapping={false}
         height={height - 64}
       />
