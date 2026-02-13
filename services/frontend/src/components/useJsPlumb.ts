@@ -31,6 +31,31 @@ import { IServiceNodeItem, IVolumeNodeItem } from "../types";
 import { Dictionary, isEqual } from "lodash";
 import { IAnchor, CallbackFunction } from "../types";
 
+const defaultConnectionPaintStyle = {
+  strokeWidth: 2,
+  stroke: "#61B7CF"
+};
+
+const defaultConnectionHoverStyle = {
+  strokeWidth: 3,
+  stroke: "#216477"
+};
+
+const volumeConnectionPaintStyle = {
+  strokeWidth: 2,
+  stroke: "#ad35ff"
+};
+
+const volumeConnectionHoverStyle = {
+  strokeWidth: 3,
+  stroke: "#7d0fc8"
+};
+
+interface IPaintableConnection {
+  setPaintStyle: (style: any) => void;
+  setHoverPaintStyle: (style: any) => void;
+}
+
 export const useJsPlumb = (
   nodes: Dictionary<IServiceNodeItem | IVolumeNodeItem>,
   connections: Array<[string, string]>,
@@ -42,7 +67,7 @@ export const useJsPlumb = (
   (containerElement: HTMLDivElement) => void,
   (zoom: number) => void,
   (style: any) => void,
-  (node: IServiceNodeItem) => void
+  (node: IServiceNodeItem | IVolumeNodeItem) => void
 ] => {
   const [instance, setInstance] = useState<BrowserJsPlumbInstance>(null as any);
   const containerRef = useRef<HTMLDivElement>();
@@ -133,7 +158,10 @@ export const useJsPlumb = (
     );
   };
 
-  const getOverlayObject = (instance: BrowserJsPlumbInstance) => {
+  const getOverlayObject = (
+    instance: BrowserJsPlumbInstance,
+    isVolumeConnection = false
+  ) => {
     return {
       type: "Label",
       options: {
@@ -141,16 +169,52 @@ export const useJsPlumb = (
         location: 0.5,
         id: "remove-conn",
         cssClass: `
-        block jtk-overlay remove-conn-btn text-xs leading-normal cursor-pointer
+        block jtk-overlay ${
+          isVolumeConnection ? "remove-conn-btn-volume" : "remove-conn-btn"
+        } text-xs leading-normal cursor-pointer
         text-white font-bold rounded-full w-5 h-5 z-20 flex justify-center
         `,
         events: {
           click: (e: any) => {
-            instance.deleteConnection(e.overlay.component as any);
+            const connection = e?.overlay?.component as any;
+            const activeInstance =
+              instanceRef.current || connection?.instance || instance;
+
+            if (
+              activeInstance &&
+              typeof (activeInstance as any).deleteConnection === "function"
+            ) {
+              (activeInstance as any).deleteConnection(connection);
+            }
           }
         }
       }
     };
+  };
+
+  const isVolumeToServiceConnection = (
+    sourceId: string,
+    targetId: string
+  ): boolean => {
+    const sourceNode = stateRef.current?.[sourceId];
+    const targetNode = stateRef.current?.[targetId];
+
+    return sourceNode?.type === "VOLUME" && targetNode?.type === "SERVICE";
+  };
+
+  const applyConnectionStyle = (
+    connection: IPaintableConnection,
+    sourceId: string,
+    targetId: string
+  ) => {
+    if (isVolumeToServiceConnection(sourceId, targetId)) {
+      connection.setPaintStyle(volumeConnectionPaintStyle as any);
+      connection.setHoverPaintStyle(volumeConnectionHoverStyle as any);
+      return;
+    }
+
+    connection.setPaintStyle(defaultConnectionPaintStyle as any);
+    connection.setHoverPaintStyle(defaultConnectionHoverStyle as any);
   };
 
   const setZoom = useCallback(
@@ -312,16 +376,24 @@ export const useJsPlumb = (
       }
     });
 
+    (instance.getConnections({}, true) as Connection[]).forEach((conn) => {
+      applyConnectionStyle(conn, conn.sourceId, conn.targetId);
+    });
+
     connections.forEach((x) => {
       const c = currentConnectionUuids.find((y) => {
         return isEqual([`op_${x[0]}`, `ip_${x[1]}`], y);
       });
 
       if (!c) {
-        instance.connect({
+        const connection = instance.connect({
           uuids: [`op_${x[0]}`, `ip_${x[1]}`],
-          overlays: [getOverlayObject(instance)]
+          overlays: [
+            getOverlayObject(instance, isVolumeToServiceConnection(x[0], x[1]))
+          ]
         });
+
+        applyConnectionStyle(connection as Connection, x[0], x[1]);
       }
     });
   }, [connections, instance]);
@@ -349,38 +421,47 @@ export const useJsPlumb = (
 
     jsPlumbInstance.bind(
       EVENT_CONNECTION_DETACHED,
-      function (
-        this: BrowserJsPlumbInstance,
-        params: ConnectionDetachedParams
-      ) {
+      function (params: ConnectionDetachedParams) {
         onConnectionDetached([params.sourceId, params.targetId]);
 
         onGraphUpdate({
           nodes: stateRef.current,
-          connections: getConnections(this.getConnections({}, true) as any)
+          connections: getConnections(
+            jsPlumbInstance.getConnections({}, true) as any
+          )
         });
       }
     );
 
     jsPlumbInstance.bind(
       EVENT_CONNECTION,
-      function (
-        this: BrowserJsPlumbInstance,
-        params: ConnectionEstablishedParams
-      ) {
+      function (params: ConnectionEstablishedParams) {
         if (
           !Object.prototype.hasOwnProperty.call(
             params.connection.overlays,
             "remove-conn"
           )
         ) {
-          params.connection.addOverlay(getOverlayObject(this));
+          params.connection.addOverlay(
+            getOverlayObject(
+              jsPlumbInstance,
+              isVolumeToServiceConnection(params.sourceId, params.targetId)
+            )
+          );
           onConnectionAttached([params.sourceId, params.targetId]);
         }
 
+        applyConnectionStyle(
+          params.connection,
+          params.sourceId,
+          params.targetId
+        );
+
         onGraphUpdate({
           nodes: stateRef.current,
-          connections: getConnections(this.getConnections({}, true) as any)
+          connections: getConnections(
+            jsPlumbInstance.getConnections({}, true) as any
+          )
         });
       }
     );

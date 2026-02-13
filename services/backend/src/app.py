@@ -30,9 +30,11 @@ from utils import (
     build_network_node,
     build_pagination_urls,
     build_service_node,
+    build_volume_node,
     can_edit_project,
     can_read_project,
     extract_depends_on,
+    extract_service_volume_mounts,
     get_current_user,
     get_optional_current_user,
     get_payload,
@@ -51,8 +53,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
 
 
 def init_database() -> None:
@@ -141,39 +141,50 @@ async def import_project(
         raise HTTPException(status_code=400, detail=str(error)) from error
 
     imported = yaml.safe_load(response.content) or {}
+
     if not isinstance(imported, dict):
         raise HTTPException(status_code=400, detail="Imported YAML must be an object")
 
     project_data = copy.deepcopy(DEFAULT_PROJECT)
-    node_name_uuid: dict[str, str] = {}
     node_order: dict[str, int] = {}
-
     services = (
         imported.get("services", {})
         if isinstance(imported.get("services"), dict)
         else {}
+    )
+    volumes = (
+        imported.get("volumes", {}) if isinstance(imported.get("volumes"), dict) else {}
     )
     networks = (
         imported.get("networks", {})
         if isinstance(imported.get("networks"), dict)
         else {}
     )
-
+    service_name_uuid: dict[str, str] = {}
+    volume_name_uuid: dict[str, str] = {}
+    network_name_uuid: dict[str, str] = {}
     counter = 0
+
     for service_name in services:
         generated_uuid = f"service-{uuid.uuid4()}"
-        node_name_uuid[service_name] = generated_uuid
+        service_name_uuid[service_name] = generated_uuid
+        node_order[generated_uuid] = counter
+        counter += 1
+
+    for volume_name in volumes:
+        generated_uuid = f"volume-{uuid.uuid4()}"
+        volume_name_uuid[volume_name] = generated_uuid
         node_order[generated_uuid] = counter
         counter += 1
 
     for network_name in networks:
         generated_uuid = f"network-{uuid.uuid4()}"
-        node_name_uuid[network_name] = generated_uuid
+        network_name_uuid[network_name] = generated_uuid
         node_order[generated_uuid] = counter
         counter += 1
 
     for service_name, service_config in services.items():
-        service_uuid = node_name_uuid[service_name]
+        service_uuid = service_name_uuid[service_name]
         project_data["canvas"]["nodes"][service_uuid] = build_service_node(
             service_name,
             service_uuid,
@@ -182,14 +193,34 @@ async def import_project(
         )
 
         for dependency in extract_depends_on(service_config.get("depends_on")):
-            dependency_uuid = node_name_uuid.get(dependency)
+            dependency_uuid = service_name_uuid.get(dependency)
+
             if dependency_uuid:
                 project_data["canvas"]["connections"].append(
                     [service_uuid, dependency_uuid]
                 )
 
+        for volume_mount in extract_service_volume_mounts(
+            service_config.get("volumes")
+        ):
+            volume_uuid = volume_name_uuid.get(volume_mount)
+
+            if volume_uuid:
+                project_data["canvas"]["connections"].append(
+                    [volume_uuid, service_uuid]
+                )
+
+    for volume_name, volume_config in volumes.items():
+        volume_uuid = volume_name_uuid[volume_name]
+        project_data["canvas"]["nodes"][volume_uuid] = build_volume_node(
+            volume_name,
+            volume_uuid,
+            volume_config if isinstance(volume_config, dict) else {},
+            node_order[volume_uuid],
+        )
+
     for network_name, network_config in networks.items():
-        network_uuid = node_name_uuid[network_name]
+        network_uuid = network_name_uuid[network_name]
         project_data["canvas"]["nodes"][network_uuid] = build_network_node(
             network_name,
             network_uuid,

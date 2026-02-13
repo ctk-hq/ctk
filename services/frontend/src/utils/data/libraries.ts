@@ -22,7 +22,7 @@ export const nodeLibraries: INodeGroup[] = [
         type: "VOLUME",
         description: "Volume node",
         noInputs: 0,
-        noOutputs: 0,
+        noOutputs: 1,
         isActive: true
       }
     ]
