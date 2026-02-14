@@ -177,7 +177,6 @@ export interface IService {
       reservations?: {
         cpus?: string;
         memory?: string;
-        devices?: { [key: string]: string | number | string[] }[];
       };
     };
     restart_policy?: {
@@ -203,8 +202,6 @@ export interface IService {
       order?: "stop-first" | "start-first";
     };
   };
-  device_cgroup_rules: string[];
-  devices: string[];
   dns: string | string[];
   dns_opt: string[];
   dns_search: string | string[];

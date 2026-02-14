@@ -125,8 +125,6 @@ const Deploy = () => {
             name="deploy.resources.reservations.memory"
           />
         </Group>
-
-        {/* TODO: devices */}
       </Accordion>
 
       <Accordion id={`${uuid}.deploy.restartPolicy`} title="Restart policy">
