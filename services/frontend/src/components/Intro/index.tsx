@@ -17,6 +17,19 @@ export default function Intro() {
             switch to code mode anytime to edit YAML directly. The graph and
             code stay in sync in both directions.
           </p>
+          <p className="mt-3 text-slate-700">
+            Want to contribute? Request a feature? Or report a bug? Check out
+            our{" "}
+            <a
+              className="font-semibold text-cyan-700 hover:text-cyan-800"
+              href="https://github.com/ctk-hq/ctk"
+              rel="noreferrer"
+              target="_blank"
+            >
+              GitHub
+            </a>
+            .
+          </p>
           <Link
             to="/projects/new"
             className="mt-8 inline-flex items-center rounded-md bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700"
