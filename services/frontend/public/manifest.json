@@ -1,6 +1,6 @@
 {
-  "short_name": "Visual Argo Workflows",
-  "name": "Visual Argo Workflows",
+  "short_name": "Container Toolkit",
+  "name": "Container Toolkit",
   "icons": [
     {
       "src": "favicon.png",
@@ -10,6 +10,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#0f172a",
+  "background_color": "#f8fafc"
 }

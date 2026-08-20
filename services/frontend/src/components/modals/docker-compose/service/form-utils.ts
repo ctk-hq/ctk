@@ -126,8 +126,7 @@ const initialValues: IEditServiceForm = {
 
 yup.addMethod<yup.StringSchema>(yup.string, "port", function (message) {
   return this.test("test-port", message, function (value):
-    | boolean
-    | yup.ValidationError {
+    boolean | yup.ValidationError {
     const { path, createError } = this;
 
     if (value) {

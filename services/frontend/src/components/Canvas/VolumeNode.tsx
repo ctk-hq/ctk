@@ -1,39 +1,24 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { truncateStr } from "../../utils";
 import { IVolumeNodeItem, CallbackFunction } from "../../types";
-import eventBus from "../../events/eventBus";
 import { Popover } from "./Popover";
 import NodeIcon from "./NodeIcon";
 
 interface INodeProps {
   node: IVolumeNodeItem;
+  isDragging: boolean;
   setVolumeToEdit: CallbackFunction;
   setVolumeToDelete: CallableFunction;
 }
 
 export default function VolumeNode(props: INodeProps) {
-  const { node, setVolumeToEdit, setVolumeToDelete } = props;
-  const [nodeDragging, setNodeDragging] = useState<string | null>();
+  const { node, isDragging, setVolumeToEdit, setVolumeToDelete } = props;
   const [nodeHovering, setNodeHovering] = useState<string | null>();
-
-  useEffect(() => {
-    eventBus.on("EVENT_DRAG_START", (data: any) => {
-      setNodeDragging(data.detail.message.id);
-    });
-
-    eventBus.on("EVENT_DRAG_STOP", () => {
-      setNodeDragging(null);
-    });
-
-    return () => {
-      eventBus.remove("EVENT_DRAG_START", () => undefined);
-      eventBus.remove("EVENT_DRAG_STOP", () => undefined);
-    };
-  }, []);
 
   return (
     <div
       key={node.key}
+      data-canvas-node
       className={"node-item cursor-pointer shadow flex flex-col group"}
       id={node.key}
       style={{ top: node.position.top, left: node.position.left }}
@@ -44,7 +29,7 @@ export default function VolumeNode(props: INodeProps) {
         }
       }}
     >
-      {nodeHovering === node.key && nodeDragging !== node.key && (
+      {nodeHovering === node.key && !isDragging && (
         <Popover
           onEditClick={() => {
             setVolumeToEdit(node);

@@ -1,0 +1,7 @@
+{
+  "name": "container-toolkit",
+  "private": true,
+  "scripts": {
+    "format": "npm --prefix services/frontend run format"
+  }
+}

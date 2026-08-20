@@ -1,9 +1,10 @@
+import { ReactElement } from "react";
 import { Navigate } from "react-router-dom";
 
 export type ProtectedRouteProps = {
   isAuthenticated: boolean;
   authenticationPath: string;
-  outlet: JSX.Element;
+  outlet: ReactElement;
 };
 
 export default function ProtectedRoute({

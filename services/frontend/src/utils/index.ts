@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-import { Connection } from "@jsplumb/core";
 import toast from "react-hot-toast";
 import {
   Dictionary,
@@ -128,36 +127,6 @@ export const getClientNodeItem = (
   };
 };
 
-export const getConnections = (
-  connections: Connection[]
-): Array<[string, string]> => {
-  const ret: Array<[string, string]> = [];
-
-  /*
-  connections.forEach((x) => {
-    [x.sourceId, x.targetId]
-  });
-  */
-
-  /*
-  for (let [, value] of connections) {
-    ret.push([value.sourceId, value.targetId]);
-  }
-
-
-  Object.keys(connections).map((k) => {
-    const connection: Connection = connections[k];
-    return [connections[k].sourceId, connections[k].targetId];
-  });
-  */
-
-  connections.forEach((connection: Connection) => {
-    ret.push([connection.sourceId, connection.targetId]);
-  });
-
-  return ret;
-};
-
 export const getClientNodesAndConnections = (
   nodeItems: IServiceNodeItem[],
   sections: INodeGroup[]
@@ -206,13 +175,6 @@ export const truncateStr = (str: string, length: number) => {
   }
 
   return str;
-};
-
-export const getMatchingSetIndex = (
-  setOfSets: [[string, string]],
-  findSet: [string, string]
-): number => {
-  return setOfSets.findIndex((set) => set.toString() === findSet.toString());
 };
 
 export const getLocalStorageJWTKeys = () => {

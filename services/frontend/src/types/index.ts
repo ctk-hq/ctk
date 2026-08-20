@@ -1,7 +1,4 @@
-import { AnchorId } from "@jsplumb/common";
-import { Dictionary } from "lodash";
 import { FunctionComponent, ReactNode } from "react";
-import { KeyValuePair } from "tailwindcss/types/config";
 import { NodeGroupType } from "./enums";
 
 type KeyValPair = {
@@ -53,23 +50,9 @@ interface INodeItem {
   outputs: string[];
 }
 
-export interface IFlatConnection {
-  target: string;
-}
-
 export interface ICanvasConfig {
   node_name?: string;
   node_icon?: string;
-}
-
-export interface IGraphData {
-  nodes: IServiceNodeItem[];
-  connections: Dictionary<IFlatConnection>;
-}
-
-export interface IAnchor {
-  id: string;
-  position: AnchorId;
 }
 
 export interface IVolumeTopLevel {
@@ -80,7 +63,7 @@ export interface IVolumeTopLevel {
     device: string;
   };
   external: boolean;
-  labels?: string[] | KeyValuePair;
+  labels?: string[] | KeyValPair;
   name: string;
 }
 
@@ -356,7 +339,6 @@ export interface IProjectPayload {
 
 export interface IGeneratePayload {
   data: {
-    version: string | number;
     networks: Record<string, Partial<INetworkTopLevel>>;
     services: Record<string, Partial<IService>>;
     volumes: Record<string, Partial<IVolumeTopLevel>>;
@@ -489,9 +471,7 @@ export interface IEditServiceForm {
 export interface IEditServiceFormDependsOn {
   serviceName: string;
   condition:
-    | "service_started"
-    | "service_healthy"
-    | "service_completed_successfully";
+    "service_started" | "service_healthy" | "service_completed_successfully";
 }
 
 export interface IEditVolumeForm {
@@ -585,6 +565,7 @@ export interface IIntegerField extends ISingleRowField {
 export interface IToggleField extends ISingleRowField {
   type: "toggle";
   label: string;
+  required?: boolean;
   options: {
     text: string;
     value: string;

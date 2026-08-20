@@ -1,4 +1,6 @@
-import Editor from "@monaco-editor/react";
+import { lazy, Suspense } from "react";
+
+const Editor = lazy(() => import("@monaco-editor/react"));
 
 interface ICodeEditorProps {
   data: string;
@@ -15,23 +17,31 @@ const CodeEditor = (props: ICodeEditorProps) => {
   const monacoLanguage = supportedLanguage ? language : "plaintext";
 
   return (
-    <div className="overflow-y-auto py-2" style={{ height }}>
-      <Editor
-        height={height}
-        defaultLanguage={monacoLanguage}
-        language={monacoLanguage}
-        value={data}
-        theme="vs-dark"
-        onChange={(value) => onChange(value ?? "")}
-        options={{
-          readOnly: disabled,
-          minimap: { enabled: false },
-          wordWrap: lineWrapping ? "on" : "off",
-          scrollBeyondLastLine: false,
-          automaticLayout: true,
-          tabSize: 2
-        }}
-      />
+    <div className="overflow-hidden" style={{ height }}>
+      <Suspense
+        fallback={
+          <div className="flex h-full items-center justify-center bg-slate-950 text-xs text-slate-500">
+            Loading editor…
+          </div>
+        }
+      >
+        <Editor
+          height={height}
+          defaultLanguage={monacoLanguage}
+          language={monacoLanguage}
+          value={data}
+          theme="vs-dark"
+          onChange={(value) => onChange(value ?? "")}
+          options={{
+            readOnly: disabled,
+            minimap: { enabled: false },
+            wordWrap: lineWrapping ? "on" : "off",
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            tabSize: 2
+          }}
+        />
+      </Suspense>
     </div>
   );
 };

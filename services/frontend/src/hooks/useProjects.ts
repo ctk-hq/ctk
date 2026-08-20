@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useQuery } from "react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys } from "../utils";
 
@@ -18,12 +18,10 @@ export const fetchProjects = async (limit: number, offset: number) => {
 };
 
 export const useProjects = (limit: number, offset: number) => {
-  return useQuery(
-    ["projects", limit, offset],
-    () => fetchProjects(limit, offset),
-    {
-      keepPreviousData: true,
-      staleTime: Infinity
-    }
-  );
+  return useQuery({
+    queryKey: ["projects", limit, offset],
+    queryFn: () => fetchProjects(limit, offset),
+    placeholderData: keepPreviousData,
+    staleTime: Infinity
+  });
 };

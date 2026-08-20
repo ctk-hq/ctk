@@ -19,7 +19,7 @@ export default function UserMenu(props: IUserMenuProps) {
         ${
           current ? "bg-blue-800 text-white" : "text-blue-100 hover:bg-blue-600"
         },
-        flex md:border-t md:border-blue-800 p-4 md:w-full hover:cursor-pointer hover:bg-blue-600
+        flex p-4 md:w-full hover:cursor-pointer hover:bg-blue-600
       `}
     >
       <div className="flex items-center mx-auto">

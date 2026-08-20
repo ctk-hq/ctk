@@ -1,8 +1,8 @@
-import { useReducer, useEffect } from "react";
+import { lazy, Suspense, useEffect, useReducer } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { ReactQueryDevtools } from "react-query/devtools";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { LOCAL_STORAGE } from "./constants";
 import { reducer, initialState } from "./reducers";
@@ -12,12 +12,6 @@ import { authSelf } from "./reducers";
 import { refresh, self } from "./services/auth";
 
 import SideBar from "./components/global/SideBar";
-import Projects from "./components/Projects";
-import Project from "./components/Project";
-import Profile from "./components/Profile";
-import Signup from "./components/Auth/Signup";
-import Login from "./components/Auth/Login";
-import GitHub from "./components/Auth/GitHub";
 import Intro from "./components/Intro";
 
 import { ProtectedRouteProps } from "./partials/ProtectedRoute";
@@ -26,7 +20,14 @@ import ProtectedRoute from "./partials/ProtectedRoute";
 import "./index.css";
 import { lightTheme } from "./utils/theme";
 import { SuperFormProvider } from "./components/SuperFormProvider";
-import { ThemeProvider } from "@mui/material";
+import { ThemeProvider } from "@mui/material/styles";
+
+const Projects = lazy(() => import("./components/Projects"));
+const Project = lazy(() => import("./components/Project"));
+const Profile = lazy(() => import("./components/Profile"));
+const Signup = lazy(() => import("./components/Auth/Signup"));
+const Login = lazy(() => import("./components/Auth/Login"));
+const GitHub = lazy(() => import("./components/Auth/GitHub"));
 
 const queryClient = new QueryClient();
 
@@ -88,7 +89,7 @@ export default function App() {
           }
         });
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, navigate]);
 
   useEffect(() => {
     setViewHeight();
@@ -106,52 +107,63 @@ export default function App() {
           <div>
             <Toaster />
             <SideBar isAuthenticated={isAuthenticated} state={state} />
-            <Routes>
-              <Route
-                path="/projects/:uuid"
-                element={<Project isAuthenticated={isAuthenticated} />}
-              />
+            <Suspense
+              fallback={
+                <div className="flex min-h-screen items-center justify-center text-sm text-slate-500">
+                  Loading workspace…
+                </div>
+              }
+            >
+              <Routes>
+                <Route
+                  path="/projects/:uuid"
+                  element={<Project isAuthenticated={isAuthenticated} />}
+                />
 
-              <Route
-                path="/projects/new"
-                element={<Project isAuthenticated={isAuthenticated} />}
-              />
+                <Route
+                  path="/projects/new"
+                  element={<Project isAuthenticated={isAuthenticated} />}
+                />
 
-              <Route
-                path="/"
-                element={isAuthenticated ? <Projects /> : <Intro />}
-              />
+                <Route
+                  path="/"
+                  element={isAuthenticated ? <Projects /> : <Intro />}
+                />
 
-              <Route
-                path="/projects/"
-                element={
-                  <ProtectedRoute
-                    {...defaultProtectedRouteProps}
-                    outlet={<Projects />}
-                  />
-                }
-              />
+                <Route
+                  path="/projects/"
+                  element={
+                    <ProtectedRoute
+                      {...defaultProtectedRouteProps}
+                      outlet={<Projects />}
+                    />
+                  }
+                />
 
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute
-                    {...defaultProtectedRouteProps}
-                    outlet={<Profile dispatch={dispatch} state={state} />}
-                  />
-                }
-              />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute
+                      {...defaultProtectedRouteProps}
+                      outlet={<Profile dispatch={dispatch} state={state} />}
+                    />
+                  }
+                />
 
-              <Route path="/signup" element={<Signup dispatch={dispatch} />} />
-              <Route path="/login" element={<Login dispatch={dispatch} />} />
-              <Route
-                path="/github/cb"
-                element={<GitHub dispatch={dispatch} />}
-              />
-            </Routes>
+                <Route
+                  path="/signup"
+                  element={<Signup dispatch={dispatch} />}
+                />
+                <Route path="/login" element={<Login dispatch={dispatch} />} />
+                <Route
+                  path="/github/cb"
+                  element={<GitHub dispatch={dispatch} />}
+                />
+              </Routes>
+            </Suspense>
           </div>
         </SuperFormProvider>
-        <ReactQueryDevtools initialIsOpen={true} />
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </ThemeProvider>
   );

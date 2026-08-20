@@ -1,6 +1,6 @@
 import axios from "axios";
 import _ from "lodash";
-import { useQuery, useMutation, useQueryClient } from "react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys, toaster } from "../utils";
 import { IProject, IProjectPayload } from "../types";
@@ -81,12 +81,11 @@ const updateProjectByUuid = async (uuid: string, data: string) => {
 export const useProject = (uuid: string | undefined) => {
   const jwtKeys = useLocalStorageJWTKeys();
 
-  return useQuery(
-    ["projects", uuid],
-    async () => {
-      if (!uuid) {
-        return;
-      }
+  return useQuery({
+    queryKey: ["projects", uuid],
+    enabled: Boolean(uuid),
+    queryFn: async () => {
+      if (!uuid) return undefined;
 
       const requestConfig = {
         method: "get",
@@ -105,11 +104,9 @@ export const useProject = (uuid: string | undefined) => {
 
       return (await axios(requestConfig)).data;
     },
-    {
-      staleTime: Infinity,
-      retry: 1
-    }
-  );
+    staleTime: Infinity,
+    retry: 1
+  });
 };
 
 export const useUpdateProject = (uuid: string | undefined) => {
@@ -119,8 +116,8 @@ export const useUpdateProject = (uuid: string | undefined) => {
     silent?: boolean;
   }
 
-  return useMutation(
-    async (mutationData: IUpdateProjectMutationPayload) => {
+  return useMutation({
+    mutationFn: async (mutationData: IUpdateProjectMutationPayload) => {
       if (!uuid) {
         return;
       }
@@ -137,24 +134,24 @@ export const useUpdateProject = (uuid: string | undefined) => {
         } else {
           toaster(err.message, "error");
         }
+
+        throw err;
       }
     },
-    {
-      onSuccess: (projectData, mutationData) => {
-        if (!mutationData?.silent) {
-          toaster("Project saved!", "success");
-        }
-        queryClient.setQueryData(["projects", uuid], projectData);
+    onSuccess: (projectData, mutationData) => {
+      if (!mutationData?.silent) {
+        toaster("Project saved!", "success");
       }
+      queryClient.setQueryData(["projects", uuid], projectData);
     }
-  );
+  });
 };
 
 export const useDeleteProject = (uuid: string | undefined) => {
   const queryClient = useQueryClient();
 
-  return useMutation(
-    async () => {
+  return useMutation({
+    mutationFn: async () => {
       if (!uuid) {
         return;
       }
@@ -168,27 +165,31 @@ export const useDeleteProject = (uuid: string | undefined) => {
         } else {
           toaster(err.message, "error");
         }
+
+        throw err;
       }
     },
-    {
-      onSuccess: () => {
-        queryClient.cancelQueries("projects");
-        const previousProjects = queryClient.getQueryData(
-          "projects"
-        ) as IProjectsReturn;
+    onSuccess: async () => {
+      await queryClient.cancelQueries({ queryKey: ["projects"] });
+      const projectQueries = queryClient.getQueriesData<IProjectsReturn>({
+        queryKey: ["projects"]
+      });
 
-        if (previousProjects) {
+      projectQueries.forEach(([queryKey, previousProjects]) => {
+        if (previousProjects?.results) {
           const filtered = _.filter(previousProjects.results, (project) => {
             return project.uuid !== uuid;
           });
-          previousProjects.count = filtered.length;
-          previousProjects.results = filtered;
-          queryClient.setQueryData("projects", previousProjects);
-        } else {
-          queryClient.invalidateQueries(["projects"]);
+          queryClient.setQueryData(queryKey, {
+            ...previousProjects,
+            count: Math.max(0, previousProjects.count - 1),
+            results: filtered
+          });
         }
-        toaster("Project deleted!", "success");
-      }
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toaster("Project deleted!", "success");
     }
-  );
+  });
 };

@@ -13,7 +13,6 @@ type ComposeRecord = Record<string, unknown>;
 type ComposeNodes = Dictionary<IServiceNodeItem | IVolumeNodeItem>;
 
 interface IComposeGraphResult {
-  version: string;
   nodes: ComposeNodes;
   connections: Array<[string, string]>;
   networks: Record<string, INetworkNodeItem>;
@@ -136,46 +135,6 @@ const getLegacyV1Services = (composeData: ComposeRecord): ComposeRecord => {
   return services;
 };
 
-const normalizeVersion = (
-  composeData: ComposeRecord,
-  services: ComposeRecord
-): string => {
-  const versionValue = composeData.version;
-
-  if (typeof versionValue === "number") {
-    const major = Math.trunc(versionValue).toString();
-    if (["1", "2", "3"].includes(major)) {
-      return major;
-    }
-  }
-
-  if (typeof versionValue === "string") {
-    const normalized = versionValue.trim().toLowerCase();
-
-    if (
-      ["latest", "latest (spec)", "spec", "compose-spec"].includes(normalized)
-    ) {
-      return "latest";
-    }
-
-    const major = normalized.split(".")[0];
-    if (["1", "2", "3"].includes(major)) {
-      return major;
-    }
-  }
-
-  // Legacy Compose v1 does not have top-level "version" and "services".
-  if (
-    !composeData.version &&
-    !composeData.services &&
-    Object.keys(services).length
-  ) {
-    return "1";
-  }
-
-  return "latest";
-};
-
 const getExistingServicesByName = (
   nodes: ComposeNodes
 ): Record<string, IServiceNodeItem> => {
@@ -240,8 +199,6 @@ export const composeToCanvasGraph = (
     : getLegacyV1Services(composeData);
   const composeVolumes = toRecord(composeData.volumes);
   const composeNetworks = toRecord(composeData.networks);
-  const version = normalizeVersion(composeData, composeServices);
-
   const libraries = flattenLibraries(nodeLibraries);
   const serviceLibrary = ensure(libraries.find((l) => l.type === "SERVICE"));
   const volumeLibrary = ensure(libraries.find((l) => l.type === "VOLUME"));
@@ -380,7 +337,6 @@ export const composeToCanvasGraph = (
   });
 
   return {
-    version,
     nodes: nextNodes,
     connections,
     networks: nextNetworks

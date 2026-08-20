@@ -13,9 +13,12 @@ export default function Intro() {
             Welcome!
           </h1>
           <p className="mt-4 text-base leading-7 text-slate-700 sm:text-lg">
-            Build Docker Compose stacks and Kubernetes manifests visually, then
-            switch to code mode anytime to edit YAML directly. The graph and
-            code stay in sync in both directions.
+            Build Docker Compose stacks visually, edit the Compose YAML in sync
+            with the graph, and export ready-to-use Compose or Kubernetes
+            manifests directly from your browser.
+          </p>
+          <p className="mt-3 text-sm font-medium text-emerald-700">
+            No backend is required to generate, copy, or download manifests.
           </p>
           <p className="mt-3 text-slate-700">
             Want to contribute? Request a feature? Or report a bug? Check out

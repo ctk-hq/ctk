@@ -1,13 +1,12 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
     <meta
       name="description"
-      content="Container Toolkit lets you build Docker Compose stacks and Kubernetes manifests visually, then edit YAML directly with graph and code in sync."
+      content="Container Toolkit lets you build Docker Compose stacks and Kubernetes manifests visually, then export them directly from your browser."
     />
     <meta
       name="keywords"
@@ -18,27 +17,29 @@
     <meta property="og:title" content="Container Toolkit" />
     <meta
       property="og:description"
-      content="Build Docker Compose stacks and Kubernetes manifests visually, then edit YAML directly."
+      content="Build and export Docker Compose stacks and Kubernetes manifests visually—right in your browser."
     />
-    <meta property="og:image" content="%PUBLIC_URL%/logo512.png" />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:image:width" content="1731" />
+    <meta property="og:image:height" content="909" />
     <meta property="og:url" content="https://github.com/ctk-hq/ctk" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Container Toolkit" />
     <meta
       name="twitter:description"
-      content="Visual builder for Docker Compose stacks and Kubernetes manifests with synced YAML editing."
+      content="A browser-native visual builder for Docker Compose and Kubernetes manifests."
     />
-    <meta name="twitter:image" content="%PUBLIC_URL%/logo512.png" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <meta name="twitter:image" content="/og.png" />
+    <link rel="icon" href="/favicon.png" />
+    <link rel="manifest" href="/manifest.json" />
     <script type="text/javascript">
       window.$crisp = [];
-      window.CRISP_WEBSITE_ID = "";
+      window.CRISP_WEBSITE_ID = "0c15e052-0bfd-4ed8-a263-fc7b5b99e9e0";
       (function () {
-        d = document;
-        s = d.createElement("script");
+        const d = document;
+        const s = d.createElement("script");
         s.src = "https://client.crisp.chat/l.js";
-        s.async = 1;
+        s.async = true;
         d.getElementsByTagName("head")[0].appendChild(s);
       })();
     </script>
@@ -47,5 +48,6 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Dictionary, omit } from "lodash";
+import { Dictionary } from "lodash";
 import {
   GlobeAltIcon,
   CubeIcon,
@@ -14,7 +14,6 @@ import {
   IProject,
   IProjectPayload
 } from "../../types";
-import eventBus from "../../events/eventBus";
 import {
   createProject,
   useProject,
@@ -26,10 +25,17 @@ import {
   getClientNodeItem,
   flattenLibraries,
   ensure,
-  getClientNodesAndConnections,
-  getMatchingSetIndex
+  getClientNodesAndConnections
 } from "../../utils";
 import { Canvas } from "../Canvas";
+import {
+  attachCanvasConnection,
+  CanvasConnection,
+  CanvasGraphState,
+  detachCanvasConnection,
+  removeCanvasNode,
+  replaceCanvasNode
+} from "../Canvas/graphState";
 import Spinner from "../global/Spinner";
 import ModalConfirmDelete from "../modals/ConfirmDelete";
 import CreateServiceModal from "../modals/docker-compose/service/Create";
@@ -40,7 +46,7 @@ import EditVolumeModal from "../modals/docker-compose/volume/EditVolumeModal";
 import { useTitle } from "../../hooks";
 import CodeBox from "./CodeBox";
 import Header from "./Header";
-import { useMutation } from "react-query";
+import { useMutation } from "@tanstack/react-query";
 import { composeToCanvasGraph } from "../../utils/compose";
 
 interface IProjectProps {
@@ -52,15 +58,12 @@ export default function Project(props: IProjectProps) {
   const { uuid } = useParams<{ uuid: string }>();
   const { height } = useWindowDimensions();
   const { data, error, isFetching } = useProject(uuid);
-  const stateNodesRef =
-    useRef<Dictionary<IServiceNodeItem | IVolumeNodeItem>>();
-  const stateConnectionsRef = useRef<[[string, string]] | []>();
+  const stateNodesRef = useRef<
+    Dictionary<IServiceNodeItem | IVolumeNodeItem> | undefined
+  >(undefined);
+  const stateConnectionsRef = useRef<CanvasConnection[]>([]);
   const stateNetworksRef = useRef({});
-  const stateProjectRef = useRef<IProject | undefined>();
-  const suppressGraphToCodeSyncRef = useRef(false);
-  const suppressGraphToCodeSyncTimeoutRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
+  const stateProjectRef = useRef<IProject | undefined>(undefined);
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutosaveBaselineRef = useRef(false);
   const lastSavedSnapshotRef = useRef<string>("");
@@ -82,8 +85,10 @@ export default function Project(props: IProjectProps) {
   const [volumeToDelete, setVolumeToDelete] = useState<IVolumeNodeItem | null>(
     null
   );
-  const [nodes, setNodes] = useState<Record<string, any>>({});
-  const [connections, setConnections] = useState<[[string, string]] | []>([]);
+  const [nodes, setNodes] = useState<
+    Dictionary<IServiceNodeItem | IVolumeNodeItem>
+  >({});
+  const [connections, setConnections] = useState<CanvasConnection[]>([]);
   const [networks, setNetworks] = useState<Record<string, any>>({});
   const [canvasPosition, setCanvasPosition] = useState({
     top: 0,
@@ -91,16 +96,14 @@ export default function Project(props: IProjectProps) {
     scale: 1
   });
   const updateProjectMutation = useUpdateProject(uuid);
-  const createProjectMutation = useMutation(
-    (payload: IProjectPayload) => {
+  const createProjectMutation = useMutation({
+    mutationFn: (payload: IProjectPayload) => {
       return createProject(payload);
     },
-    {
-      onSuccess: (project: IProject) => {
-        window.location.replace(`/projects/${project.uuid}`);
-      }
+    onSuccess: (project: IProject) => {
+      window.location.replace(`/projects/${project.uuid}`);
     }
-  );
+  });
 
   useTitle(
     [
@@ -114,34 +117,15 @@ export default function Project(props: IProjectProps) {
   stateNetworksRef.current = networks;
   stateProjectRef.current = data;
 
-  const suppressGraphToCodeSync = useCallback((durationMs = 1200) => {
-    suppressGraphToCodeSyncRef.current = true;
-
-    if (suppressGraphToCodeSyncTimeoutRef.current) {
-      clearTimeout(suppressGraphToCodeSyncTimeoutRef.current);
-    }
-
-    suppressGraphToCodeSyncTimeoutRef.current = setTimeout(() => {
-      suppressGraphToCodeSyncRef.current = false;
-      suppressGraphToCodeSyncTimeoutRef.current = null;
-    }, durationMs);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (suppressGraphToCodeSyncTimeoutRef.current) {
-        clearTimeout(suppressGraphToCodeSyncTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const onNodeUpdate = (positionData: IServiceNodePosition) => {
     if (stateNodesRef.current) {
       const node = {
         ...stateNodesRef.current[positionData.key],
         ...positionData
       };
-      setNodes({ ...stateNodesRef.current, [positionData.key]: node });
+      const nextNodes = { ...stateNodesRef.current, [positionData.key]: node };
+      stateNodesRef.current = nextNodes;
+      setNodes(nextNodes);
     }
   };
 
@@ -159,7 +143,7 @@ export default function Project(props: IProjectProps) {
       nodeLibraries
     );
     setNodes(clientNodeItems);
-    setConnections(canvasData.canvas.connections);
+    setConnections(canvasData.canvas.connections as CanvasConnection[]);
     setNetworks(canvasData.canvas.networks);
     setCanvasPosition(canvasData.canvas.position);
   }, [data]);
@@ -331,45 +315,26 @@ export default function Project(props: IProjectProps) {
     queueAutosave
   ]);
 
-  const onGraphUpdate = (graphData: any) => {
-    if (suppressGraphToCodeSyncRef.current) {
-      return;
-    }
+  const onCodeUpdate = useCallback((composeData: unknown): void => {
+    const nextGraph = composeToCanvasGraph(
+      composeData,
+      (stateNodesRef.current as Dictionary<
+        IServiceNodeItem | IVolumeNodeItem
+      >) || {},
+      (stateNetworksRef.current as Record<string, INetworkNodeItem>) || {}
+    );
 
-    const data = { ...graphData };
-    data.networks = stateNetworksRef.current;
-    eventBus.dispatch("FETCH_CODE", {
-      message: data
-    });
-  };
+    stateNodesRef.current = nextGraph.nodes;
+    stateConnectionsRef.current = nextGraph.connections as CanvasConnection[];
+    stateNetworksRef.current = nextGraph.networks as any;
 
-  const onCodeUpdate = useCallback(
-    (composeData: unknown): string => {
-      suppressGraphToCodeSync();
-
-      const nextGraph = composeToCanvasGraph(
-        composeData,
-        (stateNodesRef.current as Dictionary<
-          IServiceNodeItem | IVolumeNodeItem
-        >) || {},
-        (stateNetworksRef.current as Record<string, INetworkNodeItem>) || {}
-      );
-
-      stateNodesRef.current = nextGraph.nodes;
-      stateConnectionsRef.current = nextGraph.connections as [[string, string]];
-      stateNetworksRef.current = nextGraph.networks as any;
-
-      setNodes(nextGraph.nodes);
-      setConnections(nextGraph.connections as [[string, string]]);
-      setNetworks(nextGraph.networks);
-
-      return nextGraph.version;
-    },
-    [suppressGraphToCodeSync]
-  );
+    setNodes(nextGraph.nodes);
+    setConnections(nextGraph.connections as CanvasConnection[]);
+    setNetworks(nextGraph.networks);
+  }, []);
 
   const onCanvasUpdate = (updatedCanvasPosition: any) => {
-    setCanvasPosition({ ...canvasPosition, ...updatedCanvasPosition });
+    setCanvasPosition((current) => ({ ...current, ...updatedCanvasPosition }));
   };
 
   const onAddEndpoint = (values: any) => {
@@ -379,10 +344,15 @@ export default function Project(props: IProjectProps) {
       ensure(sections.find((l) => l.type === values.type))
     );
     clientNodeItem.position = {
-      left: 60 - canvasPosition.left,
-      top: 30 - canvasPosition.top
+      left: (60 - canvasPosition.left) / canvasPosition.scale,
+      top: (30 - canvasPosition.top) / canvasPosition.scale
     };
-    setNodes({ ...nodes, [clientNodeItem.key]: clientNodeItem });
+    const nextNodes = {
+      ...stateNodesRef.current,
+      [clientNodeItem.key]: clientNodeItem
+    };
+    stateNodesRef.current = nextNodes;
+    setNodes(nextNodes);
 
     if (clientNodeItem.type === "VOLUME") {
       setVolumeToEdit(clientNodeItem as unknown as IVolumeNodeItem);
@@ -413,344 +383,53 @@ export default function Project(props: IProjectProps) {
     setNetworks({ ..._networks });
   };
 
-  const getDependsOnKeys = (dependsOn: any): string[] => {
-    let dependsOnKeys: string[] = [];
+  const currentGraphState = useCallback(
+    (): CanvasGraphState => ({
+      connections: stateConnectionsRef.current,
+      nodes: stateNodesRef.current || {}
+    }),
+    []
+  );
 
-    if (dependsOn) {
-      if (dependsOn.constructor === Object) {
-        dependsOnKeys = Object.keys(dependsOn);
-      }
+  const commitGraphState = useCallback((nextState: CanvasGraphState) => {
+    stateNodesRef.current = nextState.nodes;
+    stateConnectionsRef.current = nextState.connections;
+    setNodes(nextState.nodes);
+    setConnections(nextState.connections);
+  }, []);
 
-      if (Array.isArray(dependsOn)) {
-        dependsOnKeys = dependsOn as [];
-      }
-    }
+  const onUpdateEndpoint = useCallback(
+    (nodeItem: IServiceNodeItem | IVolumeNodeItem) => {
+      commitGraphState(replaceCanvasNode(currentGraphState(), nodeItem));
+    },
+    [commitGraphState, currentGraphState]
+  );
 
-    return dependsOnKeys;
-  };
+  const onConnectionDetached = useCallback(
+    (connection: CanvasConnection) => {
+      commitGraphState(detachCanvasConnection(currentGraphState(), connection));
+    },
+    [commitGraphState, currentGraphState]
+  );
 
-  const getVolumeNodeName = (node: IVolumeNodeItem | undefined): string => {
-    if (!node) {
-      return "";
-    }
+  const onConnectionAttached = useCallback(
+    (connection: CanvasConnection) => {
+      commitGraphState(attachCanvasConnection(currentGraphState(), connection));
+    },
+    [commitGraphState, currentGraphState]
+  );
 
-    return (node.canvasConfig.node_name ||
-      node.volumeConfig.name ||
-      "") as string;
-  };
+  const onRemoveEndpoint = useCallback(
+    (node: IServiceNodeItem | IVolumeNodeItem) => {
+      commitGraphState(removeCanvasNode(currentGraphState(), node.key));
+    },
+    [commitGraphState, currentGraphState]
+  );
 
-  const getVolumeMountSourceName = (mount: any): string | null => {
-    if (typeof mount === "string") {
-      const sourceName = mount.split(":", 1)[0].trim();
-      return sourceName || null;
-    }
-
-    if (
-      mount &&
-      mount.constructor === Object &&
-      typeof mount.source === "string"
-    ) {
-      const sourceName = mount.source.trim();
-      return sourceName || null;
-    }
-
-    return null;
-  };
-
-  const getServiceVolumeMountNames = (volumesData: any): string[] => {
-    if (!Array.isArray(volumesData)) {
-      return [];
-    }
-
-    const names: string[] = [];
-    volumesData.forEach((mount) => {
-      const sourceName = getVolumeMountSourceName(mount);
-      if (sourceName && !names.includes(sourceName)) {
-        names.push(sourceName);
-      }
-    });
-
-    return names;
-  };
-
-  const removeServiceVolumeMount = (
-    volumesData: any,
-    volumeName: string
-  ): any[] => {
-    if (!Array.isArray(volumesData)) {
-      return [];
-    }
-
-    return volumesData.filter((mount) => {
-      return getVolumeMountSourceName(mount) !== volumeName;
-    });
-  };
-
-  const onUpdateEndpoint = (nodeItem: IServiceNodeItem | IVolumeNodeItem) => {
-    const key = nodeItem.key;
-
-    if (nodeItem.type === "SERVICE") {
-      const serviceNode = nodeItem as IServiceNodeItem;
-
-      if (connections.length) {
-        const filteredConnections = connections.filter((conn: any) => {
-          if (key === conn[0]) {
-            return false;
-          }
-
-          if (key === conn[1] && nodes[conn[0]]?.type === "VOLUME") {
-            return false;
-          }
-
-          return true;
-        }) as any;
-
-        setConnections(filteredConnections);
-        stateConnectionsRef.current = filteredConnections;
-      }
-
-      const dependsOnData = serviceNode.serviceConfig.depends_on;
-      const dependsOnKeys = getDependsOnKeys(dependsOnData);
-
-      dependsOnKeys.forEach((dep: string) => {
-        const depObject = Object.keys(nodes).find((nodeKey: string) => {
-          const node = nodes[nodeKey];
-          return node.type === "SERVICE" && node.canvasConfig.node_name === dep;
-        });
-
-        if (depObject) {
-          onConnectionAttached([key, depObject]);
-        }
-      });
-
-      const volumeNames = getServiceVolumeMountNames(
-        serviceNode.serviceConfig.volumes
-      );
-
-      volumeNames.forEach((volumeName) => {
-        const sourceVolumeKey = Object.keys(nodes).find((nodeKey: string) => {
-          const node = nodes[nodeKey];
-          if (node.type !== "VOLUME") {
-            return false;
-          }
-
-          return getVolumeNodeName(node as IVolumeNodeItem) === volumeName;
-        });
-
-        if (sourceVolumeKey) {
-          onConnectionAttached([sourceVolumeKey, key]);
-        }
-      });
-    }
-
-    setNodes({ ...nodes, [nodeItem.key]: nodeItem });
-  };
-
-  const onConnectionDetached = (data: any) => {
-    if (
-      !stateConnectionsRef.current ||
-      stateConnectionsRef.current.length <= 0
-    ) {
-      return;
-    }
-
-    if (stateNodesRef.current) {
-      const sourceNode = stateNodesRef.current[data[0]];
-      const targetNode = stateNodesRef.current[data[1]];
-      const updatedNodes = { ...stateNodesRef.current };
-      let hasNodeUpdates = false;
-
-      if (sourceNode?.type === "SERVICE" && targetNode?.type === "SERVICE") {
-        const sourceServiceNode = sourceNode as IServiceNodeItem;
-        const targetServiceName = targetNode.canvasConfig.node_name;
-        let sourceDependsOn = sourceServiceNode.serviceConfig.depends_on as any;
-
-        if (targetServiceName) {
-          const dependsOnKeys = getDependsOnKeys(sourceDependsOn);
-
-          if (dependsOnKeys.includes(targetServiceName)) {
-            if (Array.isArray(sourceDependsOn)) {
-              sourceDependsOn = sourceDependsOn.filter(
-                (name: string) => name !== targetServiceName
-              );
-            }
-
-            if (sourceDependsOn && sourceDependsOn.constructor === Object) {
-              sourceDependsOn = { ...sourceDependsOn };
-              delete sourceDependsOn[targetServiceName];
-            }
-
-            const nextServiceConfig = {
-              ...sourceServiceNode.serviceConfig
-            } as any;
-
-            if (getDependsOnKeys(sourceDependsOn).length) {
-              nextServiceConfig.depends_on = sourceDependsOn;
-            } else {
-              delete nextServiceConfig.depends_on;
-            }
-
-            updatedNodes[data[0]] = {
-              ...sourceServiceNode,
-              serviceConfig: nextServiceConfig
-            };
-            hasNodeUpdates = true;
-          }
-        }
-      }
-
-      if (sourceNode?.type === "VOLUME" && targetNode?.type === "SERVICE") {
-        const volumeNodeName = getVolumeNodeName(sourceNode as IVolumeNodeItem);
-        const targetServiceNode = targetNode as IServiceNodeItem;
-
-        if (volumeNodeName) {
-          const nextVolumes = removeServiceVolumeMount(
-            targetServiceNode.serviceConfig.volumes,
-            volumeNodeName
-          );
-
-          if (
-            Array.isArray(targetServiceNode.serviceConfig.volumes) &&
-            nextVolumes.length !==
-              targetServiceNode.serviceConfig.volumes.length
-          ) {
-            const nextServiceConfig = {
-              ...targetServiceNode.serviceConfig
-            } as any;
-
-            if (nextVolumes.length) {
-              nextServiceConfig.volumes = nextVolumes;
-            } else {
-              delete nextServiceConfig.volumes;
-            }
-
-            updatedNodes[data[1]] = {
-              ...targetServiceNode,
-              serviceConfig: nextServiceConfig
-            };
-            hasNodeUpdates = true;
-          }
-        }
-      }
-
-      if (hasNodeUpdates) {
-        setNodes(updatedNodes);
-        stateNodesRef.current = updatedNodes as any;
-      }
-    }
-
-    const _connections: [[string, string]] = [
-      ...stateConnectionsRef.current
-    ] as any;
-    const existingIndex = getMatchingSetIndex(_connections, data);
-
-    if (existingIndex !== -1) {
-      _connections.splice(existingIndex, 1);
-      setConnections(_connections);
-      stateConnectionsRef.current = _connections;
-    }
-  };
-
-  const onConnectionAttached = (data: any) => {
-    if (stateNodesRef.current) {
-      const sourceNode = stateNodesRef.current[data[0]];
-      const targetNode = stateNodesRef.current[data[1]];
-      const updatedNodes = { ...stateNodesRef.current };
-      let hasNodeUpdates = false;
-
-      if (sourceNode?.type === "SERVICE" && targetNode?.type === "SERVICE") {
-        const sourceServiceNode = sourceNode as IServiceNodeItem;
-        const targetServiceName = targetNode.canvasConfig.node_name;
-        let sourceDependsOn = sourceServiceNode.serviceConfig.depends_on as any;
-        const dependsOnKeys = getDependsOnKeys(sourceDependsOn);
-
-        if (targetServiceName) {
-          if (sourceDependsOn) {
-            if (!dependsOnKeys.includes(targetServiceName)) {
-              if (Array.isArray(sourceDependsOn)) {
-                sourceDependsOn = [...sourceDependsOn, targetServiceName];
-              }
-
-              if (sourceDependsOn.constructor === Object) {
-                sourceDependsOn = { ...sourceDependsOn };
-                sourceDependsOn[targetServiceName] = {
-                  condition: "service_healthy"
-                };
-              }
-            }
-          } else {
-            sourceDependsOn = [targetServiceName];
-          }
-
-          updatedNodes[data[0]] = {
-            ...sourceServiceNode,
-            serviceConfig: {
-              ...sourceServiceNode.serviceConfig,
-              depends_on: sourceDependsOn
-            }
-          };
-          hasNodeUpdates = true;
-        }
-      }
-
-      if (sourceNode?.type === "VOLUME" && targetNode?.type === "SERVICE") {
-        const sourceVolumeName = getVolumeNodeName(
-          sourceNode as IVolumeNodeItem
-        );
-        const targetServiceNode = targetNode as IServiceNodeItem;
-        const currentVolumeNames = getServiceVolumeMountNames(
-          targetServiceNode.serviceConfig.volumes
-        );
-
-        if (
-          sourceVolumeName &&
-          !currentVolumeNames.includes(sourceVolumeName)
-        ) {
-          const currentVolumes = Array.isArray(
-            targetServiceNode.serviceConfig.volumes
-          )
-            ? [...targetServiceNode.serviceConfig.volumes]
-            : [];
-
-          currentVolumes.push(sourceVolumeName);
-
-          updatedNodes[data[1]] = {
-            ...targetServiceNode,
-            serviceConfig: {
-              ...targetServiceNode.serviceConfig,
-              volumes: currentVolumes
-            }
-          };
-          hasNodeUpdates = true;
-        }
-      }
-
-      if (hasNodeUpdates) {
-        setNodes(updatedNodes);
-        stateNodesRef.current = updatedNodes as any;
-      }
-    }
-
-    if (stateConnectionsRef.current && stateConnectionsRef.current.length > 0) {
-      const _connections: [[string, string]] = [
-        ...stateConnectionsRef.current
-      ] as any;
-      const existingIndex = getMatchingSetIndex(_connections, data);
-      if (existingIndex === -1) {
-        _connections.push(data);
-      }
-      setConnections(_connections);
-      stateConnectionsRef.current = _connections;
-    } else {
-      setConnections([data]);
-      stateConnectionsRef.current = [data] as any;
-    }
-  };
-
-  const onRemoveEndpoint = (node: IServiceNodeItem | IVolumeNodeItem) => {
-    setNodes({ ...omit(nodes, node.key) });
-    eventBus.dispatch("NODE_DELETED", { message: { node: node } });
-  };
+  const codeGraphData = useMemo(
+    () => ({ connections, networks, nodes }),
+    [connections, networks, nodes]
+  );
 
   if (!isFetching) {
     if (!error) {
@@ -808,7 +487,7 @@ export default function Project(props: IProjectProps) {
 
           {volumeToDelete ? (
             <ModalConfirmDelete
-              onHide={() => setServiceToDelete(null)}
+              onHide={() => setVolumeToDelete(null)}
               onConfirm={() => {
                 onRemoveEndpoint(volumeToDelete);
                 setVolumeToDelete(null);
@@ -820,8 +499,8 @@ export default function Project(props: IProjectProps) {
             <Header
               onSave={onSave}
               isLoading={
-                updateProjectMutation.isLoading ||
-                createProjectMutation.isLoading
+                updateProjectMutation.isPending ||
+                createProjectMutation.isPending
               }
               projectData={data}
               isAuthenticated={isAuthenticated}
@@ -871,7 +550,6 @@ export default function Project(props: IProjectProps) {
                     onNodeUpdate={(node: IServiceNodePosition) =>
                       onNodeUpdate(node)
                     }
-                    onGraphUpdate={(graphData: any) => onGraphUpdate(graphData)}
                     onCanvasUpdate={(canvasData: any) =>
                       onCanvasUpdate(canvasData)
                     }
@@ -898,7 +576,10 @@ export default function Project(props: IProjectProps) {
               </div>
 
               <div className="group code-column w-1/2 md:w-1/3 absolute top-0 right-0 sm:relative z-40 md:z-30">
-                <CodeBox onCodeUpdate={onCodeUpdate} />
+                <CodeBox
+                  graphData={codeGraphData}
+                  onCodeUpdate={onCodeUpdate}
+                />
               </div>
             </div>
           </div>

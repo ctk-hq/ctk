@@ -1,210 +1,214 @@
-import { FC, useState, useEffect } from "react";
-import { Dictionary, values } from "lodash";
-import { v4 as uuidv4 } from "uuid";
-import eventBus from "../../events/eventBus";
 import {
-  IGraphData,
+  FC,
+  PointerEvent as ReactPointerEvent,
+  WheelEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState
+} from "react";
+import { Dictionary, values } from "lodash";
+
+import {
   CallbackFunction,
   IServiceNodeItem,
+  IServiceNodePosition,
   IVolumeNodeItem
 } from "../../types";
-import { useJsPlumb } from "../useJsPlumb";
+import { CanvasConnection } from "./graphState";
 import ServiceNode from "./ServiceNode";
+import { useJsPlumbCanvas } from "./useJsPlumbCanvas";
 import VolumeNode from "./VolumeNode";
 
-const CANVAS_ID: string = "canvas-container-" + uuidv4();
+export interface CanvasPosition {
+  left: number;
+  scale: number;
+  top: number;
+}
 
 interface ICanvasProps {
   nodes: Dictionary<IServiceNodeItem | IVolumeNodeItem>;
-  connections: any;
-  canvasPosition: any;
-  onNodeUpdate: CallbackFunction;
-  onGraphUpdate: CallbackFunction;
-  onCanvasUpdate: CallbackFunction;
-  onConnectionAttached: CallbackFunction;
-  onConnectionDetached: CallbackFunction;
+  connections: CanvasConnection[];
+  canvasPosition: CanvasPosition;
+  onNodeUpdate: (position: IServiceNodePosition) => void;
+  onCanvasUpdate: (position: Partial<CanvasPosition>) => void;
+  onConnectionAttached: (connection: CanvasConnection) => void;
+  onConnectionDetached: (connection: CanvasConnection) => void;
   setServiceToEdit: CallbackFunction;
   setServiceToDelete: CallbackFunction;
   setVolumeToEdit: CallbackFunction;
   setVolumeToDelete: CallbackFunction;
 }
 
-export const Canvas: FC<ICanvasProps> = (props) => {
-  const {
+interface PanGesture {
+  originLeft: number;
+  originTop: number;
+  pointerId: number;
+  startX: number;
+  startY: number;
+}
+
+const MIN_SCALE = 0.4;
+const MAX_SCALE = 2;
+
+export const Canvas: FC<ICanvasProps> = ({
+  nodes,
+  connections,
+  canvasPosition,
+  onNodeUpdate,
+  onCanvasUpdate,
+  onConnectionAttached,
+  onConnectionDetached,
+  setServiceToEdit,
+  setServiceToDelete,
+  setVolumeToEdit,
+  setVolumeToDelete
+}) => {
+  const reactId = useId();
+  const canvasId = `canvas-${reactId.replace(/:/g, "")}`;
+  const panGestureRef = useRef<PanGesture | null>(null);
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const [viewport, setViewport] = useState<CanvasPosition>(canvasPosition);
+
+  const { setContainer, setZoom } = useJsPlumbCanvas({
     nodes,
     connections,
-    canvasPosition,
     onNodeUpdate,
-    onGraphUpdate,
-    onCanvasUpdate,
     onConnectionAttached,
     onConnectionDetached,
-    setServiceToEdit,
-    setServiceToDelete,
-    setVolumeToEdit,
-    setVolumeToDelete
-  } = props;
-  const [dragging, setDragging] = useState(false);
-  const [scale, setScale] = useState(1);
-  const [_scale, _setScale] = useState(1);
-  const [_left, _setLeft] = useState(0);
-  const [_top, _setTop] = useState(0);
-  const [_initX, _setInitX] = useState(0);
-  const [_initY, _setInitY] = useState(0);
-
-  const translateWidth =
-    (document.documentElement.clientWidth * (1 - _scale)) / 2;
-  const translateHeight =
-    ((document.documentElement.clientHeight - 64) * (1 - _scale)) / 2;
-
-  const [containerCallbackRef, setZoom, setStyle, removeEndpoint] = useJsPlumb(
-    nodes,
-    connections,
-    (graphData: IGraphData) => onGraphUpdate(graphData),
-    (positionData: any) => onNodeUpdate(positionData),
-    (connectionData: any) => onConnectionAttached(connectionData),
-    (connectionData: any) => onConnectionDetached(connectionData)
-  );
-
-  const onCanvasMousewheel = (e: any) => {
-    if (e.deltaY < 0) {
-      _setScale(_scale + _scale * 0.25);
-      setScale(_scale + _scale * 0.25);
-    }
-
-    if (e.deltaY > 0) {
-      _setScale(_scale - _scale * 0.25);
-      setScale(_scale - _scale * 0.25);
-    }
-  };
-
-  const onCanvasMouseMove = (e: any) => {
-    if (!dragging) {
-      return;
-    }
-
-    if (e.pageX && e.pageY) {
-      const styles = {
-        left: _left + e.pageX - _initX + "px",
-        top: _top + e.pageY - _initY + "px"
-      };
-      setStyle(styles);
-    }
-  };
-
-  const onCanvasMouseUpLeave = (e: any) => {
-    if (dragging) {
-      if (e.pageX && e.pageY) {
-        const left = _left + e.pageX - _initX;
-        const top = _top + e.pageY - _initY;
-
-        _setLeft(left);
-        _setTop(top);
-        setDragging(false);
-        onCanvasUpdate({
-          left: left,
-          top: top
-        });
-      }
-    }
-  };
-
-  const onCanvasMouseDown = (e: any) => {
-    if (e.pageX && e.pageY) {
-      _setInitX(e.pageX);
-      _setInitY(e.pageY);
-      setDragging(true);
-    }
-  };
+    onDragStateChange: setDraggingNodeId
+  });
 
   useEffect(() => {
-    setZoom(_scale);
-  }, [_scale]);
-
-  useEffect(() => {
-    onCanvasUpdate({
-      scale: scale
-    });
-  }, [scale]);
-
-  useEffect(() => {
-    const styles = {
-      left: _left + "px",
-      top: _top + "px"
-    };
-
-    setStyle(styles);
-  }, [_left, _top, setStyle]);
-
-  useEffect(() => {
-    _setTop(canvasPosition.top);
-    _setLeft(canvasPosition.left);
-    _setScale(canvasPosition.scale);
+    setViewport(canvasPosition);
   }, [canvasPosition]);
 
   useEffect(() => {
-    eventBus.on("NODE_DELETED", (data: any) => {
-      removeEndpoint(data.detail.message.node);
-    });
+    setZoom(viewport.scale);
+  }, [setZoom, viewport.scale]);
 
-    return () => {
-      eventBus.remove("NODE_DELETED", () => undefined);
+  const finishPanning = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      const gesture = panGestureRef.current;
+      if (!gesture || gesture.pointerId !== event.pointerId) return;
+
+      const left = gesture.originLeft + event.clientX - gesture.startX;
+      const top = gesture.originTop + event.clientY - gesture.startY;
+      panGestureRef.current = null;
+      setIsPanning(false);
+      setViewport((current) => ({ ...current, left, top }));
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      onCanvasUpdate({ left, top });
+    },
+    [onCanvasUpdate]
+  );
+
+  const startPanning = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+
+    const target = event.target as Element;
+    if (
+      target.closest(
+        "[data-canvas-node], .jtk-endpoint, .jtk-connector, .jtk-overlay, button, input, select, textarea"
+      )
+    ) {
+      return;
+    }
+
+    panGestureRef.current = {
+      originLeft: viewport.left,
+      originTop: viewport.top,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY
     };
-  }, []);
+    setIsPanning(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const movePanning = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const gesture = panGestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+
+    setViewport((current) => ({
+      ...current,
+      left: gesture.originLeft + event.clientX - gesture.startX,
+      top: gesture.originTop + event.clientY - gesture.startY
+    }));
+  };
+
+  const zoomCanvas = (event: WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const direction = event.deltaY < 0 ? 1 : -1;
+    const nextScale = Math.min(
+      MAX_SCALE,
+      Math.max(MIN_SCALE, viewport.scale * (direction > 0 ? 1.2 : 0.8))
+    );
+    if (nextScale === viewport.scale) return;
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const pointerX = event.clientX - bounds.left;
+    const pointerY = event.clientY - bounds.top;
+    const worldX = (pointerX - viewport.left) / viewport.scale;
+    const worldY = (pointerY - viewport.top) / viewport.scale;
+    const nextViewport = {
+      left: pointerX - worldX * nextScale,
+      top: pointerY - worldY * nextScale,
+      scale: nextScale
+    };
+
+    setViewport(nextViewport);
+    onCanvasUpdate(nextViewport);
+  };
 
   return (
-    <>
-      {nodes && (
-        <div
-          key={CANVAS_ID}
-          className="jsplumb-box"
-          onWheel={onCanvasMousewheel}
-          onMouseMove={onCanvasMouseMove}
-          onMouseDown={onCanvasMouseDown}
-          onMouseUp={onCanvasMouseUpLeave}
-          onMouseLeave={onCanvasMouseUpLeave}
-          onContextMenu={(event) => {
-            event.stopPropagation();
-            event.preventDefault();
-          }}
-        >
-          <div
-            id={CANVAS_ID}
-            ref={containerCallbackRef}
-            className="canvas"
-            style={{
-              transformOrigin: "0px 0px 0px",
-              transform: `translate(${translateWidth}px, ${translateHeight}px) scale(${_scale})`
-            }}
-          >
-            {values(nodes).map((x) => {
-              if (x.type === "SERVICE") {
-                x = x as IServiceNodeItem;
-                return (
-                  <ServiceNode
-                    key={x.key}
-                    node={x}
-                    setServiceToEdit={setServiceToEdit}
-                    setServiceToDelete={setServiceToDelete}
-                  />
-                );
-              }
+    <div
+      className="jsplumb-box"
+      data-panning={isPanning}
+      onWheel={zoomCanvas}
+      onPointerDown={startPanning}
+      onPointerMove={movePanning}
+      onPointerUp={finishPanning}
+      onPointerCancel={finishPanning}
+      onContextMenu={(event) => event.preventDefault()}
+    >
+      <div
+        id={canvasId}
+        ref={setContainer}
+        className="canvas"
+        style={{
+          transform: `translate3d(${viewport.left}px, ${viewport.top}px, 0) scale(${viewport.scale})`,
+          transformOrigin: "0 0"
+        }}
+      >
+        {values(nodes).map((node) => {
+          if (node.type === "SERVICE") {
+            return (
+              <ServiceNode
+                key={node.key}
+                node={node as IServiceNodeItem}
+                isDragging={draggingNodeId === node.key}
+                setServiceToEdit={setServiceToEdit}
+                setServiceToDelete={setServiceToDelete}
+              />
+            );
+          }
 
-              if (x.type === "VOLUME") {
-                x = x as IVolumeNodeItem;
-                return (
-                  <VolumeNode
-                    key={x.key}
-                    node={x}
-                    setVolumeToEdit={setVolumeToEdit}
-                    setVolumeToDelete={setVolumeToDelete}
-                  />
-                );
-              }
-            })}
-          </div>
-        </div>
-      )}
-    </>
+          return (
+            <VolumeNode
+              key={node.key}
+              node={node as IVolumeNodeItem}
+              isDragging={draggingNodeId === node.key}
+              setVolumeToEdit={setVolumeToEdit}
+              setVolumeToDelete={setVolumeToDelete}
+            />
+          );
+        })}
+      </div>
+    </div>
   );
 };

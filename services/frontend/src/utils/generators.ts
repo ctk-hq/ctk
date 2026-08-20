@@ -5,7 +5,6 @@ export const generatePayload = (payload: any): IGeneratePayload => {
   const networks = payload["networks"] || {};
   const base: IGeneratePayload = {
     data: {
-      version: payload["version"],
       networks: {},
       services: {},
       volumes: {}

@@ -17,8 +17,14 @@ const Projects = () => {
   const [offset, setOffset] = useState(0);
   const [importing, setImporting] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const { isLoading, isError, error, data, isFetching, isPreviousData } =
-    useProjects(limit, offset);
+  const {
+    isLoading,
+    isError,
+    error,
+    data,
+    isFetching,
+    isPlaceholderData: isPreviousData
+  } = useProjects(limit, offset);
 
   const onImportClick = () => {
     setShowImportModal(true);
