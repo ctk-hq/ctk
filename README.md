@@ -37,3 +37,7 @@ cd services/frontend
 npm ci
 npm run dev
 ```
+
+## License
+
+[MIT](LICENSE) © 2026 CTK contributors.
