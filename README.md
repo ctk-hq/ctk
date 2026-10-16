@@ -14,6 +14,8 @@
 Generate Docker Compose and Kubernetes manifests visually, or let an AI agent do
 the building.
 
+<img width="1706" height="946" alt="Screenshot 2026-10-17 at 1 58 11 AM" src="https://github.com/user-attachments/assets/08005de4-cd63-4530-adf6-e1195a86026d" />
+
 Describe your stack in plain language. An LLM with browser access can use CTK to
 create services, networks, and volumes, arrange the architecture, review the
 generated manifests, and iterate on improvements. You can inspect and edit the
