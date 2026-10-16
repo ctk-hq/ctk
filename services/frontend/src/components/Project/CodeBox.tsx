@@ -168,7 +168,6 @@ const CodeBox = ({ graphData, onCodeUpdate }: ICodeBoxProps) => {
 
         <SegmentedControl
           aria-label="Code language"
-          className="ml-auto"
           value={language}
           onValueChange={setLanguage}
           options={[

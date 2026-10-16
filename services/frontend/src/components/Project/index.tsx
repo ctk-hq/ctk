@@ -41,6 +41,7 @@ import CreateVolumeModal from "../modals/docker-compose/volume/CreateVolumeModal
 import EditVolumeModal from "../modals/docker-compose/volume/EditVolumeModal";
 import { useTitle } from "../../hooks";
 import CodeBox from "./CodeBox";
+import CodePanel from "./CodePanel";
 import Header from "./Header";
 import { useMutation } from "@tanstack/react-query";
 import { composeToCanvasGraph } from "../../utils/compose";
@@ -501,81 +502,83 @@ export default function Project(props: IProjectProps) {
               isAuthenticated={isAuthenticated}
             />
 
-            <div className="shrink-0 border-b bg-background px-3 py-2">
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  onClick={() => setShowModalCreateService(true)}
-                >
-                  <Box className="w-4" />
-                  <span>Add service</span>
-                </Button>
+            <div className="relative isolate flex min-h-0 flex-1 flex-col">
+              <div className="shrink-0 border-b bg-background px-3 py-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => setShowModalCreateService(true)}
+                  >
+                    <Box className="w-4" />
+                    <span>Add service</span>
+                  </Button>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  onClick={() => setShowVolumesModal(true)}
-                >
-                  <FolderPlus className="w-4" />
-                  <span>Add volume</span>
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => setShowVolumesModal(true)}
+                  >
+                    <FolderPlus className="w-4" />
+                    <span>Add volume</span>
+                  </Button>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  onClick={() => setShowNetworksModal(true)}
-                >
-                  <Globe className="w-4" />
-                  <span>Networks</span>
-                </Button>
-              </div>
-            </div>
-
-            <div className="relative flex min-h-0 flex-1">
-              <div className="z-40 h-full w-full overflow-hidden md:w-2/3">
-                <div className="relative h-full">
-                  <Canvas
-                    nodes={nodes}
-                    connections={connections}
-                    canvasPosition={canvasPosition}
-                    onNodeUpdate={(node: IServiceNodePosition) =>
-                      onNodeUpdate(node)
-                    }
-                    onCanvasUpdate={(canvasData: any) =>
-                      onCanvasUpdate(canvasData)
-                    }
-                    onConnectionAttached={(connectionData: any) =>
-                      onConnectionAttached(connectionData)
-                    }
-                    onConnectionDetached={(connectionData: any) =>
-                      onConnectionDetached(connectionData)
-                    }
-                    setServiceToEdit={(node: IServiceNodeItem) =>
-                      setServiceToEdit(node)
-                    }
-                    setServiceToDelete={(node: IServiceNodeItem) =>
-                      setServiceToDelete(node)
-                    }
-                    setVolumeToEdit={(node: IVolumeNodeItem) =>
-                      setVolumeToEdit(node)
-                    }
-                    setVolumeToDelete={(node: IVolumeNodeItem) =>
-                      setVolumeToDelete(node)
-                    }
-                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => setShowNetworksModal(true)}
+                  >
+                    <Globe className="w-4" />
+                    <span>Networks</span>
+                  </Button>
                 </div>
               </div>
 
-              <div className="absolute right-0 top-0 z-40 h-full w-1/2 min-w-0 border-l md:relative md:z-30 md:w-1/3">
+              <div className="min-h-0 flex-1">
+                <div className="h-full w-full overflow-hidden">
+                  <div className="relative h-full">
+                    <Canvas
+                      nodes={nodes}
+                      connections={connections}
+                      canvasPosition={canvasPosition}
+                      onNodeUpdate={(node: IServiceNodePosition) =>
+                        onNodeUpdate(node)
+                      }
+                      onCanvasUpdate={(canvasData: any) =>
+                        onCanvasUpdate(canvasData)
+                      }
+                      onConnectionAttached={(connectionData: any) =>
+                        onConnectionAttached(connectionData)
+                      }
+                      onConnectionDetached={(connectionData: any) =>
+                        onConnectionDetached(connectionData)
+                      }
+                      setServiceToEdit={(node: IServiceNodeItem) =>
+                        setServiceToEdit(node)
+                      }
+                      setServiceToDelete={(node: IServiceNodeItem) =>
+                        setServiceToDelete(node)
+                      }
+                      setVolumeToEdit={(node: IVolumeNodeItem) =>
+                        setVolumeToEdit(node)
+                      }
+                      setVolumeToDelete={(node: IVolumeNodeItem) =>
+                        setVolumeToDelete(node)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <CodePanel>
                 <CodeBox
                   graphData={codeGraphData}
                   onCodeUpdate={onCodeUpdate}
                 />
-              </div>
+              </CodePanel>
             </div>
           </div>
         </>
