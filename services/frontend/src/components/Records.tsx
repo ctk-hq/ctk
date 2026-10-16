@@ -5,7 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import Record, { IFieldType } from "./Record";
 import { useFormikContext } from "formik";
 import lodash from "lodash";
@@ -81,16 +81,13 @@ const Records: FunctionComponent<IRecordsProps> = (
     >
       {collapsible ? (
         <CollapsibleTrigger asChild>
-          <Button
-            variant="ghost"
-            className="h-auto w-full justify-between px-2"
-          >
-            <span>{title || name}</span>
+          <Button variant="ghost" className="h-auto w-full justify-start px-2">
             {open ? (
-              <ChevronUp className="size-4" />
+              <ChevronDown className="size-4" aria-hidden="true" />
             ) : (
-              <ChevronDown className="size-4" />
+              <ChevronRight className="size-4" aria-hidden="true" />
             )}
+            <span>{title || name}</span>
           </Button>
         </CollapsibleTrigger>
       ) : (

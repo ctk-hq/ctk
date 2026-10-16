@@ -123,6 +123,7 @@
   cursor: grabbing;
 }
 .node-item {
+  @apply border-2;
   position: absolute;
   width: 150px;
   min-height: 60px;
@@ -140,7 +141,9 @@
   cursor: pointer;
 }
 .node-item.jtk-drag {
-  outline: 2px solid var(--ring);
+  @apply border-emerald-600 outline-emerald-600 dark:border-emerald-400 dark:outline-emerald-400;
+  outline-style: solid;
+  outline-width: 2px;
   outline-offset: 0;
 }
 .jtk-drag-select * {

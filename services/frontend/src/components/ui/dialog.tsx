@@ -37,23 +37,29 @@ export function DialogContent({
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute right-4 top-4 flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none">
-          <X className="size-4" />
-          <span className="sr-only">Close</span>
-        </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );
 }
 export function DialogHeader({
   className,
+  children,
   ...props
 }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("shrink-0 space-y-1.5 border-b px-6 py-4 pr-12", className)}
+      className={cn(
+        "flex shrink-0 items-center gap-4 border-b px-6 py-3",
+        className
+      )}
       {...props}
-    />
+    >
+      <div className="min-w-0 flex-1 space-y-1.5">{children}</div>
+      <DialogPrimitive.Close className="-mr-2 flex size-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none">
+        <X className="size-4" aria-hidden="true" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
+    </div>
   );
 }
 export function DialogFooter({
