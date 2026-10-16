@@ -1,10 +1,11 @@
 import { Fragment, FunctionComponent, ReactElement, useCallback } from "react";
-import { IconButton, styled } from "@mui/material";
+import { Button } from "@/components/ui/button";
 import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  PlusIcon
-} from "@heroicons/react/24/outline";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import Record, { IFieldType } from "./Record";
 import { useFormikContext } from "formik";
 import lodash from "lodash";
@@ -23,70 +24,6 @@ export interface IRecordsProps {
   renderRemove?: (element: ReactElement) => ReactElement;
   renderBorder?: () => ReactElement;
 }
-
-interface IGroupProps {
-  empty: boolean;
-}
-
-const Group = styled("div", {
-  shouldForwardProp: (propName) => propName !== "empty"
-})<IGroupProps>`
-  display: flex;
-  flex-direction: column;
-  align-items: ${({ empty }) => (empty ? "center" : "flex-end")};
-  width: 100%;
-  @media (max-width: 640px) {
-    row-gap: 0;
-  }
-`;
-
-const GroupTitle = styled("label")`
-  display: block;
-  font-size: 0.75rem;
-  line-height: 1rem;
-  font-weight: 700;
-  color: #374151;
-  padding: 0;
-`;
-
-const RecordList = styled("div")`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  row-gap: ${({ theme }) => theme.spacing(1)};
-  width: 100%;
-`;
-
-const AddButton = styled(IconButton)`
-  border-radius: ${({ theme }) => theme.spacing(2)};
-  margin-top: ${({ theme }) => theme.spacing(1)};
-`;
-
-const Description = styled("p")`
-  margin-top: ${({ theme }) => theme.spacing(1)};
-  text-align: center;
-  color: #7a7a7a;
-  font-size: 14px;
-  width: 100%;
-`;
-
-const Top = styled("div")`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-
-  &:hover {
-    cursor: pointer;
-    user-select: none;
-  }
-`;
-
-const ExpandButton = styled(IconButton)`
-  border-radius: ${({ theme }) => theme.spacing(2)};
-`;
 
 const Records: FunctionComponent<IRecordsProps> = (
   props: IRecordsProps
@@ -114,7 +51,7 @@ const Records: FunctionComponent<IRecordsProps> = (
 
   const handleNew = useCallback(() => {
     formik.setFieldValue(`${name}[${items.length}]`, newValue);
-  }, [formik]);
+  }, [formik, items.length, name, newValue]);
 
   const handleRemove = useCallback(
     (index: number) => {
@@ -123,7 +60,7 @@ const Records: FunctionComponent<IRecordsProps> = (
       );
       formik.setFieldValue(name, newOptions);
     },
-    [formik]
+    [formik, items, name]
   );
 
   if (!items) {
@@ -137,44 +74,60 @@ const Records: FunctionComponent<IRecordsProps> = (
   const empty = items && items.length === 0;
 
   return (
-    <Group empty={empty}>
-      <Top onClick={toggle}>
-        {title && <GroupTitle>{title}</GroupTitle>}
-        {collapsible && (
-          <ExpandButton size="small">
-            {open && <ChevronUpIcon className="h-5 w-5" />}
-            {!open && <ChevronDownIcon className="h-5 w-5" />}
-          </ExpandButton>
+    <Collapsible
+      open={!collapsible || open}
+      onOpenChange={toggle}
+      className="w-full min-w-0 space-y-3"
+    >
+      {collapsible ? (
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
+            className="h-auto w-full justify-between px-2"
+          >
+            <span>{title || name}</span>
+            {open ? (
+              <ChevronUp className="size-4" />
+            ) : (
+              <ChevronDown className="size-4" />
+            )}
+          </Button>
+        </CollapsibleTrigger>
+      ) : (
+        title && <h3 className="text-sm font-medium">{title}</h3>
+      )}
+      <CollapsibleContent className="space-y-3">
+        {!empty ? (
+          <div className="flex w-full flex-col gap-4">
+            {items.map((_: unknown, index: number) => (
+              <Fragment key={index}>
+                <Record
+                  index={index}
+                  label={title || name}
+                  fields={fields(index)}
+                  onRemove={handleRemove}
+                  renderLayout={renderLayout}
+                  renderField={renderField}
+                  renderRemove={renderRemove}
+                />
+                {renderBorder && renderBorder()}
+              </Fragment>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No items available</p>
         )}
-      </Top>
-      {(!collapsible || open) && !empty && (
-        <RecordList>
-          {items.map((_: unknown, index: number) => (
-            <Fragment key={index}>
-              <Record
-                index={index}
-                fields={fields(index)}
-                onRemove={handleRemove}
-                renderLayout={renderLayout}
-                renderField={renderField}
-                renderRemove={renderRemove}
-              />
-              {renderBorder && renderBorder()}
-            </Fragment>
-          ))}
-        </RecordList>
-      )}
-
-      {(!collapsible || open) && empty && (
-        <Description>No items available</Description>
-      )}
-
-      {(!collapsible || open) && (
-        <AddButton size="small" onClick={handleNew}>
-          <PlusIcon className="h-4 w-4" />
-        </AddButton>
-      )}
-    </Group>
+        <Button
+          variant="outline"
+          size="sm"
+          aria-label={`Add ${title || name} item`}
+          onClick={handleNew}
+        >
+          <Plus className="size-4" />
+          Add item
+        </Button>
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
 

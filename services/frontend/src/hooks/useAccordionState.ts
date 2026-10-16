@@ -44,7 +44,7 @@ export const useAccordionState = (
       );
       return result;
     });
-  }, []);
+  }, [id]);
 
   return {
     toggle: handleToggle,

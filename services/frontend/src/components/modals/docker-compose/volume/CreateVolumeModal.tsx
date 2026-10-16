@@ -24,10 +24,11 @@ const CreateVolumeModal = (props: ICreateVolumeModalProps) => {
 
   const handleCreate = useCallback(
     (finalValues: IVolumeNodeItem, values: IEditVolumeForm) => {
+      onHide();
       onAddEndpoint(finalValues);
       toaster(`Created "${values.entryName}" volume successfully`, "success");
     },
-    [onAddEndpoint]
+    [onAddEndpoint, onHide]
   );
 
   return (

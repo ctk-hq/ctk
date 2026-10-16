@@ -37,6 +37,35 @@ export default tseslint.config(
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }
       ],
       "no-console": "warn",
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "@mui/*",
+                "@emotion/*",
+                "styled-components",
+                "styled-components/*"
+              ],
+              message:
+                "Use shadcn/ui components and Tailwind classes. CSS-in-JS styling is not part of this frontend."
+            }
+          ]
+        }
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.name='styled']",
+          message: "Use Tailwind className values instead of styled() wrappers."
+        },
+        {
+          selector: "TaggedTemplateExpression[tag.object.name='styled']",
+          message:
+            "Use Tailwind className values instead of styled component templates."
+        }
+      ],
       "react-hooks/refs": "off",
       "react-hooks/set-state-in-effect": "off",
       "react-refresh/only-export-components": [

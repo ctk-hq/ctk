@@ -19,7 +19,15 @@ export default function ServiceNode(props: INodeProps) {
     <div
       key={node.key}
       data-canvas-node
-      className={"node-item cursor-pointer shadow flex flex-col group"}
+      className="node-item group flex cursor-pointer flex-col rounded-lg border bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      tabIndex={0}
+      role="group"
+      aria-label={`Service ${node.canvasConfig.node_name}`}
+      onFocus={() => setNodeHovering(node.key)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setNodeHovering(null);
+      }}
       id={node.key}
       style={{ top: node.position.top, left: node.position.left }}
       onMouseEnter={() => setNodeHovering(node.key)}
@@ -48,7 +56,7 @@ export default function ServiceNode(props: INodeProps) {
           )}
 
           {node.serviceConfig.container_name && (
-            <div className="text-xs text-gray-500 overflow-x-hidden">
+            <div className="text-xs text-muted-foreground overflow-x-hidden">
               {truncateStr(node.serviceConfig.container_name, 20)}
             </div>
           )}

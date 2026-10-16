@@ -1,35 +1,23 @@
-import { useNavigate } from "react-router-dom";
-import { UserCircleIcon } from "@heroicons/react/24/outline";
-
-interface IUserMenuProps {
+import { Link } from "react-router-dom";
+import { UserCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+export default function UserMenu({
+  username,
+  current
+}: {
   username: string;
   current: boolean;
-}
-
-export default function UserMenu(props: IUserMenuProps) {
-  const { username, current } = props;
-  const navigate = useNavigate();
-
+}) {
+  const label = username ? `Profile: ${username}` : "Log in";
   return (
-    <div
-      onClick={() => {
-        navigate("/profile");
-      }}
-      className={`
-        ${
-          current ? "bg-blue-800 text-white" : "text-blue-100 hover:bg-blue-600"
-        },
-        flex p-4 md:w-full hover:cursor-pointer hover:bg-blue-600
-      `}
-    >
-      <div className="flex items-center mx-auto">
-        <UserCircleIcon className="inline-block h-8 w-8 rounded-full text-white" />
-        <div className="ml-3 sm:ml-0">
-          <p className="text-sm font-medium text-white sm:hidden">
-            {username ? <>{username}</> : <>Log in</>}
-          </p>
-        </div>
-      </div>
-    </div>
+    <Button asChild variant={current ? "secondary" : "ghost"} size="icon">
+      <Link
+        to={username ? "/profile" : "/login"}
+        aria-label={label}
+        title={label}
+      >
+        <UserCircle />
+      </Link>
+    </Button>
   );
 }

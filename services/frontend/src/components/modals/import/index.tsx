@@ -1,126 +1,84 @@
 import { useCallback, useMemo } from "react";
 import { Formik } from "formik";
-import { styled } from "@mui/material";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { CallbackFunction } from "../../../types";
-import { IImportForm } from "./form-utils";
+import { CallbackFunction } from "@/types";
 import {
   getFinalValues,
   getInitialValues,
-  validationSchema
+  validationSchema,
+  IImportForm
 } from "./form-utils";
-import TextField from "../../global/FormElements/TextField";
-import { toaster } from "../../../utils";
-import { reportErrorsAndSubmit } from "../../../utils/forms";
-import { ScrollView } from "../../ScrollView";
-
+import TextField from "@/components/global/FormElements/TextField";
+import { toaster } from "@/utils";
+import { reportErrorsAndSubmit } from "@/utils/forms";
+import Modal from "@/components/Modal";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { DialogFooter } from "@/components/ui/dialog";
 interface IModalImportProps {
   onHide: CallbackFunction;
   onImport: CallbackFunction;
   importing: boolean;
 }
-
-const FormContainer = styled("div")`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-`;
-
-const FormRowBlock = styled("div")`
-  margin: 6px 0 0 0;
-  display: flex;
-  flex-direction: row;
-  gap: ${({ theme }) => theme.spacing(1)};
-`;
-
-const ModalImport = (props: IModalImportProps) => {
-  const { onHide, onImport, importing } = props;
-
+export default function ModalImport({
+  onHide,
+  onImport,
+  importing
+}: IModalImportProps) {
   const handleCreate = useCallback(
     (values: IImportForm) => {
-      const result = getFinalValues(values);
-      onImport(result);
-      toaster(`Importing...`, "success");
+      onImport(getFinalValues(values));
+      toaster("Importing…", "success");
     },
-    [onImport, onHide]
+    [onImport]
   );
-
   const initialValues = useMemo(() => getInitialValues(), []);
-
   return (
-    <div className="fixed z-50 inset-0 overflow-y-auto">
-      <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none">
-        <div
-          onClick={onHide}
-          className="opacity-25 fixed inset-0 z-40 bg-black"
-        ></div>
-        <div className="relative w-auto my-6 mx-auto max-w-5xl z-50">
-          <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-solid border-blueGray-200 rounded-t">
-              <h3 className="text-sm font-semibold">Import</h3>
-              <button
-                className="p-1 ml-auto text-black float-right outline-none focus:outline-none"
-                onClick={onHide}
-              >
-                <span className="block outline-none focus:outline-none">
-                  <XMarkIcon className="w-4" />
-                </span>
-              </button>
-            </div>
-
-            <Formik
-              initialValues={initialValues}
-              enableReinitialize={true}
-              onSubmit={handleCreate}
-              validationSchema={validationSchema}
-            >
-              {(formik) => (
-                <FormContainer>
-                  <div>
-                    <ScrollView
-                      className="relative px-4 py-3 flex-auto"
-                      height={""}
-                    >
-                      <TextField label="YAML URL" name="url" required={true} />
-
-                      <FormRowBlock>
-                        <label
-                          htmlFor="visibility"
-                          className="block text-xs font-bold text-gray-700"
-                        >
-                          Make project public
-                        </label>
-
-                        <input
-                          id="visibility"
-                          name="visibility"
-                          className="checkbox-util"
-                          type="checkbox"
-                          onChange={formik.handleChange}
-                        />
-                      </FormRowBlock>
-
-                      {importing && <>importing</>}
-                    </ScrollView>
-                  </div>
-
-                  <div className="flex items-center justify-end px-4 py-3 border-t border-solid border-blueGray-200 rounded-b">
-                    <button
-                      className="btn-util"
-                      type="button"
-                      onClick={reportErrorsAndSubmit(formik)}
-                    >
-                      Import
-                    </button>
-                  </div>
-                </FormContainer>
+    <Modal title="Import" onHide={onHide}>
+      <Formik
+        initialValues={initialValues}
+        enableReinitialize
+        onSubmit={handleCreate}
+        validationSchema={validationSchema}
+      >
+        {(formik) => (
+          <form
+            className="flex min-h-0 flex-col"
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              reportErrorsAndSubmit(formik)();
+            }}
+          >
+            <div className="space-y-5 overflow-y-auto p-6">
+              <TextField label="YAML URL" name="url" required />
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="visibility"
+                  checked={Boolean(formik.values.visibility)}
+                  onCheckedChange={(value) =>
+                    formik.setFieldValue("visibility", value === true)
+                  }
+                />
+                <Label htmlFor="visibility">Make project public</Label>
+              </div>
+              {importing && (
+                <p role="status" className="text-sm text-muted-foreground">
+                  Importing…
+                </p>
               )}
-            </Formik>
-          </div>
-        </div>
-      </div>
-    </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => onHide()}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={importing}>
+                Import
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </Formik>
+    </Modal>
   );
-};
-
-export default ModalImport;
+}

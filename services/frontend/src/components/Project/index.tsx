@@ -1,11 +1,8 @@
+import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Dictionary } from "lodash";
-import {
-  GlobeAltIcon,
-  CubeIcon,
-  FolderPlusIcon
-} from "@heroicons/react/24/outline";
+import { Globe, Box, FolderPlus } from "lucide-react";
 import {
   IServiceNodeItem,
   IVolumeNodeItem,
@@ -19,7 +16,6 @@ import {
   useProject,
   useUpdateProject
 } from "../../hooks/useProject";
-import useWindowDimensions from "../../hooks/useWindowDimensions";
 import { nodeLibraries } from "../../utils/data/libraries";
 import {
   getClientNodeItem,
@@ -56,7 +52,6 @@ interface IProjectProps {
 export default function Project(props: IProjectProps) {
   const { isAuthenticated } = props;
   const { uuid } = useParams<{ uuid: string }>();
-  const { height } = useWindowDimensions();
   const { data, error, isFetching } = useProject(uuid);
   const stateNodesRef = useRef<
     Dictionary<IServiceNodeItem | IVolumeNodeItem> | undefined
@@ -495,7 +490,7 @@ export default function Project(props: IProjectProps) {
             />
           ) : null}
 
-          <div className="md:pl-16 flex flex-col flex-1">
+          <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-col md:h-dvh md:pl-16">
             <Header
               onSave={onSave}
               isLoading={
@@ -506,43 +501,43 @@ export default function Project(props: IProjectProps) {
               isAuthenticated={isAuthenticated}
             />
 
-            <div className="flex flex-grow relative">
-              <div
-                className="w-full overflow-hidden md:w-2/3 z-40"
-                style={{ height: height - 64 }}
-              >
+            <div className="shrink-0 border-b bg-background px-3 py-2">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={() => setShowModalCreateService(true)}
+                >
+                  <Box className="w-4" />
+                  <span>Add service</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={() => setShowVolumesModal(true)}
+                >
+                  <FolderPlus className="w-4" />
+                  <span>Add volume</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={() => setShowNetworksModal(true)}
+                >
+                  <Globe className="w-4" />
+                  <span>Networks</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="relative flex min-h-0 flex-1">
+              <div className="z-40 h-full w-full overflow-hidden md:w-2/3">
                 <div className="relative h-full">
-                  <div className="absolute top-0 right-0 z-40">
-                    <div className="flex space-x-2 p-2">
-                      <button
-                        className="flex space-x-1 btn-util"
-                        type="button"
-                        onClick={() => setShowModalCreateService(true)}
-                      >
-                        <CubeIcon className="w-4" />
-                        <span>Add service</span>
-                      </button>
-
-                      <button
-                        className="flex space-x-1 btn-util"
-                        type="button"
-                        onClick={() => setShowVolumesModal(true)}
-                      >
-                        <FolderPlusIcon className="w-4" />
-                        <span>Add volume</span>
-                      </button>
-
-                      <button
-                        className="flex space-x-1 btn-util"
-                        type="button"
-                        onClick={() => setShowNetworksModal(true)}
-                      >
-                        <GlobeAltIcon className="w-4" />
-                        <span>Networks</span>
-                      </button>
-                    </div>
-                  </div>
-
                   <Canvas
                     nodes={nodes}
                     connections={connections}
@@ -575,7 +570,7 @@ export default function Project(props: IProjectProps) {
                 </div>
               </div>
 
-              <div className="group code-column w-1/2 md:w-1/3 absolute top-0 right-0 sm:relative z-40 md:z-30">
+              <div className="absolute right-0 top-0 z-40 h-full w-1/2 min-w-0 border-l md:relative md:z-30 md:w-1/3">
                 <CodeBox
                   graphData={codeGraphData}
                   onCodeUpdate={onCodeUpdate}
@@ -589,20 +584,11 @@ export default function Project(props: IProjectProps) {
 
     if (error) {
       return (
-        <div
-          className="text-center"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "calc(60vh - 120px)"
-          }}
-        >
-          <h3 className="text-2xl font-medium text-gray-900">
+        <div className="flex min-h-[calc(60vh-120px)] flex-col items-center justify-center text-center">
+          <h3 className="text-2xl font-medium text-foreground">
             {(error as any)?.response.status === 404 ? <>404</> : <>Oops...</>}
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Either this project does not exist, it is private or the link is
             wrong.
           </p>
@@ -613,7 +599,7 @@ export default function Project(props: IProjectProps) {
 
   return (
     <div className="flex items-center justify-center items-stretch min-h-screen align-middle">
-      <Spinner className="w-4 h-4 m-auto dark:text-blue-400 text-blue-600"></Spinner>
+      <Spinner className="w-4 h-4 m-auto dark:text-muted-foreground text-foreground"></Spinner>
     </div>
   );
 }

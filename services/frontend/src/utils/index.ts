@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import {
   Dictionary,
   flattenDeep,
@@ -152,21 +152,8 @@ export const getNodeKeyFromConnectionId = (uuid: string) => {
 };
 
 export const toaster = (message: string | ReactElement, type: string) => {
-  const toastConfig = {
-    duration: 3000,
-    position: "bottom-right",
-    style: {},
-    className:
-      "text-sm rounded-md text-gray-600 bg-white dark:text-white dark:bg-gray-600"
-  };
-
-  if (type === "error") {
-    toast.error(message, toastConfig as any);
-  }
-
-  if (type === "success") {
-    toast.success(message, toastConfig as any);
-  }
+  if (type === "error") toast.error(message, { duration: 5000 });
+  else if (type === "success") toast.success(message, { duration: 3000 });
 };
 
 export const truncateStr = (str: string, length: number) => {

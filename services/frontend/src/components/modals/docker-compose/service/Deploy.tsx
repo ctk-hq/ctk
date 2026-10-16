@@ -1,33 +1,13 @@
-import { styled } from "@mui/material";
 import { useParams } from "react-router-dom";
 import TextField from "../../../global/FormElements/TextField";
 import Toggle from "../../../global/FormElements/Toggle";
 import Records from "../../../Records";
 import Accordion from "./Accordion";
 
-const Root = styled("div")`
-  display: flex;
-  flex-direction: column;
-  row-gap: ${({ theme }) => theme.spacing(1)};
-  @media (max-width: 640px) {
-    row-gap: 0;
-  }
-`;
-
-const Group = styled("div")`
-  display: flex;
-  flex-direction: row;
-  @media (max-width: 640px) {
-    flex-direction: column;
-  }
-  column-gap: ${({ theme }) => theme.spacing(1)};
-  width: 100%;
-`;
-
 const Deploy = () => {
   const { uuid } = useParams<{ uuid: string }>();
   return (
-    <Root>
+    <div className="flex min-w-0 flex-col gap-4">
       <Toggle
         name="deploy.mode"
         label="Mode"
@@ -107,24 +87,24 @@ const Deploy = () => {
       />
 
       <Accordion id={`${uuid}.deploy.resources.limits`} title="Resource limits">
-        <Group>
+        <div className="flex w-full min-w-0 flex-col gap-4 sm:flex-row">
           <TextField label="CPUs" name="deploy.resources.limits.cpus" />
           <TextField label="Memory" name="deploy.resources.limits.memory" />
           <TextField label="PIDs" name="deploy.resources.limits.pids" />
-        </Group>
+        </div>
       </Accordion>
 
       <Accordion
         id={`${uuid}.deploy.resources.reservations`}
         title="Resource reservations"
       >
-        <Group>
+        <div className="flex w-full min-w-0 flex-col gap-4 sm:flex-row">
           <TextField label="CPUs" name="deploy.resources.reservations.cpus" />
           <TextField
             label="Memory"
             name="deploy.resources.reservations.memory"
           />
-        </Group>
+        </div>
       </Accordion>
 
       <Accordion id={`${uuid}.deploy.restartPolicy`} title="Restart policy">
@@ -146,14 +126,14 @@ const Deploy = () => {
             }
           ]}
         />
-        <Group>
+        <div className="flex w-full min-w-0 flex-col gap-4 sm:flex-row">
           <TextField label="Delay" name="deploy.restartPolicy.delay" />
           <TextField
             label="Max attempts"
             name="deploy.restartPolicy.maxAttempts"
           />
           <TextField label="Window" name="deploy.restartPolicy.window" />
-        </Group>
+        </div>
       </Accordion>
 
       <Accordion id={`${uuid}.deploy.rollbackConfig`} title="Rollback config">
@@ -263,7 +243,7 @@ const Deploy = () => {
         ]}
         newValue={{ key: "", value: "" }}
       />
-    </Root>
+    </div>
   );
 };
 

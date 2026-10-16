@@ -43,24 +43,15 @@ const GitHub = (props: IGitHubProps) => {
     } else {
       navigate(`/login`);
     }
-  }, [code]);
+  }, [code, dispatch, navigate]);
 
   return (
-    <div
-      className="text-center"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "calc(60vh - 120px)"
-      }}
-    >
+    <div className="flex min-h-screen flex-col items-center justify-center text-center">
       <div className="flex">
         {loading && (
           <div className="flex flex-row items-center space-x-2">
-            <Spinner className="w-4 h-4 text-blue-600" />
-            <span className="text-base text-gray-800">logging in...</span>
+            <Spinner className="w-4 h-4 text-foreground" />
+            <span className="text-base text-foreground">logging in...</span>
           </div>
         )}
       </div>

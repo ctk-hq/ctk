@@ -1,19 +1,9 @@
-import { styled } from "@mui/material";
 import TextField from "../../../global/FormElements/TextField";
 import Records from "../../../Records";
 
-const Root = styled("div")`
-  display: flex;
-  flex-direction: column;
-  row-gap: ${({ theme }) => theme.spacing(1)};
-  @media (max-width: 640px) {
-    row-gap: 0;
-  }
-`;
-
 const Build = () => {
   return (
-    <Root>
+    <div className="flex min-w-0 flex-col gap-4">
       <TextField label="Context" name="build.context" required={true} />
 
       <TextField label="Dockerfile" name="build.dockerfile" />
@@ -137,7 +127,7 @@ const Build = () => {
           ipAddress: ""
         }}
       />
-    </Root>
+    </div>
   );
 };
 

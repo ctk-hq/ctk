@@ -1,30 +1,27 @@
 import { Link } from "react-router-dom";
-import { ArrowRightIcon } from "@heroicons/react/24/outline";
-
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 export default function Intro() {
   return (
-    <main className="min-h-[calc(var(--vh,1vh)*100)] md:pl-16 bg-gradient-to-br from-slate-50 via-cyan-50 to-white">
-      <section className="mx-auto flex min-h-[calc(var(--vh,1vh)*100)] w-full max-w-6xl flex-col justify-center gap-10 px-6 py-10 lg:flex-row lg:items-center lg:gap-14">
+    <main className="h-[calc(100dvh-4rem)] overflow-y-auto bg-background md:h-dvh md:pl-16">
+      <section className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-10 px-6 py-10 lg:flex-row lg:items-center lg:gap-14">
         <div className="w-full lg:w-1/2">
-          <p className="mb-2 inline-flex items-center rounded-full border border-cyan-200 bg-cyan-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-800">
-            Container ToolKit
-          </p>
-          <h1 className="text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             Welcome!
           </h1>
-          <p className="mt-4 text-base leading-7 text-slate-700 sm:text-lg">
+          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Build Docker Compose stacks visually, edit the Compose YAML in sync
             with the graph, and export ready-to-use Compose or Kubernetes
             manifests directly from your browser.
           </p>
-          <p className="mt-3 text-sm font-medium text-emerald-700">
+          <p className="mt-3 text-sm text-muted-foreground">
             No backend is required to generate, copy, or download manifests.
           </p>
-          <p className="mt-3 text-slate-700">
+          <p className="mt-3 text-sm text-muted-foreground">
             Want to contribute? Request a feature? Or report a bug? Check out
             our{" "}
             <a
-              className="font-semibold text-cyan-700 hover:text-cyan-800"
+              className="font-medium text-foreground underline underline-offset-4"
               href="https://github.com/ctk-hq/ctk"
               rel="noreferrer"
               target="_blank"
@@ -33,23 +30,22 @@ export default function Intro() {
             </a>
             .
           </p>
-          <Link
-            to="/projects/new"
-            className="mt-8 inline-flex items-center rounded-md bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700"
-          >
-            Start a project <ArrowRightIcon className="ml-2 h-4 w-4" />
-          </Link>
-          <p className="mt-5 text-sm text-slate-600">
-            Want to keep projects organized?
+          <Button asChild className="mt-8" size="lg">
+            <Link to="/projects/new">
+              Start a project <ArrowRight />
+            </Link>
+          </Button>
+          <p className="mt-5 text-sm text-muted-foreground">
+            Want to keep projects organized?{" "}
             <Link
-              className="ml-1 font-semibold text-cyan-700 hover:text-cyan-800"
+              className="font-medium text-foreground underline underline-offset-4"
               to="/login"
             >
               Log in
-            </Link>
-            <span> or </span>
+            </Link>{" "}
+            or{" "}
             <Link
-              className="font-semibold text-cyan-700 hover:text-cyan-800"
+              className="font-medium text-foreground underline underline-offset-4"
               to="/signup"
             >
               register
@@ -57,10 +53,6 @@ export default function Intro() {
             .
           </p>
         </div>
-
-        {/* 
-        <div className="w-full lg:w-1/2"></div>
-        */}
       </section>
     </main>
   );

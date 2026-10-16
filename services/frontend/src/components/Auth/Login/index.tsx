@@ -1,3 +1,6 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useFormik } from "formik";
 import { Link, useNavigate } from "react-router-dom";
@@ -64,116 +67,51 @@ const Login = (props: IProfileProps) => {
   });
 
   return (
-    <>
-      <div className="flex min-h-[calc(var(--vh,1vh)*100)] flex-col justify-center px-4 py-8 md:pl-16">
-        <main className="w-full max-w-md py-6 mx-auto">
-          <h2 className="mb-4 px-4 sm:px-6 md:flex-row md:px-8 text-xl font-bold dark:text-white text-gray-900">
-            Sign in
-          </h2>
-          <form autoComplete="off">
-            <div className="px-4 sm:px-6 md:flex-row md:px-8">
-              <input
-                className={`
-                  bg-gray-100
-                  dark:bg-gray-900
-                  appearance-none
-                  w-full
-                  block
-                  text-gray-700
-                  dark:text-white
-                  border
-                  border-gray-100
-                  dark:border-gray-900
-                  rounded
-                  py-2
-                  px-3
-                  leading-tight
-                  focus:outline-none
-                  focus:border-indigo-400
-                  focus:ring-0
-                  mb-2
-                `}
-                type="text"
-                placeholder="username"
-                autoComplete="off"
-                id="username"
-                name="username"
-                onChange={formik.handleChange}
-                value={formik.values.username}
-              />
-            </div>
-
-            <div className="px-4 sm:px-6 md:flex-row md:px-8">
-              <input
-                className={`
-                  bg-gray-100
-                  dark:bg-gray-900
-                  appearance-none
-                  w-full
-                  block
-                  text-gray-700
-                  dark:text-white
-                  border
-                  border-gray-100
-                  dark:border-gray-900
-                  rounded
-                  py-2
-                  px-3
-                  leading-tight
-                  focus:outline-none
-                  focus:border-indigo-400
-                  focus:ring-0
-                  mb-2
-                `}
-                type="password"
-                placeholder="password"
-                autoComplete="new-password"
-                id="password"
-                name="password"
-                onChange={formik.handleChange}
-                value={formik.values.password}
-              />
-            </div>
-
-            <div className="flex justify-end px-4 sm:px-6 md:flex-row md:px-8 mb-2">
-              <button
-                onClick={() => formik.handleSubmit()}
-                type="button"
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-2.5 py-1.5 bg-green-600 text-sm font-medium text-white hover:bg-green-700 sm:w-auto text-sm"
-              >
-                <div className="flex justify-center items-center space-x-2">
-                  {loggingIn && <Spinner className="w-4 h-4 text-green-300" />}
-                  <span>Login</span>
-                </div>
-              </button>
-            </div>
-          </form>
-
-          <div className="text-center px-4">
-            <Link
-              className="font-medium px-3 dark:text-blue-400 dark:hover:text-blue-500 text-blue-600 hover:text-blue-700"
-              to="/signup"
-            >
-              <span className="text-sm">Create account</span>
-            </Link>
+    <div className="flex h-[calc(100dvh-4rem)] flex-col justify-center overflow-y-auto px-4 py-8 md:h-dvh md:pl-16">
+      <main className="mx-auto w-full max-w-md space-y-6 px-4 sm:px-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+        <form className="space-y-4" noValidate onSubmit={formik.handleSubmit}>
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.username}
+            />
           </div>
-
-          <div className="mt-6 hidden">
-            <div className="relative">
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 text-gray-800 font-medium">
-                  Or login with
-                </span>
-              </div>
-            </div>
-            {REACT_APP_GITHUB_SCOPE && REACT_APP_GITHUB_CLIENT_ID && (
-              <LoginBtn />
-            )}
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.password}
+            />
           </div>
-        </main>
-      </div>
-    </>
+          <Button className="w-full" type="submit" disabled={loggingIn}>
+            {loggingIn && <Spinner className="size-4" />}Login
+          </Button>
+        </form>
+        <p className="text-center text-sm">
+          <Link
+            className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            to="/signup"
+          >
+            Create account
+          </Link>
+        </p>
+        <div className="hidden">
+          {REACT_APP_GITHUB_SCOPE && REACT_APP_GITHUB_CLIENT_ID && <LoginBtn />}
+        </div>
+      </main>
+    </div>
   );
 };
-
 export default Login;

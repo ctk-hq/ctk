@@ -506,11 +506,6 @@ export interface IEditNetworkForm {
   }[];
 }
 
-export interface ITabContext {
-  value: string;
-  onChange: (newValue: string) => void;
-}
-
 /* -- SuperForm -- */
 
 export interface ISuperFormContext {

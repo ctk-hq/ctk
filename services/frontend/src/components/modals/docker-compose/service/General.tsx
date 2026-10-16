@@ -1,19 +1,9 @@
-import { styled } from "@mui/material";
 import { TFinalFormField } from "../../../../types";
 import { SuperForm } from "../../../SuperForm";
 
-const Root = styled("div")`
-  display: flex;
-  flex-direction: column;
-  row-gap: ${({ theme }) => theme.spacing(1)};
-  @media (max-width: 640px) {
-    row-gap: 0;
-  }
-`;
-
 const General = () => {
   return (
-    <Root>
+    <div className="flex min-w-0 flex-col gap-4">
       <SuperForm
         fields={[
           {
@@ -312,7 +302,7 @@ const General = () => {
           }
         ]}
       />
-    </Root>
+    </div>
   );
 };
 

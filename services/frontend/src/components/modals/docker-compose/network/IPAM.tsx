@@ -1,65 +1,13 @@
 import { FunctionComponent, ReactElement } from "react";
-import { styled } from "@mui/material";
 import TextField from "../../../global/FormElements/TextField";
 import Records from "../../../Records";
 
-const Root = styled("div")`
-  display: flex;
-  flex-direction: column;
-  row-gap: ${({ theme }) => theme.spacing(1)};
-  @media (max-width: 640px) {
-    row-gap: 0;
-  }
-`;
-
-const Group = styled("div")`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-column-gap: 0px;
-  grid-row-gap: 0px;
-  @media (max-width: 640px) {
-    grid-template-columns: repeat(1, 1fr);
-  }
-  column-gap: ${({ theme }) => theme.spacing(1)};
-  width: 100%;
-`;
-
-const Field = styled("div")`
-  width: 100%;
-`;
-
-const Remove = styled("div")`
-  margin-top: ${({ theme }) => theme.spacing(2)};
-`;
-
-const Configuration = styled("div")`
-  display: flex;
-  flex-direction: column;
-  row-gap: ${({ theme }) => theme.spacing(1)};
-  border-left: 4px solid #e0e8ff;
-  padding-left: 10px;
-`;
-
-const ConfigurationTop = styled("div")`
-  display: flex;
-  flex-direction: row;
-  @media (max-width: 640px) {
-    flex-direction: column;
-  }
-  column-gap: ${({ theme }) => theme.spacing(1)};
-`;
-
-const ConfigurationBorder = styled("div")`
-  height: 1px;
-  margin: 8px 0px 0px 0px;
-`;
-
 const IPAM: FunctionComponent = (): ReactElement => {
   return (
-    <Root>
-      <Group>
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Driver" name="driver" />
-      </Group>
+      </div>
 
       <Records
         name="configurations"
@@ -108,10 +56,10 @@ const IPAM: FunctionComponent = (): ReactElement => {
                 ipAddress: ""
               },
               renderField: (element: ReactElement): ReactElement => (
-                <Field>{element}</Field>
+                <div className="w-full min-w-0">{element}</div>
               ),
               renderRemove: (element: ReactElement): ReactElement => (
-                <Remove>{element}</Remove>
+                <div className="mt-6 shrink-0">{element}</div>
               )
             }
           }
@@ -123,22 +71,22 @@ const IPAM: FunctionComponent = (): ReactElement => {
           auxAddresses: []
         }}
         renderLayout={(elements: ReactElement[]): ReactElement => (
-          <Configuration>
-            <ConfigurationTop>
+          <div className="flex min-w-0 flex-1 flex-col gap-4 rounded-md border p-4">
+            <div className="flex w-full min-w-0 flex-col gap-4 sm:flex-row">
               {elements[0]}
               {elements[1]}
               {elements[2]}
-            </ConfigurationTop>
+            </div>
             {elements[3]}
-          </Configuration>
+          </div>
         )}
         renderField={(element: ReactElement): ReactElement => (
-          <Field>{element}</Field>
+          <div className="w-full min-w-0">{element}</div>
         )}
         renderRemove={(element: ReactElement): ReactElement => (
-          <Remove>{element}</Remove>
+          <div className="mt-6 shrink-0">{element}</div>
         )}
-        renderBorder={() => <ConfigurationBorder />}
+        renderBorder={() => <div className="my-2 h-px w-full bg-border" />}
       />
 
       <Records
@@ -160,10 +108,10 @@ const IPAM: FunctionComponent = (): ReactElement => {
         ]}
         newValue={{ key: "", value: "" }}
         renderField={(element: ReactElement): ReactElement => (
-          <Field>{element}</Field>
+          <div className="w-full min-w-0">{element}</div>
         )}
       />
-    </Root>
+    </div>
   );
 };
 

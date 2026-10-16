@@ -5,8 +5,8 @@ import {
   useCallback,
   useMemo
 } from "react";
-import { IconButton, styled } from "@mui/material";
-import { MinusIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
+import { Minus } from "lucide-react";
 import TextField from "./global/FormElements/TextField";
 import Toggle from "./global/FormElements/Toggle";
 import Records, { IRecordsProps } from "./Records";
@@ -29,37 +29,24 @@ export interface IRecordProps {
   index: number;
   onRemove: (index: number) => void;
   direction?: "column" | "row";
+  label?: string;
   renderLayout?: (elements: ReactElement[]) => ReactElement;
   renderField?: (element: ReactElement, field: IFieldType) => ReactElement;
   renderRemove?: (element: ReactElement) => ReactElement;
 }
 
-const Root = styled("div")`
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-start;
-  column-gap: ${({ theme }) => theme.spacing(1)};
-  width: 100%;
-
-  @media (max-width: 768px) {
-    column-gap: ${({ theme }) => theme.spacing(1)};
-  }
-
-  @media (max-width: 640px) {
-    flex-direction: column;
-  }
-`;
-
-const RemoveButton = styled(IconButton)`
-  border-radius: ${({ theme }) => theme.spacing(2)};
-`;
-
 const Record: FunctionComponent<IRecordProps> = (
   props: IRecordProps
 ): ReactElement => {
-  const { fields, index, onRemove, renderLayout, renderField, renderRemove } =
-    props;
+  const {
+    fields,
+    index,
+    onRemove,
+    renderLayout,
+    renderField,
+    renderRemove,
+    label = "item"
+  } = props;
 
   const handleRemove = useCallback(() => {
     onRemove(index);
@@ -81,7 +68,7 @@ const Record: FunctionComponent<IRecordProps> = (
   );
 
   return (
-    <Root>
+    <div className="flex w-full min-w-0 flex-col items-start gap-3 sm:flex-row">
       {renderLayoutWrapper(
         fields.map((field) => (
           <Fragment key={field.name}>
@@ -118,12 +105,18 @@ const Record: FunctionComponent<IRecordProps> = (
       )}
       {renderRemoveWrapper(
         <div className="flex justify-end content-end">
-          <RemoveButton size="small" color="warning" onClick={handleRemove}>
-            <MinusIcon className="h-5 w-5" />
-          </RemoveButton>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`Remove ${label} item ${index + 1}`}
+            className="shrink-0 text-destructive"
+            onClick={handleRemove}
+          >
+            <Minus className="h-5 w-5" />
+          </Button>
         </div>
       )}
-    </Root>
+    </div>
   );
 };
 

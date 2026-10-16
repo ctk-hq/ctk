@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useReducer } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "./components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { useTheme } from "./hooks/useTheme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -18,9 +20,7 @@ import { ProtectedRouteProps } from "./partials/ProtectedRoute";
 import ProtectedRoute from "./partials/ProtectedRoute";
 
 import "./index.css";
-import { lightTheme } from "./utils/theme";
 import { SuperFormProvider } from "./components/SuperFormProvider";
-import { ThemeProvider } from "@mui/material/styles";
 
 const Projects = lazy(() => import("./components/Projects"));
 const Project = lazy(() => import("./components/Project"));
@@ -32,6 +32,7 @@ const GitHub = lazy(() => import("./components/Auth/GitHub"));
 const queryClient = new QueryClient();
 
 export default function App() {
+  const { isDark } = useTheme();
   const [state, dispatch] = useReducer(reducer, initialState);
   const auth = useLocalStorageAuth();
   const navigate = useNavigate();
@@ -101,15 +102,15 @@ export default function App() {
   }, []);
 
   return (
-    <ThemeProvider theme={lightTheme}>
+    <TooltipProvider delayDuration={200}>
       <QueryClientProvider client={queryClient}>
         <SuperFormProvider>
           <div>
-            <Toaster />
+            <Toaster theme={isDark ? "dark" : "light"} />
             <SideBar isAuthenticated={isAuthenticated} state={state} />
             <Suspense
               fallback={
-                <div className="flex min-h-screen items-center justify-center text-sm text-slate-500">
+                <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
                   Loading workspace…
                 </div>
               }
@@ -165,6 +166,6 @@ export default function App() {
         </SuperFormProvider>
         {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
-    </ThemeProvider>
+    </TooltipProvider>
   );
 }

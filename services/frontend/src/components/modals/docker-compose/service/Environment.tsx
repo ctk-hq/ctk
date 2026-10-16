@@ -1,18 +1,8 @@
-import { styled } from "@mui/material";
 import Records from "../../../Records";
-
-const Root = styled("div")`
-  display: flex;
-  flex-direction: column;
-  row-gap: ${({ theme }) => theme.spacing(1)};
-  @media (max-width: 640px) {
-    row-gap: 0;
-  }
-`;
 
 const Environment = () => {
   return (
-    <Root>
+    <div className="flex min-w-0 flex-col gap-4">
       <Records
         name="environmentVariables"
         title=""
@@ -36,7 +26,7 @@ const Environment = () => {
           value: ""
         }}
       />
-    </Root>
+    </div>
   );
 };
 

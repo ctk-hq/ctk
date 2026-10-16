@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { styled } from "@mui/material";
 import CreateNetworkModal from "./CreateNetworkModal";
 import { CallbackFunction, IEditNetworkForm } from "../../../../types";
 import EditNetworkModal from "./EditNetworkModal";
@@ -16,16 +15,6 @@ interface IModalNetworkProps {
   onDeleteNetwork: CallbackFunction;
   onHide: CallbackFunction;
 }
-
-const Container = styled("div")`
-  display: flex;
-  flex-direction: row;
-`;
-
-const NetworkFormContainer = styled("div")`
-  display: flex;
-  flex-direction: column;
-`;
 
 const ModalNetwork = (props: IModalNetworkProps) => {
   const {
@@ -93,7 +82,7 @@ const ModalNetwork = (props: IModalNetworkProps) => {
       )}
 
       {(networkKeys.length > 0 || showCreate) && (
-        <Container>
+        <div className="flex min-h-0 flex-col sm:flex-row">
           {networkKeys.length > 0 && (
             <NetworkList
               networks={networks}
@@ -104,7 +93,7 @@ const ModalNetwork = (props: IModalNetworkProps) => {
             />
           )}
 
-          <NetworkFormContainer>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {!selectedNetwork && (
               <CreateNetworkModal onCreateNetwork={handleCreate} />
             )}
@@ -115,8 +104,8 @@ const ModalNetwork = (props: IModalNetworkProps) => {
                 onUpdateNetwork={handleUpdate}
               />
             )}
-          </NetworkFormContainer>
-        </Container>
+          </div>
+        </div>
       )}
     </Modal>
   );

@@ -1,8 +1,6 @@
-import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { IconButton, Button, styled } from "@mui/material";
-import { FunctionComponent, ReactElement } from "react";
-import { truncateStr } from "../../../../utils";
-
+import { Minus, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 export interface INetworkListProps {
   networks: Record<string, any>;
   selectedUuid: string;
@@ -10,106 +8,51 @@ export interface INetworkListProps {
   onNew: () => void;
   onRemove: (networkUuid: string) => void;
 }
-
-interface IListItemProps {
-  selected: boolean;
-}
-
-const Root = styled("div")`
-  padding: ${({ theme }) => theme.spacing(0)};
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-right: solid #eaeaea 1px;
-`;
-
-const Top = styled("div")`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Bottom = styled("div")`
-  padding: ${({ theme }) => theme.spacing(1, 2)};
-`;
-
-const ListItem = styled("div")<IListItemProps>`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  column-gap: ${({ theme }) => theme.spacing(1)};
-  padding: ${({ theme }) => theme.spacing(1, 1, 1, 2)};
-  cursor: pointer;
-  background-color: ${({ selected }) => selected && "#f5f5f5"};
-
-  &:hover {
-    background-color: #f5f5f5;
-  }
-`;
-
-const ListItemText = styled("h5")`
-  font-weight: 400;
-  font-size: 14px;
-`;
-
-const RemoveButton = styled(IconButton)`
-  width: 24px;
-  max-height: 16px;
-`;
-
-const NewButton = styled(Button)`
-  text-transform: none;
-`;
-
-const NetworkList: FunctionComponent<INetworkListProps> = (
-  props: INetworkListProps
-): ReactElement => {
-  const { onNew, onRemove, onEdit, networks, selectedUuid } = props;
-
-  const handleEdit = (networkUuid: string) => () => onEdit(networkUuid);
-
-  const handleRemove = (e: any, networkUuid: string) => {
-    e.stopPropagation();
-    onRemove(networkUuid);
-  };
-
+export default function NetworkList({
+  onNew,
+  onRemove,
+  onEdit,
+  networks,
+  selectedUuid
+}: INetworkListProps) {
   return (
-    <Root>
-      <Top>
-        {Object.keys(networks).map((networkUuid: string) => (
-          <ListItem
-            key={networkUuid}
-            onClick={handleEdit(networkUuid)}
-            selected={networkUuid === selectedUuid}
-          >
-            <ListItemText>
-              {truncateStr(networks[networkUuid].canvasConfig.node_name, 10)}
-            </ListItemText>
-            <RemoveButton
-              size="small"
-              color="warning"
-              onClick={(e: any) => handleRemove(e, networkUuid)}
+    <div className="flex shrink-0 flex-col justify-between gap-3 border-b p-3 sm:w-44 sm:border-b-0 sm:border-r">
+      <div className="flex flex-col gap-1">
+        {Object.keys(networks).map((uuid) => {
+          const name = networks[uuid].canvasConfig.node_name;
+          return (
+            <div
+              key={uuid}
+              className={cn(
+                "flex items-center gap-1 rounded-md",
+                uuid === selectedUuid && "bg-accent"
+              )}
             >
-              <MinusIcon className="h-4 w-4" />
-            </RemoveButton>
-          </ListItem>
-        ))}
-      </Top>
-
-      <Bottom>
-        <NewButton
-          variant="text"
-          size="small"
-          onClick={onNew}
-          disableElevation={true}
-          disableRipple={true}
-        >
-          <PlusIcon className="h-4 w-4 mr-2" />
-          New network
-        </NewButton>
-      </Bottom>
-    </Root>
+              <Button
+                variant="ghost"
+                className="min-w-0 flex-1 justify-start"
+                aria-pressed={uuid === selectedUuid}
+                onClick={() => onEdit(uuid)}
+              >
+                <span className="truncate">{name}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0 text-destructive"
+                aria-label={`Remove network ${name}`}
+                onClick={() => onRemove(uuid)}
+              >
+                <Minus />
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+      <Button variant="outline" size="sm" onClick={onNew}>
+        <Plus />
+        New network
+      </Button>
+    </div>
   );
-};
-
-export default NetworkList;
+}

@@ -1,30 +1,15 @@
-import { FunctionComponent, ReactElement, ReactNode } from "react";
-import { styled } from "@mui/material";
+import { type ReactNode } from "react";
 import { useSuperForm } from "../hooks";
 import { IFormField } from "../types";
-
-const Root = styled("div")`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-column-gap: 0px;
-  grid-row-gap: 0px;
-  @media (max-width: 640px) {
-    grid-template-columns: repeat(1, 1fr);
-  }
-  column-gap: ${({ theme }) => theme.spacing(1)};
-  width: 100%;
-`;
-
 export interface IGridProps {
   fields: IFormField[];
   children?: ReactNode;
 }
-
-export const GridRow: FunctionComponent<IGridProps> = (
-  props: IGridProps
-): ReactElement => {
-  const { fields } = props;
+export function GridRow({ fields }: IGridProps) {
   const { renderField } = useSuperForm();
-
-  return <Root>{fields.map(renderField)}</Root>;
-};
+  return (
+    <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+      {fields.map(renderField)}
+    </div>
+  );
+}

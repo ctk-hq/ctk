@@ -9,7 +9,7 @@ import { generateManifest } from "../../services/generate";
 import { toaster } from "../../utils";
 import CodeEditor from "../CodeEditor";
 import { Button } from "../ui/button";
-import useWindowDimensions from "../../hooks/useWindowDimensions";
+import { SegmentedControl } from "../ui/segmented-control";
 import { CanvasConnection } from "../Canvas/graphState";
 import { CanvasNodeMap } from "../Canvas/plumbing/synchronizeNodes";
 import ManifestSelect from "./ManifestSelect";
@@ -55,7 +55,6 @@ const CodeBox = ({ graphData, onCodeUpdate }: ICodeBoxProps) => {
   const [manifest, setManifest] = useState<ManifestType>(
     manifestTypes.DOCKER_COMPOSE
   );
-  const { height } = useWindowDimensions();
 
   const getCode = useCallback(
     (payload: ReturnType<typeof generatePayload>, type: ManifestType) => {
@@ -160,51 +159,30 @@ const CodeBox = ({ graphData, onCodeUpdate }: ICodeBoxProps) => {
     [debouncedOnCodeUpdate, debouncedOnGraphUpdate]
   );
 
-  const editorHeight = Math.max(height - 116, 240);
   const isCompose = manifest === manifestTypes.DOCKER_COMPOSE;
 
   return (
-    <div className="flex h-full flex-col bg-slate-950">
-      <div className="flex min-h-12 flex-wrap items-center gap-2 border-b border-slate-800 bg-slate-900 px-2 py-1.5">
+    <div className="flex h-full min-h-0 flex-col bg-background">
+      <div className="flex min-h-12 flex-wrap items-center gap-2 border-b border-border bg-background px-2 py-1.5">
         <ManifestSelect manifest={manifest} setManifest={setManifest} />
 
-        <div className="ml-auto flex items-center gap-1">
-          <div className="flex rounded-md bg-slate-800 p-0.5">
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              aria-pressed={language === "yaml"}
-              className={
-                language === "yaml"
-                  ? "h-7 bg-slate-700 px-2 text-white hover:bg-slate-700"
-                  : "h-7 px-2 text-slate-400 hover:bg-slate-700 hover:text-white"
-              }
-              onClick={() => setLanguage("yaml")}
-            >
-              YAML
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              aria-pressed={language === "json"}
-              className={
-                language === "json"
-                  ? "h-7 bg-slate-700 px-2 text-white hover:bg-slate-700"
-                  : "h-7 px-2 text-slate-400 hover:bg-slate-700 hover:text-white"
-              }
-              onClick={() => setLanguage("json")}
-            >
-              JSON
-            </Button>
-          </div>
+        <SegmentedControl
+          aria-label="Code language"
+          className="ml-auto"
+          value={language}
+          onValueChange={setLanguage}
+          options={[
+            { value: "yaml", label: "YAML" },
+            { value: "json", label: "JSON" }
+          ]}
+        />
 
+        <div className="ml-auto flex items-center gap-1">
           <Button
             type="button"
             size="icon"
             variant="ghost"
-            className="h-8 w-8 text-slate-300 hover:bg-slate-800 hover:text-white"
+            className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={copy}
             disabled={!formattedCode}
             aria-label="Copy manifest"
@@ -216,7 +194,7 @@ const CodeBox = ({ graphData, onCodeUpdate }: ICodeBoxProps) => {
             type="button"
             size="icon"
             variant="ghost"
-            className="h-8 w-8 text-slate-300 hover:bg-slate-800 hover:text-white"
+            className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={download}
             disabled={!formattedCode}
             aria-label="Download manifest"
@@ -241,7 +219,6 @@ const CodeBox = ({ graphData, onCodeUpdate }: ICodeBoxProps) => {
         }}
         disabled={!isCompose}
         lineWrapping={false}
-        height={editorHeight}
       />
     </div>
   );

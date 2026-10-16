@@ -1,4 +1,3 @@
-import { styled } from "@mui/material";
 import lodash from "lodash";
 import { toaster } from ".";
 
@@ -201,14 +200,9 @@ const isObject = (value: any) => {
   return !!(value && typeof value === "object" && !Array.isArray(value));
 };
 
-const Path = styled("span")`
-  font-weight: bold;
-  font-size: 0.75rem;
-`;
-
 const renderToast = (path: string, message: string) => (
   <p>
-    <Path>{path}</Path>
+    <span className="text-xs font-semibold">{path}</span>
     <br />
     {message}
   </p>

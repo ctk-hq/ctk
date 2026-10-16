@@ -1,52 +1,18 @@
-import { FunctionComponent, ReactElement } from "react";
-import { Button, styled } from "@mui/material";
-import { PlusIcon } from "@heroicons/react/24/outline";
-
-const Root = styled("div")`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: ${({ theme }) => theme.spacing(2, 5, 5, 5)};
-  text-align: center;
-`;
-
-const AddButton = styled(Button)`
-  margin-top: ${({ theme }) => theme.spacing(1)};
-  text-transform: none;
-`;
-
-const Description = styled("p")`
-  margin-top: ${({ theme }) => theme.spacing(1)};
-  text-align: center;
-  color: #7a7a7a;
-  font-size: 14px;
-`;
-
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 export interface IEmptyNetworksProps {
   onCreate: () => void;
 }
-
-const EmptyNetworks: FunctionComponent<IEmptyNetworksProps> = (
-  props: IEmptyNetworksProps
-): ReactElement => {
-  const { onCreate } = props;
+export default function EmptyNetworks({ onCreate }: IEmptyNetworksProps) {
   return (
-    <Root>
-      <Description>No top-level networks available</Description>
-
-      <AddButton
-        size="small"
-        variant="text"
-        onClick={onCreate}
-        disableElevation={true}
-        disableRipple={true}
-      >
-        <PlusIcon className="h-4 w-4 mr-2" />
+    <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center">
+      <p className="text-sm text-muted-foreground">
+        No top-level networks available
+      </p>
+      <Button variant="outline" onClick={onCreate}>
+        <Plus />
         New network
-      </AddButton>
-    </Root>
+      </Button>
+    </div>
   );
-};
-
-export default EmptyNetworks;
+}

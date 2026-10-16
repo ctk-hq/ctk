@@ -3,6 +3,12 @@ import { MemoryRouter } from "react-router-dom";
 
 import App from "./App";
 
+test("loads the manifest builder and its UI dependencies", async () => {
+  const { default: Project } = await import("./components/Project");
+
+  expect(Project).toBeTypeOf("function");
+});
+
 test("offers a backend-free path into the manifest builder", async () => {
   render(
     <MemoryRouter>

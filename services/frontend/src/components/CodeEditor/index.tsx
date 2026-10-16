@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { useTheme } from "@/hooks/useTheme";
 
 const Editor = lazy(() => import("@monaco-editor/react"));
 
@@ -8,29 +9,29 @@ interface ICodeEditorProps {
   onChange: any;
   disabled: boolean;
   lineWrapping: boolean;
-  height: number;
 }
 
 const CodeEditor = (props: ICodeEditorProps) => {
-  const { data, language, onChange, disabled, lineWrapping, height } = props;
+  const { isDark } = useTheme();
+  const { data, language, onChange, disabled, lineWrapping } = props;
   const supportedLanguage = language === "json" || language === "yaml";
   const monacoLanguage = supportedLanguage ? language : "plaintext";
 
   return (
-    <div className="overflow-hidden" style={{ height }}>
+    <div className="h-full min-h-0 flex-1 overflow-hidden">
       <Suspense
         fallback={
-          <div className="flex h-full items-center justify-center bg-slate-950 text-xs text-slate-500">
+          <div className="flex h-full items-center justify-center bg-background text-xs text-muted-foreground">
             Loading editor…
           </div>
         }
       >
         <Editor
-          height={height}
+          height="100%"
           defaultLanguage={monacoLanguage}
           language={monacoLanguage}
           value={data}
-          theme="vs-dark"
+          theme={isDark ? "vs-dark" : "vs"}
           onChange={(value) => onChange(value ?? "")}
           options={{
             readOnly: disabled,

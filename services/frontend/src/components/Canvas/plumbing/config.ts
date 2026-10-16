@@ -10,27 +10,31 @@ import {
 export const jsPlumbDefaults: BrowserJsPlumbDefaults = {
   elementsDraggable: true,
   resizeObserver: true,
-  dragOptions: { cursor: "move" }
+  dragOptions: {
+    cursor: "move",
+    filter: "button, a, input, [data-node-actions]"
+  }
 };
 
 export const defaultConnectionStyle: PaintStyle = {
   strokeWidth: 2,
-  stroke: "#61b7cf"
+  stroke: "var(--muted-foreground)"
 };
 
 export const defaultConnectionHoverStyle: PaintStyle = {
   strokeWidth: 3,
-  stroke: "#216477"
+  stroke: "var(--foreground)"
 };
 
 export const volumeConnectionStyle: PaintStyle = {
   strokeWidth: 2,
-  stroke: "#ad35ff"
+  dashstyle: "4 4",
+  stroke: "var(--muted-foreground)"
 };
 
 export const volumeConnectionHoverStyle: PaintStyle = {
   strokeWidth: 3,
-  stroke: "#7d0fc8"
+  stroke: "var(--foreground)"
 };
 
 const createSourceAnchor = (): AnchorSpec => [
@@ -41,8 +45,8 @@ const createSourceAnchor = (): AnchorSpec => [
 ];
 
 const endpointHoverStyle: PaintStyle = {
-  fill: "#216477",
-  stroke: "#216477"
+  fill: "var(--foreground)",
+  stroke: "var(--foreground)"
 };
 
 export const createSourceEndpoint = (uuid: string): EndpointOptions => ({
@@ -53,8 +57,8 @@ export const createSourceEndpoint = (uuid: string): EndpointOptions => ({
     options: { radius: 8 }
   },
   paintStyle: {
-    stroke: "#097963",
-    fill: "#16a085",
+    stroke: "var(--foreground)",
+    fill: "var(--muted-foreground)",
     strokeWidth: 1
   },
   source: true,
@@ -87,8 +91,8 @@ export const createTargetEndpoint = (uuid: string): EndpointOptions => ({
     options: { radius: 6 }
   },
   paintStyle: {
-    stroke: "#7d0fc8",
-    fill: "#ad35ff",
+    stroke: "var(--foreground)",
+    fill: "var(--muted-foreground)",
     strokeWidth: 1
   },
   hoverPaintStyle: endpointHoverStyle,

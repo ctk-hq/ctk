@@ -1,53 +1,57 @@
-import { FunctionComponent, ReactElement } from "react";
-import { styled } from "@mui/material";
-import lodash from "lodash";
+import { type ComponentProps } from "react";
 import { useFormikContext } from "formik";
-
-export interface ITextFieldProps {
+import { get } from "lodash";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+export interface ITextFieldProps extends ComponentProps<"input"> {
   name: string;
+  label?: string;
   help?: string;
-  [key: string]: any;
 }
-
-const Root = styled("div")``;
-
-const TextField: FunctionComponent<ITextFieldProps> = (
-  props: ITextFieldProps
-): ReactElement => {
-  const { label, name, help, required, ...otherProps } = props;
+export default function TextField({
+  label,
+  name,
+  help,
+  required,
+  id = name,
+  ...props
+}: ITextFieldProps) {
   const formik = useFormikContext();
-  const error =
-    lodash.get(formik.touched, name) && lodash.get(formik.errors, name);
-
+  const error = get(formik.touched, name) && get(formik.errors, name);
+  const descriptionId = id + "-description";
   return (
-    <Root>
-      <div>
-        {label && (
-          <label htmlFor={name} className="lbl-util">
-            {label + (required ? "*" : "")}
-          </label>
-        )}
-
-        <input
-          id={name}
-          name={name}
-          type="text"
-          autoComplete="off"
-          className="input-util mb-2 sm:mb-0"
-          required={required}
-          onBlur={formik.handleBlur}
-          onChange={formik.handleChange}
-          value={lodash.get(formik.values, name)}
-          {...otherProps}
-        />
-
-        <div className="text-xs text-red-600 mt-1">
-          {error && <span className="caption">{error}</span>}
-          {!error && help}
-        </div>
-      </div>
-    </Root>
+    <div className="min-w-0 flex-1 space-y-2">
+      {label && (
+        <Label htmlFor={id}>
+          {label}
+          {required && <span aria-hidden="true">*</span>}
+        </Label>
+      )}
+      <Input
+        id={id}
+        name={name}
+        type="text"
+        autoComplete="off"
+        required={required}
+        onBlur={formik.handleBlur}
+        onChange={formik.handleChange}
+        value={get(formik.values, name) ?? ""}
+        aria-label={label ? undefined : props.placeholder || name}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error || help ? descriptionId : undefined}
+        {...props}
+      />
+      {(error || help) && (
+        <p
+          id={descriptionId}
+          className={
+            error ? "text-xs text-destructive" : "text-xs text-muted-foreground"
+          }
+          role={error ? "alert" : undefined}
+        >
+          {String(error || help)}
+        </p>
+      )}
+    </div>
   );
-};
-
-export default TextField;
+}

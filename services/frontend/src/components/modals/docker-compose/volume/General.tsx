@@ -1,38 +1,16 @@
-import { styled } from "@mui/material";
 import TextField from "../../../global/FormElements/TextField";
 import Records from "../../../Records";
 
-const Root = styled("div")`
-  display: flex;
-  flex-direction: column;
-  row-gap: ${({ theme }) => theme.spacing(1)};
-  @media (max-width: 640px) {
-    row-gap: 0;
-  }
-`;
-
-const Group = styled("div")`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-column-gap: 0px;
-  grid-row-gap: 0px;
-  @media (max-width: 640px) {
-    grid-template-columns: repeat(1, 1fr);
-  }
-  column-gap: ${({ theme }) => theme.spacing(1)};
-  width: 100%;
-`;
-
 const General = () => {
   return (
-    <Root>
-      <Group>
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Entry name" name="entryName" required={true} />
-      </Group>
+      </div>
 
-      <Group>
+      <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Volume name" name="volumeName" required={true} />
-      </Group>
+      </div>
 
       <Records
         name="labels"
@@ -53,7 +31,7 @@ const General = () => {
         ]}
         newValue={{ key: "", value: "" }}
       />
-    </Root>
+    </div>
   );
 };
 

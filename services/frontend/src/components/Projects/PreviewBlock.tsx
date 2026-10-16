@@ -1,89 +1,39 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { TrashIcon } from "@heroicons/react/24/outline";
-import { truncateStr } from "../../utils";
-import { IProject } from "../../types";
-import ModalConfirmDelete from "../modals/ConfirmDelete";
-import { useDeleteProject } from "../../hooks/useProject";
-
-interface IPreviewBlockProps {
-  project: IProject;
-}
-
-const PreviewBlock = (props: IPreviewBlockProps) => {
-  const { project } = props;
-  const [isHovering, setIsHovering] = useState(false);
-  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+import { Link } from "react-router-dom";
+import { Trash2 } from "lucide-react";
+import { IProject } from "@/types";
+import ModalConfirmDelete from "@/components/modals/ConfirmDelete";
+import { useDeleteProject } from "@/hooks/useProject";
+import { Button } from "@/components/ui/button";
+export default function PreviewBlock({ project }: { project: IProject }) {
+  const [confirm, setConfirm] = useState(false);
   const mutation = useDeleteProject(project.uuid);
-  const navigate = useNavigate();
-
-  const handleMouseOver = () => {
-    setIsHovering(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovering(false);
-  };
-
-  const handleClick = () => {
-    navigate(`/projects/${project.uuid}`);
-  };
-
-  const onDelete = (e: any) => {
-    e.stopPropagation();
-    setShowDeleteConfirmModal(true);
-  };
-
-  const onDeleteConfirmed = () => {
-    mutation.mutate();
-  };
-
   return (
     <>
-      <div
-        onMouseOver={handleMouseOver}
-        onMouseLeave={handleMouseLeave}
-        onClick={handleClick}
-        key={project.id}
-        className={`
-          cursor-pointer
-          relative
-          rounded-lg
-          dark:bg-gray-900
-          bg-gray-100
-          px-6
-          py-5
-          shadow-sm
-          flex
-          items-center
-          space-x-3
-          hover:bg-gray-200
-        `}
-      >
-        <div className="flex-1 min-w-0">{truncateStr(project.name, 25)}</div>
-
-        {isHovering && (
-          <div className="flex space-x-1 absolute top-2 right-2">
-            <button
-              onClick={onDelete}
-              className="flex justify-center items-center p-2 hover:bg-gray-100 shadow bg-white rounded-md"
-            >
-              <TrashIcon className="w-3 h-3 text-red-500 hover:text-red-600" />
-            </button>
-          </div>
-        )}
+      <div className="flex items-center gap-3 rounded-lg border bg-background p-5 transition-colors hover:bg-muted/50">
+        <Link
+          className="min-w-0 flex-1 truncate rounded-sm text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          to={`/projects/${project.uuid}`}
+          title={project.name}
+        >
+          {project.name}
+        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-destructive"
+          aria-label={`Delete project ${project.name}`}
+          onClick={() => setConfirm(true)}
+        >
+          <Trash2 />
+        </Button>
       </div>
-
-      {showDeleteConfirmModal && (
+      {confirm && (
         <ModalConfirmDelete
-          onConfirm={() => onDeleteConfirmed()}
-          onHide={() => {
-            setShowDeleteConfirmModal(false);
-          }}
+          onConfirm={() => mutation.mutate()}
+          onHide={() => setConfirm(false)}
         />
       )}
     </>
   );
-};
-
-export default PreviewBlock;
+}

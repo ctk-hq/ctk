@@ -1,30 +1,40 @@
-import { TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
-import { CallbackFunction } from "../../types";
-
-export const Popover = ({
+import { Pencil, Trash2 } from "lucide-react";
+import { CallbackFunction } from "@/types";
+import { Button } from "@/components/ui/button";
+export function Popover({
   onEditClick,
   onDeleteClick
 }: {
   onEditClick: CallbackFunction;
   onDeleteClick: CallbackFunction;
-}) => {
+}) {
   return (
-    <div className="relative flex flex-col items-center">
-      <div className="flex absolute -bottom-2 flex flex-col items-center p-2">
-        <span className="relative z-10 p-2.5 text-xs leading-none text-white whitespace-no-wrap bg-gray-700 shadow-lg rounded-md">
-          <div className="flex space-x-2.5">
-            <TrashIcon
-              onClick={() => onDeleteClick()}
-              className="w-3 h-3 text-red-400"
-            ></TrashIcon>
-            <PencilIcon
-              onClick={() => onEditClick()}
-              className="w-3 h-3"
-            ></PencilIcon>
-          </div>
-        </span>
-        <div className="w-3 h-3 -mt-2.5 rotate-45 bg-gray-600"></div>
-      </div>
+    <div
+      data-node-actions
+      className="absolute -top-10 right-0 z-50 flex items-center gap-1 rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+      onPointerDown={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+    >
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        aria-label="Edit node"
+        title="Edit node"
+        onClick={() => onEditClick()}
+      >
+        <Pencil />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7 text-destructive"
+        aria-label="Delete node"
+        title="Delete node"
+        onClick={() => onDeleteClick()}
+      >
+        <Trash2 />
+      </Button>
     </div>
   );
-};
+}
