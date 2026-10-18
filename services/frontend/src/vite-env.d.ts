@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_SERVER?: string;
+  readonly VITE_BACKEND_ENABLED?: string;
   readonly VITE_GITHUB_CLIENT_ID?: string;
   readonly VITE_GITHUB_SCOPE?: string;
 }

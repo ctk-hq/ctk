@@ -11,6 +11,7 @@ import Spinner from "../global/Spinner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import VisibilitySwitch from "../global/VisibilitySwitch";
+import { BACKEND_ENABLED } from "@/constants";
 
 interface IHeaderProps {
   onSave: CallbackFunction;
@@ -33,6 +34,8 @@ const Header = (props: IHeaderProps) => {
 
   const handleSave = useCallback(
     (options: IHeaderSaveOptions = {}) => {
+      if (!BACKEND_ENABLED) return;
+
       const data: any = {
         name: projectNameRef.current,
         visibility: +visibilityRef.current
@@ -105,17 +108,19 @@ const Header = (props: IHeaderProps) => {
           onKeyDown={handleNameKeyDown}
           value={projectName}
         />
-        <div className="flex shrink-0 items-center gap-2">
-          {isAuthenticated && (
-            <VisibilitySwitch
-              isVisible={visibility}
-              onToggle={handleVisibilityToggle}
-            />
-          )}
-          <Button onClick={() => handleSave()} disabled={isLoading}>
-            {isLoading && <Spinner className="size-4" />}Save
-          </Button>
-        </div>
+        {BACKEND_ENABLED && (
+          <div className="flex shrink-0 items-center gap-2">
+            {isAuthenticated && (
+              <VisibilitySwitch
+                isVisible={visibility}
+                onToggle={handleVisibilityToggle}
+              />
+            )}
+            <Button onClick={() => handleSave()} disabled={isLoading}>
+              {isLoading && <Spinner className="size-4" />}Save
+            </Button>
+          </div>
+        )}
       </form>
     </header>
   );

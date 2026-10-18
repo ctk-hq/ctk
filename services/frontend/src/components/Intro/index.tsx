@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BACKEND_ENABLED } from "@/constants";
 export default function Intro() {
   return (
     <main className="h-[calc(100dvh-4rem)] overflow-y-auto bg-background md:h-dvh md:pl-16">
@@ -35,23 +36,25 @@ export default function Intro() {
               Start a project <ArrowRight />
             </Link>
           </Button>
-          <p className="mt-5 text-sm text-muted-foreground">
-            Want to keep projects organized?{" "}
-            <Link
-              className="font-medium text-foreground underline underline-offset-4"
-              to="/login"
-            >
-              Log in
-            </Link>{" "}
-            or{" "}
-            <Link
-              className="font-medium text-foreground underline underline-offset-4"
-              to="/signup"
-            >
-              register
-            </Link>
-            .
-          </p>
+          {BACKEND_ENABLED && (
+            <p className="mt-5 text-sm text-muted-foreground">
+              Want to keep projects organized?{" "}
+              <Link
+                className="font-medium text-foreground underline underline-offset-4"
+                to="/login"
+              >
+                Log in
+              </Link>{" "}
+              or{" "}
+              <Link
+                className="font-medium text-foreground underline underline-offset-4"
+                to="/signup"
+              >
+                register
+              </Link>
+              .
+            </p>
+          )}
         </div>
       </section>
     </main>

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "services/frontend/src/index.css"
+        ],
+        "createdAt": "2026-10-16T14:02:39.866Z",
+        "reason": "Agent: .jsplumb-box is the draggable service and volume canvas in components/Canvas/index.tsx; its grid is an actual graph canvas surface, an explicit exception in this rule."
+      }
+    ]
+  }
+}

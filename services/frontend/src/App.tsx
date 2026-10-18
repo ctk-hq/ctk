@@ -1,12 +1,12 @@
 import { lazy, Suspense, useEffect, useReducer } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { useTheme } from "./hooks/useTheme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-import { LOCAL_STORAGE } from "./constants";
+import { BACKEND_ENABLED, LOCAL_STORAGE } from "./constants";
 import { reducer, initialState } from "./reducers";
 import { useLocalStorageAuth } from "./hooks/auth";
 import { checkHttpStatus } from "./services/helpers";
@@ -49,7 +49,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (BACKEND_ENABLED && isAuthenticated) {
       self()
         .then(checkHttpStatus)
         .then((data) => {
@@ -118,7 +118,13 @@ export default function App() {
               <Routes>
                 <Route
                   path="/projects/:uuid"
-                  element={<Project isAuthenticated={isAuthenticated} />}
+                  element={
+                    BACKEND_ENABLED ? (
+                      <Project isAuthenticated={isAuthenticated} />
+                    ) : (
+                      <Navigate to="/projects/new" replace />
+                    )
+                  }
                 />
 
                 <Route
@@ -131,35 +137,44 @@ export default function App() {
                   element={isAuthenticated ? <Projects /> : <Intro />}
                 />
 
-                <Route
-                  path="/projects/"
-                  element={
-                    <ProtectedRoute
-                      {...defaultProtectedRouteProps}
-                      outlet={<Projects />}
+                {BACKEND_ENABLED ? (
+                  <>
+                    <Route
+                      path="/projects/"
+                      element={
+                        <ProtectedRoute
+                          {...defaultProtectedRouteProps}
+                          outlet={<Projects />}
+                        />
+                      }
                     />
-                  }
-                />
 
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute
-                      {...defaultProtectedRouteProps}
-                      outlet={<Profile dispatch={dispatch} state={state} />}
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute
+                          {...defaultProtectedRouteProps}
+                          outlet={<Profile dispatch={dispatch} state={state} />}
+                        />
+                      }
                     />
-                  }
-                />
 
-                <Route
-                  path="/signup"
-                  element={<Signup dispatch={dispatch} />}
-                />
-                <Route path="/login" element={<Login dispatch={dispatch} />} />
-                <Route
-                  path="/github/cb"
-                  element={<GitHub dispatch={dispatch} />}
-                />
+                    <Route
+                      path="/signup"
+                      element={<Signup dispatch={dispatch} />}
+                    />
+                    <Route
+                      path="/login"
+                      element={<Login dispatch={dispatch} />}
+                    />
+                    <Route
+                      path="/github/cb"
+                      element={<GitHub dispatch={dispatch} />}
+                    />
+                  </>
+                ) : (
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                )}
               </Routes>
             </Suspense>
           </div>

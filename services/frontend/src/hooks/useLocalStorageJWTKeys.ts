@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { LOCAL_STORAGE } from "../constants";
+import { BACKEND_ENABLED, LOCAL_STORAGE } from "../constants";
 
 const useLocalStorageJWTKeys = () => {
-  const jwtKeys = localStorage.getItem(LOCAL_STORAGE);
+  const jwtKeys = BACKEND_ENABLED ? localStorage.getItem(LOCAL_STORAGE) : null;
   return useMemo(() => {
     if (jwtKeys) {
       return JSON.parse(jwtKeys);

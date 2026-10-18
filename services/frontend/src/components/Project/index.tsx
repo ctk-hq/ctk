@@ -45,6 +45,7 @@ import CodePanel from "./CodePanel";
 import Header from "./Header";
 import { useMutation } from "@tanstack/react-query";
 import { composeToCanvasGraph } from "../../utils/compose";
+import { BACKEND_ENABLED } from "../../constants";
 
 interface IProjectProps {
   isAuthenticated: boolean;
@@ -183,7 +184,7 @@ export default function Project(props: IProjectProps) {
 
   const queueAutosave = useCallback(
     (buildAutosavePayload: () => IProjectPayload) => {
-      if (!uuid) {
+      if (!BACKEND_ENABLED || !uuid) {
         return;
       }
 
@@ -222,6 +223,8 @@ export default function Project(props: IProjectProps) {
     partial: Partial<IProjectPayload> = {},
     options: { autosave?: boolean } = {}
   ) => {
+    if (!BACKEND_ENABLED) return;
+
     syncPendingProjectMeta(partial);
 
     if (options.autosave) {
@@ -276,7 +279,7 @@ export default function Project(props: IProjectProps) {
   }, [uuid]);
 
   useEffect(() => {
-    if (!uuid || !data) {
+    if (!BACKEND_ENABLED || !uuid || !data) {
       return;
     }
 

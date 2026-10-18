@@ -1,7 +1,8 @@
 import axios from "axios";
 import _ from "lodash";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { API_SERVER_URL } from "../constants";
+import { API_SERVER_URL, BACKEND_ENABLED } from "../constants";
+import { requireBackend } from "../services/backend";
 import { getLocalStorageJWTKeys, toaster } from "../utils";
 import { IProject, IProjectPayload } from "../types";
 import useLocalStorageJWTKeys from "./useLocalStorageJWTKeys";
@@ -14,6 +15,7 @@ interface IProjectsReturn {
 }
 
 export const createProject = async (project: IProjectPayload) => {
+  requireBackend();
   const jwtKeys = getLocalStorageJWTKeys();
   const requestConfig = {
     method: "post",
@@ -36,6 +38,7 @@ export const createProject = async (project: IProjectPayload) => {
 };
 
 const deleteProjectByUuid = async (uuid: string) => {
+  requireBackend();
   const jwtKeys = getLocalStorageJWTKeys();
   const requestConfig = {
     method: "delete",
@@ -57,6 +60,7 @@ const deleteProjectByUuid = async (uuid: string) => {
 };
 
 const updateProjectByUuid = async (uuid: string, data: string) => {
+  requireBackend();
   const jwtKeys = getLocalStorageJWTKeys();
   const requestConfig = {
     method: "put",
@@ -83,8 +87,9 @@ export const useProject = (uuid: string | undefined) => {
 
   return useQuery({
     queryKey: ["projects", uuid],
-    enabled: Boolean(uuid),
+    enabled: BACKEND_ENABLED && Boolean(uuid),
     queryFn: async () => {
+      requireBackend();
       if (!uuid) return undefined;
 
       const requestConfig = {
@@ -118,6 +123,7 @@ export const useUpdateProject = (uuid: string | undefined) => {
 
   return useMutation({
     mutationFn: async (mutationData: IUpdateProjectMutationPayload) => {
+      requireBackend();
       if (!uuid) {
         return;
       }
@@ -152,6 +158,7 @@ export const useDeleteProject = (uuid: string | undefined) => {
 
   return useMutation({
     mutationFn: async () => {
+      requireBackend();
       if (!uuid) {
         return;
       }

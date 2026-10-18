@@ -1,6 +1,8 @@
-import { LOCAL_STORAGE } from "../constants";
+import { BACKEND_ENABLED, LOCAL_STORAGE } from "../constants";
 
 export const useLocalStorageAuth = () => {
+  if (!BACKEND_ENABLED) return;
+
   const localStorageData = localStorage.getItem(LOCAL_STORAGE);
 
   if (localStorageData) {

@@ -1,30 +1,36 @@
 import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys } from "./utils";
+import { requireBackend } from "./backend";
 
-export const signup = (
+export const signup = async (
   username: string,
   email: string,
   password1: string,
   password2: string
-) =>
-  fetch(`${API_SERVER_URL}/auth/registration/`, {
+) => {
+  requireBackend();
+  return fetch(`${API_SERVER_URL}/auth/registration/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ username, email, password1, password2 })
   });
+};
 
-export const logIn = (username: string, password: string) =>
-  fetch(`${API_SERVER_URL}/auth/login/`, {
+export const logIn = async (username: string, password: string) => {
+  requireBackend();
+  return fetch(`${API_SERVER_URL}/auth/login/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ username, password })
   });
+};
 
-export const self = () => {
+export const self = async () => {
+  requireBackend();
   const jwtKeys = getLocalStorageJWTKeys();
   return fetch(`${API_SERVER_URL}/auth/self/`, {
     method: "GET",
@@ -35,7 +41,8 @@ export const self = () => {
   });
 };
 
-export const refresh = () => {
+export const refresh = async () => {
+  requireBackend();
   const jwtKeys = getLocalStorageJWTKeys();
   const body = { refresh: jwtKeys.refresh_token };
 

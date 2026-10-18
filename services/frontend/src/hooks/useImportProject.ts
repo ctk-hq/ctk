@@ -2,8 +2,10 @@ import axios from "axios";
 import { IImportFinalValues } from "../components/modals/import/form-utils";
 import { API_SERVER_URL } from "../constants";
 import { getLocalStorageJWTKeys } from "../utils";
+import { requireBackend } from "../services/backend";
 
 export const importProject = async (values: IImportFinalValues) => {
+  requireBackend();
   const jwtKeys = getLocalStorageJWTKeys();
   const response = await axios({
     method: "post",

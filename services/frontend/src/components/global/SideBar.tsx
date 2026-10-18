@@ -3,6 +3,7 @@ import { BookOpen, Plus } from "lucide-react";
 import UserMenu from "./UserMenu";
 import Logo from "./logo";
 import DarkModeSwitch from "./DarkModeSwitch";
+import { BACKEND_ENABLED } from "@/constants";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -17,24 +18,51 @@ export default function SideBar({
   isAuthenticated: boolean;
 }) {
   const { pathname } = useLocation();
+  const newProject = {
+    name: "New project",
+    href: "/projects/new",
+    icon: Plus,
+    visible: true,
+    current: pathname === "/projects/new"
+  };
   const navigation = [
     {
       name: "Projects",
       href: "/projects",
       icon: BookOpen,
-      visible: isAuthenticated,
+      visible: BACKEND_ENABLED && isAuthenticated,
       current: /^\/projects\/?$/.test(pathname) || pathname === "/"
     },
-    {
-      name: "New project",
-      href: "/projects/new",
-      icon: Plus,
-      visible: true,
-      current: pathname === "/projects/new"
-    }
+    newProject
   ];
+
+  const renderNavigationItem = (
+    item: (typeof navigation)[number],
+    className?: string
+  ) => (
+    <Tooltip key={item.name}>
+      <TooltipTrigger asChild>
+        <Button
+          asChild
+          variant={item.current ? "secondary" : "ghost"}
+          size="icon"
+          className={className}
+        >
+          <Link
+            to={item.href}
+            aria-label={item.name}
+            aria-current={item.current ? "page" : undefined}
+          >
+            <item.icon />
+          </Link>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="right">{item.name}</TooltipContent>
+    </Tooltip>
+  );
+
   return (
-    <aside className="flex h-16 shrink-0 items-center justify-between border-b bg-background px-3 md:fixed md:inset-y-0 md:z-40 md:h-dvh md:w-16 md:flex-col md:border-b-0 md:border-r md:px-2 md:py-4">
+    <aside className="flex h-16 shrink-0 items-center justify-between gap-1 border-b bg-background px-3 md:fixed md:inset-y-0 md:z-40 md:h-dvh md:w-16 md:flex-col md:border-b-0 md:border-r md:px-2 md:py-4">
       <Link
         to="/"
         aria-label="Container Toolkit home"
@@ -48,33 +76,22 @@ export default function SideBar({
       >
         {navigation
           .filter((item) => item.visible)
-          .map((item) => (
-            <Tooltip key={item.name}>
-              <TooltipTrigger asChild>
-                <Button
-                  asChild
-                  variant={item.current ? "secondary" : "ghost"}
-                  size="icon"
-                >
-                  <Link
-                    to={item.href}
-                    aria-label={item.name}
-                    aria-current={item.current ? "page" : undefined}
-                  >
-                    <item.icon />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">{item.name}</TooltipContent>
-            </Tooltip>
-          ))}
+          .map((item) =>
+            renderNavigationItem(
+              item,
+              item === newProject ? "hidden md:inline-flex" : undefined
+            )
+          )}
       </nav>
-      <div className="flex items-center gap-1 md:flex-col">
+      <div className="ml-auto flex items-center gap-1 md:ml-0 md:flex-col">
         <DarkModeSwitch />
-        <UserMenu
-          username={state.user?.username || ""}
-          current={pathname.includes("profile")}
-        />
+        {BACKEND_ENABLED && (
+          <UserMenu
+            username={state.user?.username || ""}
+            current={pathname.includes("profile")}
+          />
+        )}
+        {renderNavigationItem(newProject, "md:hidden")}
       </div>
     </aside>
   );
