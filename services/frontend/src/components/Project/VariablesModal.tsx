@@ -157,29 +157,7 @@ export default function VariablesModal({
         )}
         <div className="min-h-0 space-y-5 overflow-y-auto p-6">
           {tab === "private" && canManageValues ? (
-            <PrivateValues
-              projectUuid={projectUuid}
-              onUse={(variable) => {
-                if (
-                  !variables.some(
-                    (definition) => definition.name === variable.name
-                  )
-                ) {
-                  if (variables.length >= 200) {
-                    setError("A project can define up to 200 variables.");
-                    return;
-                  }
-                  onChange([
-                    ...variables,
-                    { name: variable.name, secret: variable.secret }
-                  ]);
-                }
-                setTab("project");
-                setNotice(
-                  `Use \${${variable.name}} in a service, volume path, or other Compose value.`
-                );
-              }}
-            />
+            <PrivateValues projectUuid={projectUuid} />
           ) : (
             <>
               <p className="text-sm text-muted-foreground">

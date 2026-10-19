@@ -228,6 +228,10 @@ def test_missing_or_wrong_keys_fail_closed_and_rotation_reads_old_values(
         is False
     )
     assert (
+        client.get("/variables/", headers=headers(owner)).json()["storage_error"]
+        == "Private variable storage is not configured"
+    )
+    assert (
         client.put(
             "/variables/NEW/", headers=headers(owner), json={"value": "not-saved"}
         ).status_code
@@ -275,6 +279,138 @@ def test_private_updates_and_deletion_do_not_change_project_data(client):
         == 404
     )
     assert client.get(f"/projects/{project['uuid']}/").json()["data"] == project["data"]
+
+
+def test_scope_edits_move_the_same_value_and_rebind_ciphertext(client):
+    owner = register(client)
+    project = make_project(client, owner)
+    variable = save_value(client, owner)
+    path = f"/variables/{variable['id']}/"
+    with SessionLocal() as db:
+        original = db.query(PrivateVariable).one().encrypted_value
+    moved = client.patch(
+        path, headers=headers(owner), json={"project_uuid": project["uuid"]}
+    )
+    assert moved.status_code == 200
+    assert moved.json() == {**variable, "project_uuid": project["uuid"]}
+    assert moved.headers["cache-control"] == "no-store"
+    assert "private-test-password" not in moved.text
+    assert client.get("/variables/", headers=headers(owner)).json()["variables"] == []
+    with SessionLocal() as db:
+        row = db.query(PrivateVariable).one()
+        assert row.id == variable["id"]
+        assert row.project_id == project["id"]
+        assert row.scope_key == project["uuid"]
+        assert row.encrypted_value != original
+    assert client.post(path + "reveal/", headers=headers(owner)).json() == {
+        "value": "private-test-password"
+    }
+    assert (
+        'DB_PASSWORD="private-test-password"'
+        in client.post(f"/projects/{project['uuid']}/env/", headers=headers(owner)).text
+    )
+    moved_back = client.patch(
+        path, headers=headers(owner), json={"project_uuid": None, "secret": False}
+    )
+    assert moved_back.status_code == 200
+    assert moved_back.json() == {**variable, "secret": False}
+    assert client.post(path + "reveal/", headers=headers(owner)).json() == {
+        "value": "private-test-password"
+    }
+    assert client.get(f"/projects/{project['uuid']}/").json()["data"] == project["data"]
+    with SessionLocal() as db:
+        assert db.query(PrivateVariable).count() == 1
+        assert db.query(VariableAccess).filter_by(action="move").count() == 2
+
+
+@pytest.mark.parametrize("move_account", [True, False])
+def test_scope_conflicts_never_overwrite_either_saved_value(client, move_account):
+    owner = register(client)
+    project = make_project(client, owner)
+    account = save_value(client, owner, value="account-value")
+    override = save_value(
+        client, owner, value="project-value", project_uuid=project["uuid"]
+    )
+    variable = account if move_account else override
+    response = client.patch(
+        f"/variables/{variable['id']}/",
+        headers=headers(owner),
+        json={
+            "project_uuid": project["uuid"] if move_account else None,
+            "value": "must-not-save",
+        },
+    )
+    assert response.status_code == 409
+    assert "already has a value" in response.text
+    assert client.post(
+        f"/variables/{account['id']}/reveal/", headers=headers(owner)
+    ).json() == {"value": "account-value"}
+    assert client.post(
+        f"/variables/{override['id']}/reveal/", headers=headers(owner)
+    ).json() == {"value": "project-value"}
+    with SessionLocal() as db:
+        assert db.query(PrivateVariable).count() == 2
+
+
+def test_scope_edits_enforce_variable_and_destination_ownership(client):
+    owner = register(client)
+    other = register(client, "other@example.com")
+    foreign_project = make_project(client, other)
+    variable = save_value(client, owner)
+    path = f"/variables/{variable['id']}/"
+    assert client.patch(path, json={"project_uuid": None}).status_code == 401
+    assert (
+        client.patch(
+            path, headers=headers(other), json={"value": "hijacked"}
+        ).status_code
+        == 404
+    )
+    assert (
+        client.patch(
+            path, headers=headers(owner), json={"project_uuid": foreign_project["uuid"]}
+        ).status_code
+        == 404
+    )
+    assert client.post(path + "reveal/", headers=headers(owner)).json() == {
+        "value": "private-test-password"
+    }
+
+
+def test_scope_edit_failure_preserves_original_scope_and_ciphertext(
+    client, monkeypatch
+):
+    owner = register(client)
+    project = make_project(client, owner)
+    variable = save_value(client, owner)
+    path = f"/variables/{variable['id']}/"
+    with SessionLocal() as db:
+        original = db.query(PrivateVariable).one().encrypted_value
+    monkeypatch.setenv("CTK_VARIABLE_KEYS", Fernet.generate_key().decode())
+    assert (
+        client.patch(
+            path, headers=headers(owner), json={"project_uuid": project["uuid"]}
+        ).status_code
+        == 503
+    )
+    with SessionLocal() as db:
+        row = db.query(PrivateVariable).one()
+        assert row.scope_key == ""
+        assert row.project_id is None
+        assert row.encrypted_value == original
+
+
+def test_scope_edit_can_explicitly_replace_with_an_empty_value(client):
+    owner = register(client)
+    project = make_project(client, owner)
+    variable = save_value(client, owner)
+    path = f"/variables/{variable['id']}/"
+    response = client.patch(
+        path,
+        headers=headers(owner),
+        json={"project_uuid": project["uuid"], "value": ""},
+    )
+    assert response.status_code == 200
+    assert client.post(path + "reveal/", headers=headers(owner)).json() == {"value": ""}
 
 
 def test_ordinary_variables_without_a_default_require_a_private_value(client):

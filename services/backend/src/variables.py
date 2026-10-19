@@ -27,12 +27,13 @@ def owned_project(db, project_uuid, user):
     return project
 
 
-def owned_variable(db, variable_id, user):
-    variable = (
-        db.query(PrivateVariable)
-        .filter(PrivateVariable.id == variable_id, PrivateVariable.owner_id == user.id)
-        .first()
+def owned_variable(db, variable_id, user, *, lock=False):
+    query = db.query(PrivateVariable).filter(
+        PrivateVariable.id == variable_id, PrivateVariable.owner_id == user.id
     )
+    if lock:
+        query = query.with_for_update()
+    variable = query.first()
     if not variable:
         raise HTTPException(404, "Variable not found")
     return variable
@@ -45,6 +46,22 @@ def metadata(variable):
         "secret": variable.secret,
         "project_uuid": variable.scope_key or None,
     }
+
+
+def private_value(value):
+    if not isinstance(value, str) or len(value.encode()) > 65536 or "\x00" in value:
+        raise HTTPException(
+            400, "Value must be text, at most 64 KiB, without NUL characters"
+        )
+    return value
+
+
+def scoped_project(db, project_uuid, user):
+    if project_uuid is not None and (
+        not isinstance(project_uuid, str) or not project_uuid
+    ):
+        raise HTTPException(400, "Invalid project scope")
+    return owned_project(db, project_uuid, user) if project_uuid else None
 
 
 @router.get("/variables/")
@@ -70,10 +87,13 @@ def list_variables(
     try:
         variable_cipher()
         available = True
-    except HTTPException:
+        storage_error = None
+    except HTTPException as error:
         available = False
+        storage_error = error.detail
     return {
         "storage_available": available,
+        "storage_error": storage_error,
         "variables": [metadata(variable) for variable in variables],
     }
 
@@ -88,24 +108,16 @@ async def save_variable(
     payload = await get_payload(request)
     if not VARIABLE_NAME.fullmatch(name):
         raise HTTPException(400, "Use a shell variable name, up to 128 characters")
-    value = payload.get("value")
-    if not isinstance(value, str) or len(value.encode()) > 65536 or "\x00" in value:
-        raise HTTPException(
-            400, "Value must be text, at most 64 KiB, without NUL characters"
-        )
+    value = private_value(payload.get("value"))
     secret = payload.get("secret", True)
     if not isinstance(secret, bool):
         raise HTTPException(400, "Secret must be a boolean")
-    project_uuid = payload.get("project_uuid")
-    if project_uuid is not None and (
-        not isinstance(project_uuid, str) or not project_uuid
-    ):
-        raise HTTPException(400, "Invalid project scope")
-    project = owned_project(db, project_uuid, user) if project_uuid else None
+    project = scoped_project(db, payload.get("project_uuid"), user)
     scope = project.uuid if project else ""
     variable = (
         db.query(PrivateVariable)
         .filter_by(owner_id=user.id, scope_key=scope, name=name)
+        .with_for_update()
         .first()
     )
     if variable is None:
@@ -125,6 +137,69 @@ async def save_variable(
         db.rollback()
         raise HTTPException(
             409, "This variable changed in another request; try saving again"
+        ) from None
+    return JSONResponse(metadata(variable), headers=PRIVATE_HEADERS)
+
+
+@router.patch("/variables/{variable_id}/")
+async def update_variable(
+    variable_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    payload = await get_payload(request)
+    variable = owned_variable(db, variable_id, user, lock=True)
+    if set(payload) - {"value", "secret", "project_uuid"}:
+        raise HTTPException(400, "Only value, secret, and project scope can be edited")
+    secret = payload.get("secret", variable.secret)
+    if not isinstance(secret, bool):
+        raise HTTPException(400, "Secret must be a boolean")
+    project = scoped_project(
+        db, payload.get("project_uuid", variable.scope_key or None), user
+    )
+    scope = project.uuid if project else ""
+    moving = scope != variable.scope_key
+    if (
+        moving
+        and db.query(PrivateVariable.id)
+        .filter(
+            PrivateVariable.owner_id == user.id,
+            PrivateVariable.scope_key == scope,
+            PrivateVariable.name == variable.name,
+            PrivateVariable.id != variable.id,
+        )
+        .first()
+    ):
+        raise HTTPException(
+            409,
+            f"{variable.name} already has a value in the selected scope. Edit or delete that value first.",
+        )
+    # Rebind ciphertext on the server. A scope-only edit never reveals plaintext
+    # to the browser and never creates a second variable.
+    value = (
+        private_value(payload["value"])
+        if "value" in payload
+        else decrypt_value(variable) if moving else None
+    )
+    variable.secret = secret
+    variable.scope_key = scope
+    variable.project_id = project.id if project else None
+    if value is not None:
+        variable.encrypted_value = encrypt_value(variable, value)
+    db.add(
+        VariableAccess(
+            owner_id=user.id,
+            variable_id=variable.id,
+            action="move" if moving else "update",
+        )
+    )
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            409, "The selected scope changed in another request. Reload and try again."
         ) from None
     return JSONResponse(metadata(variable), headers=PRIVATE_HEADERS)
 

@@ -10,13 +10,15 @@ import PrivateValues from "./PrivateValues";
 import {
   listPrivateVariables,
   revealPrivateVariable,
-  savePrivateVariable
+  savePrivateVariable,
+  updatePrivateVariable
 } from "../../services/variables";
 
 vi.mock("../../services/variables", () => ({
   listPrivateVariables: vi.fn(),
   revealPrivateVariable: vi.fn(),
   savePrivateVariable: vi.fn(),
+  updatePrivateVariable: vi.fn(),
   deletePrivateVariable: vi.fn()
 }));
 
@@ -43,6 +45,11 @@ beforeEach(() => {
   });
   vi.mocked(revealPrivateVariable).mockResolvedValue("synthetic-private-value");
   vi.mocked(savePrivateVariable).mockResolvedValue(metadata);
+  vi.mocked(updatePrivateVariable).mockResolvedValue(metadata);
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText: vi.fn().mockResolvedValue(undefined) }
+  });
 });
 
 afterEach(() => vi.unstubAllGlobals());
@@ -142,4 +149,121 @@ test("unconfigured storage remains usable for reference-only projects", async ()
   expect(
     screen.getByRole("button", { name: "Save private value" })
   ).toBeDisabled();
+});
+
+test("storage recovery re-enables saving without losing the entered value", async () => {
+  vi.mocked(listPrivateVariables).mockResolvedValueOnce({
+    storage_available: false,
+    storage_error: "Private variable storage is not configured",
+    variables: []
+  });
+  setup();
+  await screen.findByText(/Private storage is unavailable/);
+  const save = screen.getByRole("button", { name: "Save private value" });
+  expect(save).toBeDisabled();
+  expect(save).toHaveAccessibleDescription(
+    /Private variable storage is not configured/
+  );
+  fireEvent.change(screen.getByLabelText("Variable name"), {
+    target: { value: "DB_PASSWORD" }
+  });
+  fireEvent.change(screen.getByLabelText("Private value"), {
+    target: { value: "unsaved-private-value" }
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Check storage again" }));
+  await waitFor(() => expect(save).toBeEnabled());
+  expect(screen.getByLabelText("Variable name")).toHaveValue("DB_PASSWORD");
+  expect(screen.getByLabelText("Private value")).toHaveValue(
+    "unsaved-private-value"
+  );
+  fireEvent.click(save);
+  await waitFor(() =>
+    expect(savePrivateVariable).toHaveBeenCalledWith(
+      "DB_PASSWORD",
+      "unsaved-private-value",
+      true,
+      undefined
+    )
+  );
+});
+
+test("editing can move scope without requesting or replacing the stored value", async () => {
+  setup();
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Edit saved value DB_PASSWORD" })
+  );
+  const scope = screen.getByRole("combobox", { name: "Use value in" });
+  expect(scope).toBeEnabled();
+  fireEvent.change(scope, { target: { value: "project" } });
+  expect(screen.queryByLabelText("New value")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+  await waitFor(() =>
+    expect(updatePrivateVariable).toHaveBeenCalledWith("private-id", {
+      project_uuid: "my-project",
+      secret: true
+    })
+  );
+  expect(revealPrivateVariable).not.toHaveBeenCalled();
+  expect(savePrivateVariable).not.toHaveBeenCalled();
+});
+
+test("editing replaces a stored value only when explicitly selected", async () => {
+  setup();
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Edit saved value DB_PASSWORD" })
+  );
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: "Replace saved value" })
+  );
+  fireEvent.change(screen.getByLabelText("New value"), {
+    target: { value: "replacement-private-value" }
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+  await waitFor(() =>
+    expect(updatePrivateVariable).toHaveBeenCalledWith("private-id", {
+      project_uuid: null,
+      secret: true,
+      value: "replacement-private-value"
+    })
+  );
+  expect(revealPrivateVariable).not.toHaveBeenCalled();
+});
+
+test("scope conflicts keep the edit open and display the recovery message", async () => {
+  vi.mocked(updatePrivateVariable).mockRejectedValue(
+    new Error(
+      "DB_PASSWORD already has a value in the selected scope. Edit or delete that value first."
+    )
+  );
+  setup();
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Edit saved value DB_PASSWORD" })
+  );
+  fireEvent.change(screen.getByRole("combobox", { name: "Use value in" }), {
+    target: { value: "project" }
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "already has a value in the selected scope"
+  );
+  expect(screen.getByLabelText("Variable name")).toHaveValue("DB_PASSWORD");
+  expect(screen.getByRole("combobox", { name: "Use value in" })).toHaveValue(
+    "project"
+  );
+});
+
+test("copy reference copies only the placeholder and makes no project or value changes", async () => {
+  setup();
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Copy reference DB_PASSWORD" })
+  );
+  await waitFor(() =>
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("${DB_PASSWORD}")
+  );
+  expect(
+    screen.queryByRole("button", { name: "Use in project" })
+  ).not.toBeInTheDocument();
+  expect(revealPrivateVariable).not.toHaveBeenCalled();
+  expect(savePrivateVariable).not.toHaveBeenCalled();
+  expect(updatePrivateVariable).not.toHaveBeenCalled();
 });

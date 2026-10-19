@@ -5,8 +5,17 @@ import {
   useState,
   type FormEvent
 } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Eye, EyeOff, LockKeyhole, Pencil, Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Check,
+  ChevronDown,
+  Copy,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Pencil,
+  Trash2
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -16,25 +25,25 @@ import {
   deletePrivateVariable,
   listPrivateVariables,
   revealPrivateVariable,
-  savePrivateVariable
+  savePrivateVariable,
+  updatePrivateVariable
 } from "../../services/variables";
 import { variableNamePattern } from "../../utils/variables";
 
 function PrivateValueRow({
   variable,
   onEdit,
-  onDelete,
-  onUse
+  onDelete
 }: {
   variable: PrivateVariable;
   onEdit: () => void;
   onDelete: () => Promise<void>;
-  onUse?: () => void;
 }) {
   const [value, setValue] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
   const request = useRef({ generation: 0 });
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -90,11 +99,30 @@ function PrivateValueRow({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          {onUse && (
-            <Button type="button" size="sm" variant="outline" onClick={onUse}>
-              Use in project
-            </Button>
-          )}
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            aria-label={`Copy reference ${variable.name}`}
+            title={`Copy \${${variable.name}}`}
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(`\${${variable.name}}`);
+                setCopied(true);
+                setError("");
+              } catch {
+                setError(
+                  `Unable to copy. Use \${${variable.name}} in your Compose field.`
+                );
+              }
+            }}
+          >
+            {copied ? (
+              <Check className="size-4" />
+            ) : (
+              <Copy className="size-4" />
+            )}
+          </Button>
           <Button
             type="button"
             size="sm"
@@ -114,8 +142,8 @@ function PrivateValueRow({
             type="button"
             size="icon"
             variant="ghost"
-            aria-label={`Replace saved value ${variable.name}`}
-            title={`Replace ${variable.name}`}
+            aria-label={`Edit saved value ${variable.name}`}
+            title={`Edit ${variable.name}`}
             onClick={() => {
               hideValue();
               onEdit();
@@ -186,12 +214,11 @@ function PrivateValueRow({
 }
 
 export default function PrivateValues({
-  projectUuid,
-  onUse
+  projectUuid
 }: {
   projectUuid?: string;
-  onUse?: (variable: PrivateVariable) => void;
 }) {
+  const queryClient = useQueryClient();
   // Only metadata enters the query cache. Decrypted values stay in the row.
   const query = useQuery({
     queryKey: ["private-variables", projectUuid ?? "account"],
@@ -202,7 +229,8 @@ export default function PrivateValues({
   const [value, setValue] = useState("");
   const [secret, setSecret] = useState(true);
   const [scope, setScope] = useState("account");
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState<PrivateVariable | null>(null);
+  const [replaceValue, setReplaceValue] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -217,16 +245,25 @@ export default function PrivateValues({
     setSaving(true);
     setError("");
     try {
-      await savePrivateVariable(
-        name,
-        value,
-        secret,
-        scope === "project" ? projectUuid : undefined
-      );
+      if (editing) {
+        await updatePrivateVariable(editing.id, {
+          secret,
+          project_uuid: scope === "project" ? (projectUuid ?? null) : null,
+          ...(replaceValue ? { value } : {})
+        });
+      } else {
+        await savePrivateVariable(
+          name,
+          value,
+          secret,
+          scope === "project" ? projectUuid : undefined
+        );
+      }
       setName("");
       setValue("");
-      setEditing(false);
-      await query.refetch();
+      setEditing(null);
+      setReplaceValue(false);
+      await queryClient.invalidateQueries({ queryKey: ["private-variables"] });
     } catch (cause) {
       setError((cause as Error).message);
     } finally {
@@ -241,6 +278,10 @@ export default function PrivateValues({
         Only you can access these values. They are encrypted separately from
         projects. Revealed values hide after 30 seconds or when you leave this
         window.
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Copy a reference into a Compose field to use a saved value. Matching
+        names are resolved automatically in your private .env download.
       </p>
       {query.isPending ? (
         <p role="status" className="text-sm text-muted-foreground">
@@ -260,13 +301,6 @@ export default function PrivateValues({
         </div>
       ) : (
         <>
-          {!query.data?.storage_available && (
-            <p role="status" className="text-sm text-muted-foreground">
-              Private storage is unavailable. Ask the server administrator to
-              configure its encryption key. You can still use project references
-              and supply values in your local .env.
-            </p>
-          )}
           {query.data?.variables.length ? (
             <ul className="divide-border">
               {query.data.variables.map((variable) => (
@@ -278,14 +312,16 @@ export default function PrivateValues({
                     setValue("");
                     setSecret(variable.secret);
                     setScope(variable.project_uuid ? "project" : "account");
-                    setEditing(true);
+                    setEditing(variable);
+                    setReplaceValue(false);
                     setError("");
                   }}
                   onDelete={async () => {
                     await deletePrivateVariable(variable.id);
-                    await query.refetch();
+                    await queryClient.invalidateQueries({
+                      queryKey: ["private-variables"]
+                    });
                   }}
-                  onUse={onUse ? () => onUse(variable) : undefined}
                 />
               ))}
             </ul>
@@ -301,9 +337,13 @@ export default function PrivateValues({
             className="space-y-4 border-t pt-5"
           >
             <h3 className="text-sm font-medium">
-              {editing ? `Replace ${name}` : "Save a private value"}
+              {editing ? `Edit ${name}` : "Save a private value"}
             </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              className={
+                projectUuid ? "grid gap-4 sm:grid-cols-2" : "space-y-4"
+              }
+            >
               <div className="space-y-2">
                 <Label htmlFor="private-variable-name">Variable name</Label>
                 <Input
@@ -311,41 +351,70 @@ export default function PrivateValues({
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="DB_PASSWORD"
-                  readOnly={editing}
+                  readOnly={Boolean(editing)}
                   maxLength={128}
                   required
                   spellCheck={false}
                 />
               </div>
+              {projectUuid && (
+                <div className="space-y-2">
+                  <Label htmlFor="private-variable-scope">Use value in</Label>
+                  <div className="relative">
+                    <select
+                      id="private-variable-scope"
+                      className="h-9 w-full appearance-none rounded-md border bg-background pl-3 pr-10 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                      value={scope}
+                      onChange={(event) => setScope(event.target.value)}
+                      disabled={saving}
+                    >
+                      <option value="account">All my projects</option>
+                      <option value="project">This project only</option>
+                    </select>
+                    <ChevronDown
+                      aria-hidden="true"
+                      className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            {editing && (
               <div className="space-y-2">
-                <Label htmlFor="private-variable-scope">Use value in</Label>
-                <select
-                  id="private-variable-scope"
-                  className="h-9 w-full rounded-md border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  value={scope}
-                  onChange={(event) => setScope(event.target.value)}
-                  disabled={editing}
-                >
-                  <option value="account">All my projects</option>
-                  {projectUuid && (
-                    <option value="project">This project only</option>
-                  )}
-                </select>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="private-variable-replace"
+                    checked={replaceValue}
+                    onCheckedChange={(checked) => {
+                      setReplaceValue(checked === true);
+                      setValue("");
+                    }}
+                  />
+                  <Label htmlFor="private-variable-replace">
+                    Replace saved value
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Leave this off to keep the saved value when changing its scope
+                  or type.
+                </p>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="private-variable-value">
-                {editing ? "New value" : "Private value"}
-              </Label>
-              <Input
-                id="private-variable-value"
-                type="password"
-                value={value}
-                onChange={(event) => setValue(event.target.value)}
-                autoComplete="new-password"
-                spellCheck={false}
-              />
-            </div>
+            )}
+            {(!editing || replaceValue) && (
+              <div className="space-y-2">
+                <Label htmlFor="private-variable-value">
+                  {editing ? "New value" : "Private value"}
+                </Label>
+                <Input
+                  id="private-variable-value"
+                  type="password"
+                  value={value}
+                  onChange={(event) => setValue(event.target.value)}
+                  autoComplete="new-password"
+                  spellCheck={false}
+                />
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Checkbox
                 id="private-variable-secret"
@@ -363,15 +432,45 @@ export default function PrivateValues({
                 {error}
               </p>
             )}
+            {!query.data?.storage_available && (
+              <div className="space-y-2">
+                <p
+                  id="private-storage-status"
+                  role="status"
+                  className="text-sm text-muted-foreground"
+                >
+                  Private storage is unavailable.{" "}
+                  {query.data?.storage_error ??
+                    "The server encryption key is not configured"}
+                  . Saving will be enabled once the server is configured.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void query.refetch()}
+                  disabled={query.isFetching}
+                >
+                  {query.isFetching
+                    ? "Checking storage…"
+                    : "Check storage again"}
+                </Button>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button
                 type="submit"
                 disabled={saving || !query.data?.storage_available}
+                aria-describedby={
+                  !query.data?.storage_available
+                    ? "private-storage-status"
+                    : undefined
+                }
               >
                 {saving
                   ? "Saving…"
                   : editing
-                    ? "Replace value"
+                    ? "Save changes"
                     : "Save private value"}
               </Button>
               {editing && (
@@ -379,7 +478,8 @@ export default function PrivateValues({
                   type="button"
                   variant="ghost"
                   onClick={() => {
-                    setEditing(false);
+                    setEditing(null);
+                    setReplaceValue(false);
                     setName("");
                     setValue("");
                     setError("");

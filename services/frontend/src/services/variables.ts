@@ -27,9 +27,11 @@ async function privateRequest(path: string, method = "GET", body?: unknown) {
   return response;
 }
 
-export async function listPrivateVariables(
-  projectUuid?: string
-): Promise<{ storage_available: boolean; variables: PrivateVariable[] }> {
+export async function listPrivateVariables(projectUuid?: string): Promise<{
+  storage_available: boolean;
+  storage_error?: string | null;
+  variables: PrivateVariable[];
+}> {
   return (
     await privateRequest(
       `/variables/${projectUuid ? `?project_uuid=${encodeURIComponent(projectUuid)}` : ""}`
@@ -61,6 +63,19 @@ export async function revealPrivateVariable(id: string): Promise<string> {
       )
     ).json()
   ).value;
+}
+
+export async function updatePrivateVariable(
+  id: string,
+  changes: { project_uuid: string | null; secret: boolean; value?: string }
+): Promise<PrivateVariable> {
+  return (
+    await privateRequest(
+      `/variables/${encodeURIComponent(id)}/`,
+      "PATCH",
+      changes
+    )
+  ).json();
 }
 
 export async function deletePrivateVariable(id: string): Promise<void> {
