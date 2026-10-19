@@ -22,9 +22,8 @@ services:
     container_name: ctk-server
     restart: always
     build:
-      context: ./
-      dockerfile: ./services/backend/Dockerfile
-    image: omhq/ctk-server:0.0.1
+      context: ./services/backend
+      dockerfile: Dockerfile
     working_dir: /app
     depends_on:
       - postgres
