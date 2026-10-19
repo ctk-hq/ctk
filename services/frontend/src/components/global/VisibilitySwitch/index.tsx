@@ -10,6 +10,7 @@ export default function VisibilitySwitch({
 }) {
   return (
     <Button
+      type="button"
       variant="outline"
       size="icon"
       aria-pressed={isVisible}

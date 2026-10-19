@@ -1,23 +1,18 @@
-import {
-  ChangeEvent,
-  KeyboardEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CallbackFunction, IProject } from "../../types";
 import Spinner from "../global/Spinner";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import VisibilitySwitch from "../global/VisibilitySwitch";
 import { BACKEND_ENABLED } from "@/constants";
+import ProjectNameField from "./ProjectNameField";
 
 interface IHeaderProps {
   onSave: CallbackFunction;
   isLoading: boolean;
-  projectData: IProject;
+  projectData: IProject | undefined;
   isAuthenticated: boolean;
+  onSwitch: (uuid: string) => Promise<void>;
+  onSignIn: () => void;
 }
 
 interface IHeaderSaveOptions {
@@ -25,12 +20,20 @@ interface IHeaderSaveOptions {
 }
 
 const Header = (props: IHeaderProps) => {
-  const { onSave, isLoading, projectData, isAuthenticated } = props;
+  const {
+    onSave,
+    isLoading,
+    projectData,
+    isAuthenticated,
+    onSwitch,
+    onSignIn
+  } = props;
   const [visibility, setVisibility] = useState(false);
   const [projectName, setProjectName] = useState("Untitled");
 
   const visibilityRef = useRef(false);
   const projectNameRef = useRef("Untitled");
+  const initializedProject = useRef<string | undefined>(undefined);
 
   const handleSave = useCallback(
     (options: IHeaderSaveOptions = {}) => {
@@ -47,23 +50,10 @@ const Header = (props: IHeaderProps) => {
   );
 
   const handleNameChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const nextName = e.target.value;
+    (nextName: string) => {
       setProjectName(nextName);
       projectNameRef.current = nextName;
       handleSave({ autosave: true });
-    },
-    [handleSave]
-  );
-
-  const handleNameKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key !== "Enter") {
-        return;
-      }
-
-      e.preventDefault();
-      handleSave();
     },
     [handleSave]
   );
@@ -76,11 +66,12 @@ const Header = (props: IHeaderProps) => {
   }, [handleSave]);
 
   useEffect(() => {
-    if (!projectData) {
+    if (!projectData || initializedProject.current === projectData.uuid) {
       return;
     }
 
     setProjectName(projectData.name);
+    initializedProject.current = projectData.uuid;
     setVisibility(Boolean(projectData.visibility));
 
     visibilityRef.current = Boolean(projectData.visibility);
@@ -97,16 +88,14 @@ const Header = (props: IHeaderProps) => {
           handleSave();
         }}
       >
-        <Input
-          className="min-w-0 flex-1 md:max-w-sm"
-          aria-label="Project name"
-          placeholder="Project name"
-          autoComplete="off"
-          id="name"
-          name="name"
-          onChange={handleNameChange}
-          onKeyDown={handleNameKeyDown}
-          value={projectName}
+        <ProjectNameField
+          name={projectName}
+          projectUuid={projectData?.uuid}
+          canSwitch={BACKEND_ENABLED && isAuthenticated}
+          disabled={isLoading}
+          onRename={handleNameChange}
+          onCommit={() => handleSave()}
+          onSwitch={onSwitch}
         />
         {BACKEND_ENABLED && (
           <div className="flex shrink-0 items-center gap-2">
@@ -116,9 +105,19 @@ const Header = (props: IHeaderProps) => {
                 onToggle={handleVisibilityToggle}
               />
             )}
-            <Button onClick={() => handleSave()} disabled={isLoading}>
-              {isLoading && <Spinner className="size-4" />}Save
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                type="button"
+                onClick={() => handleSave()}
+                disabled={isLoading}
+              >
+                {isLoading && <Spinner className="size-4" />}Save
+              </Button>
+            ) : (
+              <Button type="button" onClick={onSignIn}>
+                Log in to save
+              </Button>
+            )}
           </div>
         )}
       </form>

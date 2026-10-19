@@ -393,12 +393,23 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
                     deploy.placement.constraints
                   ) ?? initialValues.deploy.placement.constraints,
                 preferences:
-                  extractObjectOrArray(
-                    "=",
-                    "key",
-                    "value",
-                    deploy.placement.preferences
-                  ) ?? initialValues.deploy.placement.preferences
+                  (Array.isArray(deploy.placement.preferences)
+                    ? deploy.placement.preferences.flatMap((preference) =>
+                        extractObjectOrArray(
+                          "=",
+                          "key",
+                          "value",
+                          typeof preference === "string"
+                            ? [preference]
+                            : preference
+                        )
+                      )
+                    : extractObjectOrArray(
+                        "=",
+                        "key",
+                        "value",
+                        deploy.placement.preferences
+                      )) ?? initialValues.deploy.placement.preferences
               }
             : initialValues.deploy.placement,
           resources: deploy.resources
@@ -623,11 +634,10 @@ export const getFinalValues = (
             "value",
             "="
           ),
-          preferences: packArrayAsStrings(
-            deploy.placement.preferences,
-            "key",
-            "value",
-            "="
+          preferences: pruneArray(
+            deploy.placement.preferences.map(({ key, value }) => ({
+              [key]: value
+            }))
           )
         }),
         resources: pruneObject({
@@ -645,8 +655,7 @@ export const getFinalValues = (
         restart_policy: pruneObject({
           condition: pruneString(deploy.restartPolicy.condition),
           delay: pruneString(deploy.restartPolicy.delay),
-          // NOTE: Could be a potential bug.
-          maxAttempts: pruneNumber(parseInt(deploy.restartPolicy.maxAttempts)),
+          max_attempts: pruneNumber(parseInt(deploy.restartPolicy.maxAttempts)),
           window: pruneString(deploy.restartPolicy.window)
         }),
         rollback_config: pruneObject({

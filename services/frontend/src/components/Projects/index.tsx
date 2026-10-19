@@ -35,7 +35,7 @@ const Projects = () => {
     setImporting(true);
     importProject(values)
       .then((resp: any) => {
-        navigate(`/projects/${resp.name}`);
+        navigate(`/projects/${resp.uuid}`);
         toaster(`Imported!`, "success");
       })
       .catch(() => {
@@ -110,7 +110,7 @@ const Projects = () => {
                   </div>
                 </div>
               )}
-              {data?.count > PROJECTS_FETCH_LIMIT && (
+              {data && data.count > PROJECTS_FETCH_LIMIT && (
                 <nav
                   aria-label="Project pages"
                   className="flex justify-center gap-2"

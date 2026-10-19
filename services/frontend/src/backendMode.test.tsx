@@ -182,7 +182,7 @@ test.each(["/projects/new", "/projects/saved-project"])(
 test("rejects direct backend requests while disabled", async () => {
   const calls = [
     logIn("user", "password"),
-    signup("user", "user@example.com", "password", "password"),
+    signup("user@example.com", "password", "password"),
     self(),
     refresh(),
     socialAuth("code"),
@@ -237,7 +237,9 @@ test("restores account links, project saving, and backend requests when enabled"
   home.unmount();
 
   renderApp("/projects/new");
-  expect(await screen.findByRole("button", { name: "Save" })).toBeVisible();
+  expect(
+    await screen.findByRole("button", { name: "Log in to save" })
+  ).toBeVisible();
   vi.mocked(axios).mockResolvedValueOnce({ data: { uuid: "new-project" } });
   await expect(createProject(payload)).resolves.toEqual({
     uuid: "new-project"

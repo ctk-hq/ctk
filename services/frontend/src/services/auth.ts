@@ -3,7 +3,6 @@ import { getLocalStorageJWTKeys } from "./utils";
 import { requireBackend } from "./backend";
 
 export const signup = async (
-  username: string,
   email: string,
   password1: string,
   password2: string
@@ -14,18 +13,18 @@ export const signup = async (
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ username, email, password1, password2 })
+    body: JSON.stringify({ email, password1, password2 })
   });
 };
 
-export const logIn = async (username: string, password: string) => {
+export const logIn = async (email: string, password: string) => {
   requireBackend();
   return fetch(`${API_SERVER_URL}/auth/login/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ username, password })
+    body: JSON.stringify({ email, password })
   });
 };
 

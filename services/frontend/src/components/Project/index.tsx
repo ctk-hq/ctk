@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Dictionary } from "lodash";
 import { Globe, Box, FolderPlus } from "lucide-react";
 import {
@@ -43,7 +43,7 @@ import { useTitle } from "../../hooks";
 import CodeBox from "./CodeBox";
 import CodePanel from "./CodePanel";
 import Header from "./Header";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { composeToCanvasGraph } from "../../utils/compose";
 import { BACKEND_ENABLED } from "../../constants";
 
@@ -54,6 +54,9 @@ interface IProjectProps {
 export default function Project(props: IProjectProps) {
   const { isAuthenticated } = props;
   const { uuid } = useParams<{ uuid: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const initializedProject = useRef(false);
   const { data, error, isFetching } = useProject(uuid);
   const stateNodesRef = useRef<
     Dictionary<IServiceNodeItem | IVolumeNodeItem> | undefined
@@ -87,6 +90,7 @@ export default function Project(props: IProjectProps) {
   >({});
   const [connections, setConnections] = useState<CanvasConnection[]>([]);
   const [networks, setNetworks] = useState<Record<string, any>>({});
+  const [draftProject, setDraftProject] = useState<IProject>();
   const [canvasPosition, setCanvasPosition] = useState({
     top: 0,
     left: 0,
@@ -98,7 +102,11 @@ export default function Project(props: IProjectProps) {
       return createProject(payload);
     },
     onSuccess: (project: IProject) => {
-      window.location.replace(`/projects/${project.uuid}`);
+      queryClient.setQueryData(["projects", project.uuid], project);
+      void queryClient.invalidateQueries({
+        queryKey: ["projects"],
+        predicate: (query) => query.queryKey[1] !== project.uuid
+      });
     }
   });
 
@@ -127,10 +135,11 @@ export default function Project(props: IProjectProps) {
   };
 
   useEffect(() => {
-    if (!data) {
+    if (!data || initializedProject.current) {
       return;
     }
 
+    initializedProject.current = true;
     const canvasData = JSON.parse(data.data);
     const nodesAsList = Object.keys(canvasData.canvas.nodes).map(
       (k) => canvasData.canvas.nodes[k]
@@ -144,6 +153,36 @@ export default function Project(props: IProjectProps) {
     setNetworks(canvasData.canvas.networks);
     setCanvasPosition(canvasData.canvas.position);
   }, [data]);
+
+  useEffect(() => {
+    if (uuid) return;
+    const draft = sessionStorage.getItem("ctk-project-draft");
+    if (!draft) return;
+    try {
+      const payload = JSON.parse(draft) as IProjectPayload;
+      const canvas = payload.data.canvas;
+      setNodes(canvas.nodes || {});
+      setConnections(canvas.connections || []);
+      setNetworks(canvas.networks || {});
+      setCanvasPosition(canvas.position);
+      pendingProjectMetaRef.current = {
+        name: payload.name,
+        visibility: payload.visibility
+      };
+      setDraftProject({
+        id: 0,
+        uuid: "",
+        name: payload.name || "Untitled",
+        visibility: payload.visibility,
+        data: JSON.stringify(payload.data),
+        created_at: "",
+        modified_at: ""
+      });
+      sessionStorage.removeItem("ctk-project-draft");
+    } catch {
+      sessionStorage.removeItem("ctk-project-draft");
+    }
+  }, [uuid]);
 
   const syncPendingProjectMeta = useCallback(
     (partial: Partial<IProjectPayload> = {}) => {
@@ -184,7 +223,7 @@ export default function Project(props: IProjectProps) {
 
   const queueAutosave = useCallback(
     (buildAutosavePayload: () => IProjectPayload) => {
-      if (!BACKEND_ENABLED || !uuid) {
+      if (!BACKEND_ENABLED || !isAuthenticated || !uuid) {
         return;
       }
 
@@ -209,23 +248,28 @@ export default function Project(props: IProjectProps) {
           {
             onSuccess: () => {
               lastSavedSnapshotRef.current = autosaveSnapshot;
-              pendingProjectMetaRef.current = {};
+              if (pendingProjectMetaRef.current.name === autosavePayload.name)
+                delete pendingProjectMetaRef.current.name;
+              if (
+                pendingProjectMetaRef.current.visibility ===
+                autosavePayload.visibility
+              )
+                delete pendingProjectMetaRef.current.visibility;
             }
           }
         );
         autosaveTimeoutRef.current = null;
       }, 1200);
     },
-    [uuid, updateProjectMutation]
+    [uuid, isAuthenticated, updateProjectMutation]
   );
 
   const onSave = (
     partial: Partial<IProjectPayload> = {},
     options: { autosave?: boolean } = {}
   ) => {
-    if (!BACKEND_ENABLED) return;
-
     syncPendingProjectMeta(partial);
+    if (!BACKEND_ENABLED || !isAuthenticated) return;
 
     if (options.autosave) {
       queueAutosave(() => buildPayload(partial));
@@ -249,14 +293,44 @@ export default function Project(props: IProjectProps) {
         {
           onSuccess: () => {
             lastSavedSnapshotRef.current = payloadSnapshot;
-            pendingProjectMetaRef.current = {};
+            if (pendingProjectMetaRef.current.name === payload.name)
+              delete pendingProjectMetaRef.current.name;
+            if (pendingProjectMetaRef.current.visibility === payload.visibility)
+              delete pendingProjectMetaRef.current.visibility;
           }
         }
       );
       return;
     }
 
-    createProjectMutation.mutate(payload);
+    createProjectMutation.mutate(payload, {
+      onSuccess: (project: IProject) => navigate(`/projects/${project.uuid}`)
+    });
+  };
+
+  const switchProject = async (nextUuid: string) => {
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+      autosaveTimeoutRef.current = null;
+    }
+    const payload = buildPayload();
+    const snapshot = JSON.stringify(payload);
+    if (uuid && snapshot !== lastSavedSnapshotRef.current) {
+      await updateProjectMutation.mutateAsync({ payload, silent: true });
+    } else if (
+      !uuid &&
+      (Object.keys(nodes).length ||
+        Object.keys(networks).length ||
+        payload.name.trim())
+    ) {
+      await createProjectMutation.mutateAsync(payload);
+    }
+    navigate(`/projects/${nextUuid}`);
+  };
+
+  const signInToSave = () => {
+    sessionStorage.setItem("ctk-project-draft", JSON.stringify(buildPayload()));
+    navigate("/login?next=%2Fprojects%2Fnew");
   };
 
   useEffect(() => {
@@ -279,7 +353,7 @@ export default function Project(props: IProjectProps) {
   }, [uuid]);
 
   useEffect(() => {
-    if (!BACKEND_ENABLED || !uuid || !data) {
+    if (!BACKEND_ENABLED || !isAuthenticated || !uuid || !data) {
       return;
     }
 
@@ -305,6 +379,7 @@ export default function Project(props: IProjectProps) {
     };
   }, [
     uuid,
+    isAuthenticated,
     data,
     nodes,
     connections,
@@ -497,11 +572,13 @@ export default function Project(props: IProjectProps) {
           <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-col md:h-dvh md:pl-16">
             <Header
               onSave={onSave}
+              onSwitch={switchProject}
+              onSignIn={signInToSave}
               isLoading={
                 updateProjectMutation.isPending ||
                 createProjectMutation.isPending
               }
-              projectData={data}
+              projectData={data ?? draftProject}
               isAuthenticated={isAuthenticated}
             />
 

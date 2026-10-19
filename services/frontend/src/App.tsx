@@ -1,5 +1,11 @@
 import { lazy, Suspense, useEffect, useReducer } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation
+} from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { useTheme } from "./hooks/useTheme";
@@ -27,7 +33,6 @@ const Project = lazy(() => import("./components/Project"));
 const Profile = lazy(() => import("./components/Profile"));
 const Signup = lazy(() => import("./components/Auth/Signup"));
 const Login = lazy(() => import("./components/Auth/Login"));
-const GitHub = lazy(() => import("./components/Auth/GitHub"));
 
 const queryClient = new QueryClient();
 
@@ -36,6 +41,7 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const auth = useLocalStorageAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const isAuthenticated = !!(auth && Object.keys(auth).length);
 
   const defaultProtectedRouteProps: Omit<ProtectedRouteProps, "outlet"> = {
@@ -120,7 +126,10 @@ export default function App() {
                   path="/projects/:uuid"
                   element={
                     BACKEND_ENABLED ? (
-                      <Project isAuthenticated={isAuthenticated} />
+                      <Project
+                        key={pathname}
+                        isAuthenticated={isAuthenticated}
+                      />
                     ) : (
                       <Navigate to="/projects/new" replace />
                     )
@@ -129,7 +138,9 @@ export default function App() {
 
                 <Route
                   path="/projects/new"
-                  element={<Project isAuthenticated={isAuthenticated} />}
+                  element={
+                    <Project key={pathname} isAuthenticated={isAuthenticated} />
+                  }
                 />
 
                 <Route
@@ -166,10 +177,6 @@ export default function App() {
                     <Route
                       path="/login"
                       element={<Login dispatch={dispatch} />}
-                    />
-                    <Route
-                      path="/github/cb"
-                      element={<GitHub dispatch={dispatch} />}
                     />
                   </>
                 ) : (

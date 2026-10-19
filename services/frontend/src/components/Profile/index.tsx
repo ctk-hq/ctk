@@ -1,12 +1,15 @@
 import { LOCAL_STORAGE } from "@/constants";
 import { authSelf } from "@/reducers";
 import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
 interface IProfileProps {
   dispatch: any;
   state: any;
 }
 export default function Profile({ dispatch, state }: IProfileProps) {
+  const client = useQueryClient();
   const logOut = () => {
+    client.clear();
     localStorage.removeItem(LOCAL_STORAGE);
     dispatch(authSelf(null));
   };

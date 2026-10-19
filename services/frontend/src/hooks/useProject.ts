@@ -135,7 +135,7 @@ export const useUpdateProject = (uuid: string | undefined) => {
         );
         return data;
       } catch (err: any) {
-        if (err.response.status === 404) {
+        if (err.response?.status === 404) {
           toaster("You are not the owner of this project!", "error");
         } else {
           toaster(err.message, "error");
@@ -149,6 +149,10 @@ export const useUpdateProject = (uuid: string | undefined) => {
         toaster("Project saved!", "success");
       }
       queryClient.setQueryData(["projects", uuid], projectData);
+      void queryClient.invalidateQueries({
+        queryKey: ["projects"],
+        predicate: (query) => query.queryKey[1] !== uuid
+      });
     }
   });
 };
@@ -167,7 +171,7 @@ export const useDeleteProject = (uuid: string | undefined) => {
         const data = await deleteProjectByUuid(uuid);
         return data;
       } catch (err: any) {
-        if (err.response.status === 404) {
+        if (err.response?.status === 404) {
           toaster("Resource could not be found!", "error");
         } else {
           toaster(err.message, "error");
