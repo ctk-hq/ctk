@@ -4,6 +4,7 @@ import type {
   IServiceNodeItem
 } from "../../../../types";
 import * as yup from "yup";
+import { commandArguments, commandFormValue } from "../../../../utils/commands";
 import {
   checkArray,
   pruneArray,
@@ -63,7 +64,7 @@ const initialValues: IEditServiceForm = {
     sharedMemorySize: "",
     target: ""
   },
-  command: "",
+  command: null,
   deploy: {
     mode: "",
     replicas: "",
@@ -108,7 +109,7 @@ const initialValues: IEditServiceForm = {
     labels: []
   },
   dependsOn: [],
-  entrypoint: "",
+  entrypoint: null,
   envFile: "",
   imageName: "",
   imageTag: "",
@@ -140,7 +141,26 @@ yup.addMethod<yup.StringSchema>(yup.string, "port", function (message) {
   });
 });
 
+const commandSchema = yup
+  .mixed()
+  .nullable()
+  .test("command", function (value) {
+    try {
+      // Formik normalizes blank argument strings to undefined for validation only.
+      commandArguments(
+        Array.isArray(value)
+          ? value.map((arg) => (arg === undefined ? "" : arg))
+          : value
+      );
+      return true;
+    } catch (error) {
+      return this.createError({ message: (error as Error).message });
+    }
+  });
+
 export const validationSchema = yup.object({
+  command: commandSchema,
+  entrypoint: commandSchema,
   build: yup.object({
     /* TODO: The `context` attribute is required, only when `build` is defined. */
     context: yup.string() /* .required("Context is required") */,
@@ -375,7 +395,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
           target: build.target?.toString() ?? initialValues.build.target
         }
       : initialValues.build,
-    command: (command as string) ?? (initialValues.command as string),
+    command: commandFormValue(command),
     deploy: deploy
       ? {
           mode: deploy.mode ?? initialValues.deploy.mode,
@@ -505,7 +525,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
         }
       : initialValues.deploy,
     dependsOn: extractDependsOn(depends_on) ?? initialValues.dependsOn,
-    entrypoint: (entrypoint as string) ?? (initialValues.entrypoint as string),
+    entrypoint: commandFormValue(entrypoint),
     envFile: (env_file as string) ?? (initialValues.envFile as string),
     imageName,
     imageTag,
@@ -622,7 +642,7 @@ export const getFinalValues = (
         shm_size: pruneString(build.sharedMemorySize),
         target: pruneString(build.target)
       }),
-      command: pruneString(command),
+      command: command === null ? undefined : commandFormValue(command),
       deploy: pruneObject({
         mode: pruneString(deploy.mode),
         replicas: pruneString(deploy.replicas),
@@ -677,7 +697,8 @@ export const getFinalValues = (
         labels: packArrayAsObject(deploy.labels, "key", "value")
       }),
       depends_on: getFinalDependsOn(dependsOn),
-      entrypoint: pruneString(entrypoint),
+      entrypoint:
+        entrypoint === null ? undefined : commandFormValue(entrypoint),
       env_file: pruneString(envFile),
       image: pruneString(
         `${values.imageName}${values.imageTag ? `:${values.imageTag}` : ""}`

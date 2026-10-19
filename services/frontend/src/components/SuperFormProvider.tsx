@@ -2,6 +2,7 @@ import { FunctionComponent, ReactElement, ReactNode, useMemo } from "react";
 import { SuperFormContext } from "../contexts";
 import { IFormField } from "../types";
 import TextField from "./global/FormElements/TextField";
+import CommandField from "./global/FormElements/CommandField";
 import Toggle from "./global/FormElements/Toggle";
 import { GridColumn } from "./GridColumn";
 import { GridRow } from "./GridRow";
@@ -13,6 +14,7 @@ export interface ISuperFormProviderProps {
 
 const types: Record<string, FunctionComponent<any>> = {
   text: TextField,
+  command: CommandField,
   "grid-row": GridRow,
   "grid-column": GridColumn,
   toggle: Toggle,

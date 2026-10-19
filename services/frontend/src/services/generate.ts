@@ -2,6 +2,7 @@ import YAML from "yaml";
 
 import { manifestTypes } from "../constants";
 import { IGeneratePayload } from "../types";
+import { kubernetesCommands } from "../utils/commands";
 
 type ManifestType = (typeof manifestTypes)[keyof typeof manifestTypes];
 type ComposeData = IGeneratePayload["data"];
@@ -189,18 +190,6 @@ const getPorts = (service: UnknownRecord): ParsedPort[] => {
   });
 
   return [...deduplicated.values()];
-};
-
-const splitCommand = (value: unknown): string[] | undefined => {
-  if (Array.isArray(value)) {
-    return value.map(String);
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    return ["/bin/sh", "-c", value];
-  }
-
-  return undefined;
 };
 
 const durationSeconds = (value: unknown): number | undefined => {
@@ -470,8 +459,14 @@ const deploymentForService = (
   ];
   const convertedVolumes = convertServiceVolumes(service);
   const deploy = asRecord(service.deploy);
-  const entrypoint = splitCommand(service.entrypoint);
-  const composeCommand = splitCommand(service.command);
+  let commands: ReturnType<typeof kubernetesCommands>;
+  try {
+    commands = kubernetesCommands(service.command, service.entrypoint);
+  } catch (error) {
+    throw new Error(`Service "${serviceName}": ${(error as Error).message}`, {
+      cause: error
+    });
+  }
   const container = compactRecord({
     name,
     image:
@@ -479,17 +474,7 @@ const deploymentForService = (
         ? service.image
         : `${name}:latest`,
     imagePullPolicy: imagePullPolicy(service.pull_policy),
-    command:
-      entrypoint ??
-      (typeof service.command === "string" ? composeCommand : undefined),
-    args:
-      entrypoint && composeCommand
-        ? Array.isArray(service.command)
-          ? composeCommand
-          : [String(service.command)]
-        : Array.isArray(service.command)
-          ? composeCommand
-          : undefined,
+    ...commands,
     workingDir:
       typeof service.working_dir === "string" && service.working_dir
         ? service.working_dir

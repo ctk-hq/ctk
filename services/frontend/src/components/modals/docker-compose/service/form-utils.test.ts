@@ -1,7 +1,7 @@
 import YAML from "yaml";
 import { manifestTypes } from "../../../../constants";
 import { generateManifest } from "../../../../services/generate";
-import type { IServiceNodeItem } from "../../../../types";
+import type { ContainerCommand, IServiceNodeItem } from "../../../../types";
 import { generatePayload } from "../../../../utils/generators";
 import {
   getFinalValues,
@@ -121,4 +121,87 @@ test("preserves zero restart attempts and ordered preferences with repeated stra
   expect(getInitialValues(node).deploy.placement.preferences).toEqual(
     values.deploy.placement.preferences
   );
+});
+
+test.each<{
+  command: ContainerCommand;
+  entrypoint: ContainerCommand;
+  executable: string[] | undefined;
+  args: string[] | undefined;
+}>([
+  { command: null, entrypoint: null, executable: undefined, args: undefined },
+  {
+    command: ["--one=a,b", "two words", ""],
+    entrypoint: null,
+    executable: undefined,
+    args: ["--one=a,b", "two words", ""]
+  },
+  {
+    command: "--message='two words'\n--one=a,b",
+    entrypoint: null,
+    executable: undefined,
+    args: ["--message=two words", "--one=a,b"]
+  },
+  {
+    command: ["-c", "echo first\nexec app"],
+    entrypoint: ["sh"],
+    executable: ["sh"],
+    args: ["-c", "echo first\nexec app"]
+  },
+  {
+    command: "-c 'echo first && exec app'",
+    entrypoint: "sh",
+    executable: ["sh"],
+    args: ["-c", "echo first && exec app"]
+  },
+  { command: [], entrypoint: ["/app"], executable: ["/app"], args: undefined },
+  {
+    command: ["/app", "--verbose"],
+    entrypoint: [],
+    executable: ["/app", "--verbose"],
+    args: undefined
+  }
+])(
+  "preserves command/entrypoint types through form edits and both manifest generators: $command / $entrypoint",
+  async ({ command, entrypoint, executable, args }) => {
+    const values = serviceForm();
+    values.command = command;
+    values.entrypoint = entrypoint;
+    await expect(validationSchema.validate(values)).resolves.toBeDefined();
+    const node = getFinalValues(values);
+    const reopened = getInitialValues(node);
+    expect(reopened.command).toEqual(command);
+    expect(reopened.entrypoint).toEqual(entrypoint);
+    const saved = getFinalValues(reopened, node);
+    const compose = composeDocument(saved).services.web;
+    expect(compose.command).toEqual(command === null ? undefined : command);
+    expect(compose.entrypoint).toEqual(
+      entrypoint === null ? undefined : entrypoint
+    );
+    const result = generateManifest(
+      generatePayload({ nodes: { web: saved }, networks: {} }),
+      manifestTypes.KUBERNETES
+    );
+    expect(result.error).toBeUndefined();
+    const deployment = YAML.parseAllDocuments(result.code)
+      .map((doc) => doc.toJSON())
+      .find((doc) => doc.kind === "Deployment");
+    const container = deployment.spec.template.spec.containers[0];
+    expect(container.command).toEqual(executable);
+    expect(container.args).toEqual(args);
+  }
+);
+
+test("keeps an explicit empty Compose command and reports an unrepresentable Kubernetes override", () => {
+  const values = serviceForm();
+  values.command = [];
+  const node = getFinalValues(values);
+  expect(composeDocument(node).services.web.command).toEqual([]);
+  const result = generateManifest(
+    generatePayload({ nodes: { web: node }, networks: {} }),
+    manifestTypes.KUBERNETES
+  );
+  expect(result.code).toBe("");
+  expect(result.error).toContain('Service "web"');
+  expect(result.error).toContain("cannot clear the image command");
 });

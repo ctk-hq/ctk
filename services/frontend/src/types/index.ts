@@ -6,6 +6,7 @@ type KeyValPair = {
 };
 
 export type CallbackFunction = (...args: any[]) => any;
+export type ContainerCommand = string | string[] | null;
 
 export interface IServiceNodePosition {
   key: string;
@@ -117,7 +118,7 @@ export interface IService {
   cap_add: string[];
   cap_drop: string[];
   cgroup_parent: string;
-  command: string | string[];
+  command: ContainerCommand;
   configs:
     | string[]
     | {
@@ -189,7 +190,7 @@ export interface IService {
   dns_opt: string[];
   dns_search: string | string[];
   domainname: string;
-  entrypoint: string | string[];
+  entrypoint: ContainerCommand;
   env_file: string | string[];
   environment: string[] | KeyValPair;
   expose: string[];
@@ -371,7 +372,7 @@ export interface IEditServiceForm {
     sharedMemorySize: string;
     target: string;
   };
-  command: string;
+  command: ContainerCommand;
   deploy: {
     /**
      * The default value for `mode` is `replicated`. However, we allow
@@ -437,7 +438,7 @@ export interface IEditServiceForm {
       value: string;
     }[];
   };
-  entrypoint: string;
+  entrypoint: ContainerCommand;
   envFile: string;
   serviceName: string;
   imageName: string;
@@ -519,6 +520,7 @@ export interface IFormField {
     | "grid-row"
     | "grid-column"
     | "text"
+    | "command"
     | "integer"
     | "toggle"
     | "accordion"
@@ -549,6 +551,11 @@ export interface ITextField extends ISingleRowField {
   label?: string;
   placeholder?: string;
   required?: boolean;
+}
+
+export interface ICommandField extends IValueField {
+  type: "command";
+  label: string;
 }
 
 export interface IIntegerField extends ISingleRowField {
@@ -584,6 +591,7 @@ export type TFinalFormField =
   | IGridColumnField<TFinalFormField>
   | IGridRowField<TFinalFormField>
   | ITextField
+  | ICommandField
   | IIntegerField
   | IToggleField
   | IRecordsField<TFinalFormField>

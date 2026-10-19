@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BACKEND_ENABLED } from "@/constants";
 export default function Intro() {
@@ -33,7 +33,7 @@ export default function Intro() {
           </p>
           <Button asChild className="mt-8" size="lg">
             <Link to="/projects/new">
-              Start a project <ArrowRight />
+              Start a project <ChevronRight />
             </Link>
           </Button>
           {BACKEND_ENABLED && (

@@ -50,42 +50,16 @@ const General = () => {
             ]
           },
           {
-            id: "row4",
-            type: "grid-row",
-            fields: [
-              {
-                id: "row4-column1",
-                type: "grid-column",
-                spans: [2, 3],
-                fields: [
-                  {
-                    id: "command",
-                    type: "text",
-                    name: "command",
-                    label: "Command"
-                  }
-                ]
-              }
-            ]
+            id: "command",
+            type: "command",
+            name: "command",
+            label: "Command"
           },
           {
-            id: "row5",
-            type: "grid-row",
-            fields: [
-              {
-                id: "row5-column1",
-                type: "grid-column",
-                spans: [2, 3],
-                fields: [
-                  {
-                    id: "entrypoint",
-                    type: "text",
-                    name: "entrypoint",
-                    label: "Entrypoint"
-                  }
-                ]
-              }
-            ]
+            id: "entrypoint",
+            type: "command",
+            name: "entrypoint",
+            label: "Entrypoint"
           },
           {
             id: "row6",
