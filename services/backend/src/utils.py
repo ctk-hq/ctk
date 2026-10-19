@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 from security import create_access_token, create_refresh_token, decode_token
+from project_variables import validate_definitions
 
 DEFAULT_PROJECT = {
     "canvas": {
@@ -38,10 +39,11 @@ def _serialize_user(user: Any) -> dict[str, Any]:
     }
 
 
-def serialize_project(project: Any) -> dict[str, Any]:
+def serialize_project(project: Any, user: Any = None) -> dict[str, Any]:
     return {
         "id": project.id,
         "owner_id": project.owner_id,
+        "can_edit": bool(user and project.owner_id == user.id),
         "visibility": int(project.visibility),
         "name": project.name,
         "uuid": project.uuid,
@@ -64,10 +66,12 @@ def normalize_project_data(raw_data: Any) -> str:
             parsed = json.loads(raw_data)
             while isinstance(parsed, str):
                 parsed = json.loads(parsed)
+            validate_definitions(parsed)
             return json.dumps(parsed)
         except (json.JSONDecodeError, TypeError):
             return raw_data
 
+    validate_definitions(raw_data)
     return json.dumps(raw_data)
 
 

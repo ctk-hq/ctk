@@ -11,6 +11,7 @@ interface IHeaderProps {
   isLoading: boolean;
   projectData: IProject | undefined;
   isAuthenticated: boolean;
+  canEdit?: boolean;
   onSwitch: (uuid: string) => Promise<void>;
   onSignIn: () => void;
 }
@@ -26,7 +27,8 @@ const Header = (props: IHeaderProps) => {
     projectData,
     isAuthenticated,
     onSwitch,
-    onSignIn
+    onSignIn,
+    canEdit = true
   } = props;
   const [visibility, setVisibility] = useState(false);
   const [projectName, setProjectName] = useState("Untitled");
@@ -99,13 +101,17 @@ const Header = (props: IHeaderProps) => {
         />
         {BACKEND_ENABLED && (
           <div className="flex shrink-0 items-center gap-2">
-            {isAuthenticated && (
+            {isAuthenticated && canEdit && (
               <VisibilitySwitch
                 isVisible={visibility}
                 onToggle={handleVisibilityToggle}
               />
             )}
-            {isAuthenticated ? (
+            {isAuthenticated && !canEdit ? (
+              <span className="text-sm text-muted-foreground">
+                Read-only project
+              </span>
+            ) : isAuthenticated ? (
               <Button
                 type="button"
                 onClick={() => handleSave()}

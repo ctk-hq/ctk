@@ -40,6 +40,28 @@ test("serializes a modern Compose document without a legacy version key", () => 
   expect(document.volumes.assets.name).toBe("assets");
 });
 
+test("keeps references in Compose and blocks unresolved variables in Kubernetes", () => {
+  const data = {
+    services: {
+      db: {
+        image: "postgres",
+        environment: { POSTGRES_PASSWORD: "${DB_PASSWORD}" },
+        volumes: ["${BASE_PATH}/db:/data"]
+      }
+    },
+    volumes: {},
+    networks: {}
+  };
+  const compose = YAML.parse(generateDockerCompose(data));
+  expect(compose.services.db.environment.POSTGRES_PASSWORD).toBe(
+    "${DB_PASSWORD}"
+  );
+  expect(compose.services.db.volumes[0]).toBe("${BASE_PATH}/db:/data");
+  const kubernetes = generateManifest({ data }, manifestTypes.KUBERNETES);
+  expect(kubernetes.code).toBe("");
+  expect(kubernetes.error).toContain("cannot resolve Compose variables");
+});
+
 test("ignores legacy version metadata when generating Compose", () => {
   const legacyInput = {
     ...payload.data,

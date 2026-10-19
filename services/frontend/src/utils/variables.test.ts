@@ -1,0 +1,37 @@
+import {
+  dotenvLine,
+  generateEnvExample,
+  referencedVariables
+} from "./variables";
+
+test("discovers reusable Compose references throughout config and skips escaped dollars", () => {
+  expect(
+    referencedVariables({
+      services: {
+        db: {
+          environment: { PASS: "${DB_PASSWORD:?Supply a password}", TZ: "$TZ" },
+          volumes: ["${BASE_PATH:-/srv}/db:/data"],
+          command: "echo $$RUNTIME $${ESCAPED}"
+        }
+      },
+      networks: { main: { name: "${NETWORK}" } }
+    })
+  ).toEqual(["BASE_PATH", "DB_PASSWORD", "NETWORK", "TZ"]);
+});
+
+test("exports only shared defaults and blank secret values even with a stale secret default", () => {
+  const example = generateEnvExample({ env: "${IMPORTED}" }, [
+    { name: "TZ", secret: false, default: "UTC" },
+    { name: "DB_PASSWORD", secret: true, default: "must-not-export" }
+  ]);
+  expect(example).toContain('TZ="UTC"');
+  expect(example).toContain('DB_PASSWORD=""');
+  expect(example).toContain('IMPORTED=""');
+  expect(example).not.toContain("must-not-export");
+});
+
+test("quotes literal dollars, backslashes, newlines, and quotes for Compose dotenv", () => {
+  expect(dotenvLine("VALUE", 'a$SECRET\\"\n')).toBe(
+    'VALUE="a$$SECRET\\\\\\"\\n"\n'
+  );
+});

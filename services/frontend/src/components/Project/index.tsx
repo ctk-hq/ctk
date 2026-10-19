@@ -2,14 +2,15 @@ import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Dictionary } from "lodash";
-import { Globe, Box, FolderPlus } from "lucide-react";
+import { Globe, Box, FolderPlus, Braces } from "lucide-react";
 import {
   IServiceNodeItem,
   IVolumeNodeItem,
   INetworkNodeItem,
   IServiceNodePosition,
   IProject,
-  IProjectPayload
+  IProjectPayload,
+  ProjectVariable
 } from "../../types";
 import {
   createProject,
@@ -43,6 +44,7 @@ import { useTitle } from "../../hooks";
 import CodeBox from "./CodeBox";
 import CodePanel from "./CodePanel";
 import Header from "./Header";
+import VariablesModal from "./VariablesModal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { composeToCanvasGraph } from "../../utils/compose";
 import { BACKEND_ENABLED } from "../../constants";
@@ -64,6 +66,7 @@ export default function Project(props: IProjectProps) {
   const stateConnectionsRef = useRef<CanvasConnection[]>([]);
   const stateNetworksRef = useRef({});
   const stateProjectRef = useRef<IProject | undefined>(undefined);
+  const stateVariablesRef = useRef<ProjectVariable[]>([]);
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutosaveBaselineRef = useRef(false);
   const lastSavedSnapshotRef = useRef<string>("");
@@ -74,6 +77,8 @@ export default function Project(props: IProjectProps) {
   const [showModalCreateService, setShowModalCreateService] = useState(false);
   const [showVolumesModal, setShowVolumesModal] = useState(false);
   const [showNetworksModal, setShowNetworksModal] = useState(false);
+  const [showVariablesModal, setShowVariablesModal] = useState(false);
+  const [variables, setVariables] = useState<ProjectVariable[]>([]);
   const [serviceToEdit, setServiceToEdit] = useState<IServiceNodeItem | null>(
     null
   );
@@ -121,6 +126,8 @@ export default function Project(props: IProjectProps) {
   stateConnectionsRef.current = connections;
   stateNetworksRef.current = networks;
   stateProjectRef.current = data;
+  stateVariablesRef.current = variables;
+  const canEdit = !uuid || data?.can_edit !== false;
 
   const onNodeUpdate = (positionData: IServiceNodePosition) => {
     if (stateNodesRef.current) {
@@ -141,6 +148,7 @@ export default function Project(props: IProjectProps) {
 
     initializedProject.current = true;
     const canvasData = JSON.parse(data.data);
+    setVariables(canvasData.variables ?? []);
     const nodesAsList = Object.keys(canvasData.canvas.nodes).map(
       (k) => canvasData.canvas.nodes[k]
     );
@@ -161,6 +169,7 @@ export default function Project(props: IProjectProps) {
     try {
       const payload = JSON.parse(draft) as IProjectPayload;
       const canvas = payload.data.canvas;
+      setVariables(payload.data.variables ?? []);
       setNodes(canvas.nodes || {});
       setConnections(canvas.connections || []);
       setNetworks(canvas.networks || {});
@@ -207,6 +216,7 @@ export default function Project(props: IProjectProps) {
           currentProject?.visibility ??
           0,
         data: {
+          variables: stateVariablesRef.current,
           canvas: {
             position: canvasPosition,
             nodes: stateNodesRef.current,
@@ -223,7 +233,7 @@ export default function Project(props: IProjectProps) {
 
   const queueAutosave = useCallback(
     (buildAutosavePayload: () => IProjectPayload) => {
-      if (!BACKEND_ENABLED || !isAuthenticated || !uuid) {
+      if (!BACKEND_ENABLED || !isAuthenticated || !uuid || !canEdit) {
         return;
       }
 
@@ -261,7 +271,7 @@ export default function Project(props: IProjectProps) {
         autosaveTimeoutRef.current = null;
       }, 1200);
     },
-    [uuid, isAuthenticated, updateProjectMutation]
+    [uuid, isAuthenticated, canEdit, updateProjectMutation]
   );
 
   const onSave = (
@@ -269,7 +279,7 @@ export default function Project(props: IProjectProps) {
     options: { autosave?: boolean } = {}
   ) => {
     syncPendingProjectMeta(partial);
-    if (!BACKEND_ENABLED || !isAuthenticated) return;
+    if (!BACKEND_ENABLED || !isAuthenticated || !canEdit) return;
 
     if (options.autosave) {
       queueAutosave(() => buildPayload(partial));
@@ -315,7 +325,7 @@ export default function Project(props: IProjectProps) {
     }
     const payload = buildPayload();
     const snapshot = JSON.stringify(payload);
-    if (uuid && snapshot !== lastSavedSnapshotRef.current) {
+    if (uuid && canEdit && snapshot !== lastSavedSnapshotRef.current) {
       await updateProjectMutation.mutateAsync({ payload, silent: true });
     } else if (
       !uuid &&
@@ -385,6 +395,7 @@ export default function Project(props: IProjectProps) {
     connections,
     networks,
     canvasPosition,
+    variables,
     buildPayload,
     queueAutosave
   ]);
@@ -505,10 +516,32 @@ export default function Project(props: IProjectProps) {
     [connections, networks, nodes]
   );
 
+  const saveBeforeExport = async () => {
+    if (!uuid || !canEdit) return;
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+      autosaveTimeoutRef.current = null;
+    }
+    const payload = buildPayload();
+    await updateProjectMutation.mutateAsync({ payload, silent: true });
+    lastSavedSnapshotRef.current = JSON.stringify(payload);
+  };
+
   if (!isFetching) {
     if (!error) {
       return (
         <>
+          {showVariablesModal && (
+            <VariablesModal
+              variables={variables}
+              graph={codeGraphData}
+              onChange={setVariables}
+              onHide={() => setShowVariablesModal(false)}
+              projectUuid={uuid}
+              canManageValues={BACKEND_ENABLED && isAuthenticated && canEdit}
+              onSaveBeforeExport={saveBeforeExport}
+            />
+          )}
           {showNetworksModal ? (
             <ModalNetwork
               networks={networks}
@@ -580,6 +613,7 @@ export default function Project(props: IProjectProps) {
               }
               projectData={data ?? draftProject}
               isAuthenticated={isAuthenticated}
+              canEdit={canEdit}
             />
 
             <div className="relative isolate flex min-h-0 flex-1 flex-col">
@@ -613,6 +647,15 @@ export default function Project(props: IProjectProps) {
                   >
                     <Globe className="w-4" />
                     <span>Networks</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => setShowVariablesModal(true)}
+                  >
+                    <Braces className="w-4" />
+                    <span>Variables</span>
                   </Button>
                 </div>
               </div>

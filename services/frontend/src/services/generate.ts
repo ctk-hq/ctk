@@ -3,6 +3,7 @@ import YAML from "yaml";
 import { manifestTypes } from "../constants";
 import { IGeneratePayload } from "../types";
 import { kubernetesCommands } from "../utils/commands";
+import { referencedVariables } from "../utils/variables";
 
 type ManifestType = (typeof manifestTypes)[keyof typeof manifestTypes];
 type ComposeData = IGeneratePayload["data"];
@@ -555,6 +556,11 @@ const deploymentForService = (
 };
 
 export const generateKubernetes = (data: ComposeData): string => {
+  if (referencedVariables(data).length) {
+    throw new Error(
+      "Kubernetes export cannot resolve Compose variables. Use concrete non-secret configuration or native Secret/ConfigMap references before exporting."
+    );
+  }
   const documents: UnknownRecord[] = [];
   const declaredClaims = new Set<string>();
   const externalClaims = new Set<string>();

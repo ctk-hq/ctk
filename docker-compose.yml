@@ -35,6 +35,7 @@ services:
       - "9001:9001"
     environment:
       - POSTGRES_HOST=postgres
+      - CTK_VARIABLE_KEYS=${CTK_VARIABLE_KEYS:-}
       - POSTGRES_PORT=5432
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres

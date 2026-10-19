@@ -122,6 +122,7 @@ export const useUpdateProject = (uuid: string | undefined) => {
   }
 
   return useMutation({
+    scope: { id: `project-save-${uuid}` },
     mutationFn: async (mutationData: IUpdateProjectMutationPayload) => {
       requireBackend();
       if (!uuid) {

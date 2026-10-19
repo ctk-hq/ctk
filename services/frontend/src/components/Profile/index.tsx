@@ -2,6 +2,7 @@ import { LOCAL_STORAGE } from "@/constants";
 import { authSelf } from "@/reducers";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
+import PrivateValues from "../Project/PrivateValues";
 interface IProfileProps {
   dispatch: any;
   state: any;
@@ -33,6 +34,15 @@ export default function Profile({ dispatch, state }: IProfileProps) {
               )
           )}
         </dl>
+        <section
+          className="mt-10 max-w-3xl space-y-4 border-t pt-6"
+          aria-labelledby="profile-private-values"
+        >
+          <h2 id="profile-private-values" className="text-lg font-semibold">
+            My private values
+          </h2>
+          <PrivateValues />
+        </section>
       </main>
     </div>
   );

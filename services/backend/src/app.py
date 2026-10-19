@@ -27,6 +27,7 @@ from manifest_generation import (
 )
 from models import Project, User
 from security import create_access_token, decode_token, hash_password, verify_password
+from variables import router as variables_router
 from utils import (
     DEFAULT_PROJECT,
     auth_success_payload,
@@ -47,6 +48,7 @@ from utils import (
 )
 
 app = FastAPI(title="Container Toolkit API", version="1.0.0")
+app.include_router(variables_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -106,7 +108,7 @@ def list_projects(
         "count": count,
         "next": next_url,
         "previous": previous_url,
-        "results": [serialize_project(project) for project in projects],
+        "results": [serialize_project(project, current_user) for project in projects],
     }
 
 
@@ -129,7 +131,7 @@ async def create_project(
     db.add(project)
     db.commit()
     db.refresh(project)
-    return serialize_project(project)
+    return serialize_project(project, current_user)
 
 
 @app.post("/projects/import/", status_code=201)
@@ -257,7 +259,7 @@ async def import_project(
         existing.updated_at = datetime.now(UTC)
         db.commit()
         db.refresh(existing)
-        return serialize_project(existing)
+        return serialize_project(existing, current_user)
 
     project = Project(
         owner_id=current_user.id,
@@ -269,7 +271,7 @@ async def import_project(
     db.add(project)
     db.commit()
     db.refresh(project)
-    return serialize_project(project)
+    return serialize_project(project, current_user)
 
 
 @app.get("/projects/{project_uuid}/")
@@ -285,7 +287,7 @@ def get_project(
     if not can_read_project(project, current_user):
         return JSONResponse(content={}, status_code=404)
 
-    return serialize_project(project)
+    return serialize_project(project, current_user)
 
 
 @app.put("/projects/{project_uuid}/")
@@ -317,7 +319,7 @@ async def update_project(
 
     db.commit()
     db.refresh(project)
-    return serialize_project(project)
+    return serialize_project(project, current_user)
 
 
 @app.delete("/projects/{project_uuid}/")

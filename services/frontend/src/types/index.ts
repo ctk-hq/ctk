@@ -18,6 +18,8 @@ export interface IServiceNodePosition {
 
 export interface IProject {
   id: number;
+  owner_id?: number;
+  can_edit?: boolean;
   name: string;
   visibility: number;
   uuid: string;
@@ -325,6 +327,7 @@ export interface IProjectPayload {
   name: string;
   visibility: number;
   data: {
+    variables?: ProjectVariable[];
     canvas: {
       position: {
         top: number;
@@ -336,6 +339,19 @@ export interface IProjectPayload {
       networks: any;
     };
   };
+}
+
+export interface ProjectVariable {
+  name: string;
+  secret: boolean;
+  default?: string;
+}
+
+export interface PrivateVariable {
+  id: string;
+  name: string;
+  secret: boolean;
+  project_uuid: string | null;
 }
 
 export interface IGeneratePayload {
