@@ -11,8 +11,11 @@ from typing import Any, Optional
 
 from jwt import PyJWTError
 
-
 JWT_SECRET = os.getenv("JWT_SECRET", "ctk-local-dev-secret")
+if os.getenv("APP_ENV") == "production" and (
+    JWT_SECRET == "ctk-local-dev-secret" or len(JWT_SECRET) < 32
+):
+    raise RuntimeError("Production requires a JWT_SECRET of at least 32 characters.")
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_LIFETIME = timedelta(days=15)
 REFRESH_TOKEN_LIFETIME = timedelta(days=30)

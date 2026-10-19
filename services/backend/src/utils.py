@@ -10,7 +10,6 @@ from database import get_db
 from models import User
 from security import create_access_token, create_refresh_token, decode_token
 
-
 DEFAULT_PROJECT = {
     "canvas": {
         "position": {"top": 0, "left": 0, "scale": 1},
@@ -147,15 +146,11 @@ def can_read_project(project: Any, user: Any | None) -> bool:
         return True
     if project.visibility == 1:
         return True
-    if project.owner_id is None and user is None:
-        return True
     return False
 
 
 def can_edit_project(project: Any, user: Any | None) -> bool:
     if user and project.owner_id == user.id:
-        return True
-    if project.owner_id is None and user is None:
         return True
     return False
 

@@ -5,6 +5,7 @@ import yaml
 import random
 import string
 import hashlib
+import os
 
 import requests
 
@@ -14,7 +15,9 @@ from typing import Any
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy import desc, or_
+from sqlalchemy import desc, or_, func, text
+from sqlalchemy.exc import IntegrityError
+from email_validator import EmailNotValidError, validate_email
 from sqlalchemy.orm import Session
 
 from database import Base, engine, get_db
@@ -43,13 +46,18 @@ from utils import (
     _serialize_user,
 )
 
-
 app = FastAPI(title="Container Toolkit API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+        ).split(",")
+        if origin.strip()
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -69,22 +77,24 @@ def health() -> dict[str, Any]:
     return {}
 
 
+@app.get("/health")
+def readiness(db: Session = Depends(get_db)) -> dict[str, str]:
+    db.execute(text("SELECT 1"))
+    return {"status": "ok"}
+
+
 @app.get("/projects/")
 def list_projects(
     request: Request,
     limit: int = 300,
     offset: int = 0,
-    current_user: User | None = Depends(get_optional_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
     limit = max(1, min(limit, 1000))
     offset = max(0, offset)
 
-    query = db.query(Project)
-    if current_user:
-        query = query.filter(Project.owner_id == current_user.id)
-    else:
-        query = query.filter(Project.owner_id.is_(None))
+    query = db.query(Project).filter(Project.owner_id == current_user.id)
 
     count = query.count()
     projects = (
@@ -103,14 +113,14 @@ def list_projects(
 @app.post("/projects/", status_code=201)
 async def create_project(
     request: Request,
-    current_user: User | None = Depends(get_optional_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
     payload = await get_payload(request)
 
     project = Project(
-        owner_id=current_user.id if current_user else None,
-        uuid=str(uuid.uuid4())[:10],
+        owner_id=current_user.id,
+        uuid=str(uuid.uuid4()),
         name=str(payload.get("name") or "Untitled"),
         visibility=int(payload.get("visibility", 0)),
         data=normalize_project_data(payload.get("data")),
@@ -282,7 +292,7 @@ def get_project(
 async def update_project(
     project_uuid: str,
     request: Request,
-    current_user: User | None = Depends(get_optional_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Any:
     project = db.query(Project).filter(Project.uuid == project_uuid).first()
@@ -313,7 +323,7 @@ async def update_project(
 @app.delete("/projects/{project_uuid}/")
 def delete_project(
     project_uuid: str,
-    current_user: User | None = Depends(get_optional_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Any:
     project = db.query(Project).filter(Project.uuid == project_uuid).first()
@@ -361,19 +371,21 @@ async def generate_kubernetes(request: Request) -> dict[str, str]:
 async def register(request: Request, db: Session = Depends(get_db)) -> Any:
     payload = await get_payload(request)
 
-    username = str(payload.get("username") or "").strip()
     email = str(payload.get("email") or "").strip().lower()
     password1 = str(payload.get("password1") or "")
     password2 = str(payload.get("password2") or "")
 
-    if not username:
-        return JSONResponse(
-            status_code=400, content={"username": "This field is required."}
-        )
     if not email:
         return JSONResponse(
             status_code=400, content={"email": "This field is required."}
         )
+    try:
+        email = validate_email(email, check_deliverability=False).normalized.lower()
+    except EmailNotValidError:
+        return JSONResponse(
+            status_code=400, content={"email": "Enter a valid email address."}
+        )
+    username = str(payload.get("username") or email).strip()
     if not password1 or not password2:
         return JSONResponse(
             status_code=400,
@@ -384,6 +396,14 @@ async def register(request: Request, db: Session = Depends(get_db)) -> Any:
             status_code=400,
             content={"password2": "The two password fields didn't match."},
         )
+    if len(password1) < 8:
+        return JSONResponse(
+            status_code=400, content={"password": "Use at least 8 characters."}
+        )
+    if len(email) > 200 or len(username) > 200:
+        return JSONResponse(
+            status_code=400, content={"email": "Email must be 200 characters or fewer."}
+        )
 
     if db.query(User).filter(User.username == username).first():
         return JSONResponse(
@@ -391,7 +411,7 @@ async def register(request: Request, db: Session = Depends(get_db)) -> Any:
             content={"username": "A user with that username already exists."},
         )
 
-    if db.query(User).filter(User.email == email).first():
+    if db.query(User).filter(func.lower(User.email) == email).first():
         return JSONResponse(
             status_code=400,
             content={"email": "A user with that email already exists."},
@@ -403,7 +423,14 @@ async def register(request: Request, db: Session = Depends(get_db)) -> Any:
         password_hash=hash_password(password1),
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        return JSONResponse(
+            status_code=400,
+            content={"email": "An account with these details already exists."},
+        )
     db.refresh(user)
 
     return auth_success_payload(user)
@@ -413,19 +440,24 @@ async def register(request: Request, db: Session = Depends(get_db)) -> Any:
 async def login(request: Request, db: Session = Depends(get_db)) -> Any:
     payload = await get_payload(request)
 
-    username_or_email = str(payload.get("username") or "").strip()
+    username_or_email = str(
+        payload.get("email") or payload.get("username") or ""
+    ).strip()
     password = str(payload.get("password") or "")
 
     if not username_or_email or not password:
         return JSONResponse(
             status_code=400,
-            content={"detail": "Username and password are required."},
+            content={"detail": "Email and password are required."},
         )
 
     user = (
         db.query(User)
         .filter(
-            or_(User.username == username_or_email, User.email == username_or_email)
+            or_(
+                User.username == username_or_email,
+                func.lower(User.email) == username_or_email.lower(),
+            )
         )
         .first()
     )
