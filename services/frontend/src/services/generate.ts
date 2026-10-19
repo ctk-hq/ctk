@@ -51,8 +51,13 @@ const kubernetesName = (value: string, fallback = "app"): string => {
   return normalized || fallback;
 };
 
-const portName = (port: number, protocol: string, index: number): string =>
-  `port-${port}-${protocol || "tcp"}-${index}`.slice(0, 15);
+const portName = (port: number, protocol: string, index: number): string => {
+  const ending = `-${index}`;
+  const prefix = `port-${port}-${protocol || "tcp"}`
+    .slice(0, 15 - ending.length)
+    .replace(/-+$/, "");
+  return `${prefix}${ending}`;
+};
 
 const toStringArray = (value: unknown): string[] => {
   if (Array.isArray(value)) {
@@ -342,6 +347,8 @@ const convertServiceVolumes = (service: UnknownRecord): VolumeConversion => {
   const mounts: UnknownRecord[] = [];
   const volumes: UnknownRecord[] = [];
   const claims = new Set<string>();
+  const volumeNamesBySource = new Map<string, string>();
+  const usedVolumeNames = new Set<string>();
 
   if (!Array.isArray(service.volumes)) {
     return { mounts, volumes, claims };
@@ -373,10 +380,48 @@ const convertServiceVolumes = (service: UnknownRecord): VolumeConversion => {
       return;
     }
 
-    const volumeName = kubernetesName(
-      source || target.replace(/^\/+/, "") || `volume-${index}`,
-      `volume-${index}`
-    );
+    let sourceKey: string;
+    let volumeSource: UnknownRecord;
+    if (
+      source &&
+      type !== "tmpfs" &&
+      (type === "bind" || isBindSource(source))
+    ) {
+      sourceKey = JSON.stringify(["bind", source]);
+      volumeSource = {
+        hostPath: { path: hostPathFor(source), type: "DirectoryOrCreate" }
+      };
+    } else if (source && type !== "tmpfs") {
+      const claimName = kubernetesName(source, `claim-${index}`);
+      claims.add(claimName);
+      sourceKey = JSON.stringify(["volume", source]);
+      volumeSource = { persistentVolumeClaim: { claimName } };
+    } else {
+      // Each anonymous mount gets its own storage, even when names collide.
+      sourceKey = JSON.stringify(["anonymous", index]);
+      volumeSource = { emptyDir: {} };
+    }
+
+    let volumeName = volumeNamesBySource.get(sourceKey);
+    if (!volumeName) {
+      const baseName = kubernetesName(
+        source || target.replace(/^\/+/, "") || `volume-${index}`,
+        `volume-${index}`
+      );
+      volumeName = baseName;
+      let suffix = 1;
+      while (usedVolumeNames.has(volumeName)) {
+        const ending = `-${suffix++}`;
+        const prefix = baseName
+          .slice(0, 63 - ending.length)
+          .replace(/[^a-z0-9]+$/g, "");
+        volumeName = `${prefix}${ending}`;
+      }
+      volumeNamesBySource.set(sourceKey, volumeName);
+      usedVolumeNames.add(volumeName);
+      volumes.push({ name: volumeName, ...volumeSource });
+    }
+
     mounts.push(
       compactRecord({
         name: volumeName,
@@ -384,26 +429,6 @@ const convertServiceVolumes = (service: UnknownRecord): VolumeConversion => {
         readOnly: readOnly || undefined
       })
     );
-
-    if (source && type !== "tmpfs" && !isBindSource(source)) {
-      const claimName = kubernetesName(source, `claim-${index}`);
-      claims.add(claimName);
-      volumes.push({
-        name: volumeName,
-        persistentVolumeClaim: { claimName }
-      });
-      return;
-    }
-
-    if (source && (type === "bind" || isBindSource(source))) {
-      volumes.push({
-        name: volumeName,
-        hostPath: { path: hostPathFor(source), type: "DirectoryOrCreate" }
-      });
-      return;
-    }
-
-    volumes.push({ name: volumeName, emptyDir: {} });
   });
 
   return { mounts, volumes, claims };
@@ -438,6 +463,11 @@ const deploymentForService = (
   };
   const metadataLabels = { ...appLabels, ...toLabels(service.labels) };
   const ports = getPorts(service);
+  const containerPorts = [
+    ...new Map(
+      ports.map((port) => [`${port.target}:${port.protocol}`, port])
+    ).values()
+  ];
   const convertedVolumes = convertServiceVolumes(service);
   const deploy = asRecord(service.deploy);
   const entrypoint = splitCommand(service.entrypoint);
@@ -469,8 +499,8 @@ const deploymentForService = (
         ? toEnvironment(service.environment)
         : undefined,
     ports:
-      ports.length > 0
-        ? ports.map((port) => ({
+      containerPorts.length > 0
+        ? containerPorts.map((port) => ({
             name: portName(port.target, port.protocol.toLowerCase(), 0),
             containerPort: port.target,
             protocol: port.protocol
