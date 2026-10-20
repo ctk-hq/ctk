@@ -4,10 +4,19 @@ export const generatePayload = (payload: any): IGeneratePayload => {
   const nodes = payload["nodes"];
   const networks = payload["networks"] || {};
   const base: IGeneratePayload = {
+    manifestSource: payload.manifestSource,
+    nodeNames: Object.fromEntries(
+      Object.values(
+        nodes as Record<
+          string,
+          { key: string; canvasConfig: { node_name: string } }
+        >
+      ).map((node) => [node.key, node.canvasConfig.node_name])
+    ),
     data: {
-      networks: {},
-      services: {},
-      volumes: {}
+      networks: Object.create(null),
+      services: Object.create(null),
+      volumes: Object.create(null)
     }
   };
 

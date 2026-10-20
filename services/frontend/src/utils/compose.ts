@@ -29,7 +29,7 @@ const COMPOSE_RESERVED_TOP_LEVEL_KEYS = new Set([
 ]);
 
 const isRecord = (value: unknown): value is ComposeRecord => {
-  return Boolean(value) && value?.constructor === Object;
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 };
 
 const toRecord = (value: unknown): ComposeRecord => {
@@ -138,7 +138,7 @@ const getLegacyV1Services = (composeData: ComposeRecord): ComposeRecord => {
 const getExistingServicesByName = (
   nodes: ComposeNodes
 ): Record<string, IServiceNodeItem> => {
-  const map: Record<string, IServiceNodeItem> = {};
+  const map: Record<string, IServiceNodeItem> = Object.create(null);
 
   Object.values(nodes).forEach((node) => {
     if (node.type === "SERVICE") {
@@ -156,7 +156,7 @@ const getExistingServicesByName = (
 const getExistingVolumesByName = (
   nodes: ComposeNodes
 ): Record<string, IVolumeNodeItem> => {
-  const map: Record<string, IVolumeNodeItem> = {};
+  const map: Record<string, IVolumeNodeItem> = Object.create(null);
 
   Object.values(nodes).forEach((node) => {
     if (node.type === "VOLUME") {
@@ -176,7 +176,7 @@ const getExistingVolumesByName = (
 const getExistingNetworksByName = (
   networks: Record<string, INetworkNodeItem>
 ): Record<string, INetworkNodeItem> => {
-  const map: Record<string, INetworkNodeItem> = {};
+  const map: Record<string, INetworkNodeItem> = Object.create(null);
 
   Object.values(networks).forEach((networkNode) => {
     const networkName = networkNode.canvasConfig.node_name;
@@ -209,8 +209,10 @@ export const composeToCanvasGraph = (
     getExistingNetworksByName(existingNetworks);
 
   const nextNodes: ComposeNodes = {};
-  const serviceNodesByName: Record<string, IServiceNodeItem> = {};
-  const volumeNodesByName: Record<string, IVolumeNodeItem> = {};
+  const serviceNodesByName: Record<string, IServiceNodeItem> =
+    Object.create(null);
+  const volumeNodesByName: Record<string, IVolumeNodeItem> =
+    Object.create(null);
   let autoPositionIndex = 0;
 
   Object.entries(composeServices).forEach(([serviceName, rawConfig]) => {

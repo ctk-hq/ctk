@@ -11,6 +11,33 @@ from models import PrivateVariable, Project, VariableAccess
 from test_accounts_and_projects import client, headers, register  # noqa: F401
 
 
+def test_import_source_discovery_excludes_native_literals_and_snapshots():
+    from project_variables import project_variable_names
+
+    data = {
+        "canvas": {
+            "nodes": {
+                "app": {
+                    "serviceConfig": {
+                        "environment": {
+                            "VALUE": "${REAL}",
+                            "literal": "$${NATIVE_LITERAL}",
+                        }
+                    }
+                }
+            },
+            "manifestSource": {
+                "compose": {"configs": {"settings": {"file": "${CONFIG_PATH}"}}},
+                "kubernetes": {
+                    "documents": [{"data": {"literal": "${NATIVE_LITERAL}"}}],
+                    "bindings": [{"config": {"value": "${OLD_SNAPSHOT}"}}],
+                },
+            },
+        },
+    }
+    assert project_variable_names(data) == ["CONFIG_PATH", "REAL"]
+
+
 @pytest.fixture(autouse=True)
 def encryption_key(monkeypatch):
     monkeypatch.setenv("CTK_VARIABLE_KEYS", Fernet.generate_key().decode())

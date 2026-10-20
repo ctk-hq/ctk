@@ -73,10 +73,15 @@ def referenced_names(value: Any) -> set[str]:
 
 def project_variable_names(data: dict) -> list[str]:
     definitions = data.get("variables", [])
-    return sorted(
-        referenced_names(data.get("canvas", {}))
-        | {item["name"] for item in definitions}
-    )
+    canvas = data.get("canvas", {})
+    if isinstance(canvas, dict):
+        source = canvas.get("manifestSource", {})
+        canvas = {
+            key: value for key, value in canvas.items() if key != "manifestSource"
+        }
+        if isinstance(source, dict):
+            canvas["compose"] = source.get("compose", {})
+    return sorted(referenced_names(canvas) | {item["name"] for item in definitions})
 
 
 def dotenv_line(name: str, value: str) -> str:

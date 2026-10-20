@@ -4,6 +4,7 @@ import { manifestTypes } from "../constants";
 import { IGeneratePayload } from "../types";
 import { kubernetesCommands } from "../utils/commands";
 import { referencedVariables } from "../utils/variables";
+import { composeDollars, updateImportedKubernetes } from "../utils/kubernetes";
 
 type ManifestType = (typeof manifestTypes)[keyof typeof manifestTypes];
 type ComposeData = IGeneratePayload["data"];
@@ -28,8 +29,11 @@ const compactRecord = (value: UnknownRecord): UnknownRecord =>
 const stringifyYamlDocument = (document: UnknownRecord): string =>
   `---\n${YAML.stringify(document, { indent: 2, lineWidth: 0 }).trimEnd()}\n`;
 
-export const generateDockerCompose = (data: ComposeData): string => {
-  const document: UnknownRecord = { services: data.services };
+export const generateDockerCompose = (
+  data: ComposeData,
+  extra: Record<string, unknown> = {}
+): string => {
+  const document: UnknownRecord = { ...extra, services: data.services };
 
   if (Object.keys(data.networks).length > 0) {
     document.networks = data.networks;
@@ -333,7 +337,10 @@ interface VolumeConversion {
   claims: Set<string>;
 }
 
-const convertServiceVolumes = (service: UnknownRecord): VolumeConversion => {
+const convertServiceVolumes = (
+  service: UnknownRecord,
+  definitions: ComposeData["volumes"] = {}
+): VolumeConversion => {
   const mounts: UnknownRecord[] = [];
   const volumes: UnknownRecord[] = [];
   const claims = new Set<string>();
@@ -382,14 +389,20 @@ const convertServiceVolumes = (service: UnknownRecord): VolumeConversion => {
         hostPath: { path: hostPathFor(source), type: "DirectoryOrCreate" }
       };
     } else if (source && type !== "tmpfs") {
-      const claimName = kubernetesName(source, `claim-${index}`);
+      const physicalName = definitions[source]?.name;
+      const claimName = kubernetesName(
+        typeof physicalName === "string" && physicalName
+          ? physicalName
+          : source,
+        `claim-${index}`
+      );
       claims.add(claimName);
       sourceKey = JSON.stringify(["volume", source]);
       volumeSource = { persistentVolumeClaim: { claimName } };
     } else {
       // Each anonymous mount gets its own storage, even when names collide.
       sourceKey = JSON.stringify(["anonymous", index]);
-      volumeSource = { emptyDir: {} };
+      volumeSource = { emptyDir: type === "tmpfs" ? { medium: "Memory" } : {} };
     }
 
     let volumeName = volumeNamesBySource.get(sourceKey);
@@ -439,7 +452,8 @@ const persistentVolumeClaim = (name: string): UnknownRecord => ({
 
 const deploymentForService = (
   serviceName: string,
-  serviceValue: unknown
+  serviceValue: unknown,
+  volumes: ComposeData["volumes"] = {}
 ): {
   deployment: UnknownRecord;
   service?: UnknownRecord;
@@ -458,7 +472,7 @@ const deploymentForService = (
       ports.map((port) => [`${port.target}:${port.protocol}`, port])
     ).values()
   ];
-  const convertedVolumes = convertServiceVolumes(service);
+  const convertedVolumes = convertServiceVolumes(service, volumes);
   const deploy = asRecord(service.deploy);
   let commands: ReturnType<typeof kubernetesCommands>;
   try {
@@ -555,8 +569,9 @@ const deploymentForService = (
   };
 };
 
-export const generateKubernetes = (data: ComposeData): string => {
-  if (referencedVariables(data).length) {
+export const generateKubernetes = (input: ComposeData): string => {
+  const data = composeDollars(input, "unescape");
+  if (referencedVariables(input).length) {
     throw new Error(
       "Kubernetes export cannot resolve Compose variables. Use concrete non-secret configuration or native Secret/ConfigMap references before exporting."
     );
@@ -580,7 +595,8 @@ export const generateKubernetes = (data: ComposeData): string => {
   });
 
   const convertedServices = Object.entries(data.services).map(
-    ([serviceName, service]) => deploymentForService(serviceName, service)
+    ([serviceName, service]) =>
+      deploymentForService(serviceName, service, data.volumes)
   );
 
   convertedServices.forEach(({ claims }) => {
@@ -615,10 +631,44 @@ export const generateManifest = (
 ): GenerateResult => {
   try {
     if (manifest === manifestTypes.KUBERNETES) {
+      if (payload.manifestSource?.kubernetes) {
+        const { documents, remaining } = updateImportedKubernetes(
+          payload,
+          (name, service) =>
+            deploymentForService(
+              name,
+              composeDollars(service, "unescape"),
+              payload.data.volumes
+            )
+        );
+        if (Object.keys(remaining.services).length) {
+          const generated = YAML.parseAllDocuments(
+            generateKubernetes(remaining)
+          ).map((document) => document.toJSON());
+          for (const resource of generated) {
+            const existing = documents.find(
+              (document) =>
+                document.kind === resource.kind &&
+                document.metadata.name === resource.metadata.name &&
+                (document.metadata.namespace || "default") ===
+                  (resource.metadata.namespace || "default")
+            );
+            if (existing?.kind === "PersistentVolumeClaim") continue;
+            if (existing)
+              throw new Error(
+                `A generated ${resource.kind}/${resource.metadata.name} conflicts with an imported resource. Choose a different service name.`
+              );
+            documents.push(resource);
+          }
+        }
+        return { code: documents.map(stringifyYamlDocument).join("\n") };
+      }
       return { code: generateKubernetes(payload.data) };
     }
 
-    return { code: generateDockerCompose(payload.data) };
+    return {
+      code: generateDockerCompose(payload.data, payload.manifestSource?.compose)
+    };
   } catch (error) {
     return {
       code: "",

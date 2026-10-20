@@ -35,3 +35,29 @@ test("quotes literal dollars, backslashes, newlines, and quotes for Compose dote
     'VALUE="a$$SECRET\\\\\\"\\n"\n'
   );
 });
+
+test("discovers imported Compose sections while excluding native text and import snapshots", () => {
+  const example = generateEnvExample(
+    {
+      nodes: {
+        app: {
+          serviceConfig: {
+            environment: { VALUE: "${REAL}", literal: "$${NATIVE_LITERAL}" }
+          }
+        }
+      },
+      manifestSource: {
+        compose: { configs: { settings: { file: "${CONFIG_PATH}" } } },
+        kubernetes: {
+          documents: [{ data: { literal: "${NATIVE_LITERAL}" } }],
+          bindings: [{ config: { value: "${OLD_SNAPSHOT}" } }]
+        }
+      }
+    },
+    []
+  );
+  expect(example).toContain('REAL=""');
+  expect(example).toContain('CONFIG_PATH=""');
+  expect(example).not.toContain("NATIVE_LITERAL");
+  expect(example).not.toContain("OLD_SNAPSHOT");
+});

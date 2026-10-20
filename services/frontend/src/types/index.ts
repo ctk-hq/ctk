@@ -329,6 +329,7 @@ export interface IProjectPayload {
   data: {
     variables?: ProjectVariable[];
     canvas: {
+      manifestSource?: ManifestSource;
       position: {
         top: number;
         left: number;
@@ -355,11 +356,30 @@ export interface PrivateVariable {
 }
 
 export interface IGeneratePayload {
+  manifestSource?: ManifestSource;
+  nodeNames?: Record<string, string>;
   data: {
     networks: Record<string, Partial<INetworkTopLevel>>;
     services: Record<string, Partial<IService>>;
     volumes: Record<string, Partial<IVolumeTopLevel>>;
   };
+}
+
+export interface KubernetesBinding {
+  serviceName: string;
+  nodeKey?: string;
+  documentIndex: number;
+  containerIndex: number;
+  config: Partial<IService>;
+}
+
+export interface ManifestSource {
+  compose?: Record<string, unknown>;
+  kubernetes?: {
+    documents: Record<string, any>[];
+    bindings: KubernetesBinding[];
+  };
+  warnings?: string[];
 }
 
 export interface IEditServiceForm {

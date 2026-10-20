@@ -1,4 +1,4 @@
-import type { ProjectVariable } from "../types";
+import type { ManifestSource, ProjectVariable } from "../types";
 
 export const variableNamePattern = /^[A-Za-z_][A-Za-z0-9_]{0,127}$/;
 
@@ -26,13 +26,24 @@ export function dotenvLine(name: string, value: string): string {
   return `${name}=${JSON.stringify(value.replaceAll("$", () => "$$"))}\n`;
 }
 
+export function projectReferencedVariables(graph: unknown): string[] {
+  if (!graph || typeof graph !== "object" || Array.isArray(graph))
+    return referencedVariables(graph);
+  const { manifestSource, ...canvas } = graph as Record<string, unknown>;
+  // Native Kubernetes text and import snapshots are not Compose expressions.
+  return referencedVariables({
+    canvas,
+    compose: (manifestSource as ManifestSource | undefined)?.compose
+  });
+}
+
 export function generateEnvExample(
   graph: unknown,
   variables: ProjectVariable[]
 ): string {
   const names = [
     ...new Set([
-      ...referencedVariables(graph),
+      ...projectReferencedVariables(graph),
       ...variables.map((variable) => variable.name)
     ])
   ].sort();

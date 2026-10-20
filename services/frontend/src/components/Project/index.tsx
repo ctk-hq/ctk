@@ -10,7 +10,8 @@ import {
   IServiceNodePosition,
   IProject,
   IProjectPayload,
-  ProjectVariable
+  ProjectVariable,
+  ManifestSource
 } from "../../types";
 import {
   createProject,
@@ -47,6 +48,7 @@ import Header from "./Header";
 import VariablesModal from "./VariablesModal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { composeToCanvasGraph } from "../../utils/compose";
+import type { ManifestImport } from "../../utils/manifests";
 import { BACKEND_ENABLED } from "../../constants";
 
 interface IProjectProps {
@@ -67,6 +69,7 @@ export default function Project(props: IProjectProps) {
   const stateNetworksRef = useRef({});
   const stateProjectRef = useRef<IProject | undefined>(undefined);
   const stateVariablesRef = useRef<ProjectVariable[]>([]);
+  const stateManifestSourceRef = useRef<ManifestSource | undefined>(undefined);
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutosaveBaselineRef = useRef(false);
   const lastSavedSnapshotRef = useRef<string>("");
@@ -79,6 +82,7 @@ export default function Project(props: IProjectProps) {
   const [showNetworksModal, setShowNetworksModal] = useState(false);
   const [showVariablesModal, setShowVariablesModal] = useState(false);
   const [variables, setVariables] = useState<ProjectVariable[]>([]);
+  const [manifestSource, setManifestSource] = useState<ManifestSource>();
   const [serviceToEdit, setServiceToEdit] = useState<IServiceNodeItem | null>(
     null
   );
@@ -127,6 +131,7 @@ export default function Project(props: IProjectProps) {
   stateNetworksRef.current = networks;
   stateProjectRef.current = data;
   stateVariablesRef.current = variables;
+  stateManifestSourceRef.current = manifestSource;
   const canEdit = !uuid || data?.can_edit !== false;
 
   const onNodeUpdate = (positionData: IServiceNodePosition) => {
@@ -149,6 +154,7 @@ export default function Project(props: IProjectProps) {
     initializedProject.current = true;
     const canvasData = JSON.parse(data.data);
     setVariables(canvasData.variables ?? []);
+    setManifestSource(canvasData.canvas.manifestSource);
     const nodesAsList = Object.keys(canvasData.canvas.nodes).map(
       (k) => canvasData.canvas.nodes[k]
     );
@@ -169,6 +175,7 @@ export default function Project(props: IProjectProps) {
     try {
       const payload = JSON.parse(draft) as IProjectPayload;
       const canvas = payload.data.canvas;
+      setManifestSource(canvas.manifestSource);
       setVariables(payload.data.variables ?? []);
       setNodes(canvas.nodes || {});
       setConnections(canvas.connections || []);
@@ -218,6 +225,7 @@ export default function Project(props: IProjectProps) {
         data: {
           variables: stateVariablesRef.current,
           canvas: {
+            manifestSource: stateManifestSourceRef.current,
             position: canvasPosition,
             nodes: stateNodesRef.current,
             connections: stateConnectionsRef.current,
@@ -396,13 +404,14 @@ export default function Project(props: IProjectProps) {
     networks,
     canvasPosition,
     variables,
+    manifestSource,
     buildPayload,
     queueAutosave
   ]);
 
-  const onCodeUpdate = useCallback((composeData: unknown): void => {
+  const onCodeUpdate = useCallback((imported: ManifestImport): void => {
     const nextGraph = composeToCanvasGraph(
-      composeData,
+      imported.data,
       (stateNodesRef.current as Dictionary<
         IServiceNodeItem | IVolumeNodeItem
       >) || {},
@@ -412,6 +421,34 @@ export default function Project(props: IProjectProps) {
     stateNodesRef.current = nextGraph.nodes;
     stateConnectionsRef.current = nextGraph.connections as CanvasConnection[];
     stateNetworksRef.current = nextGraph.networks as any;
+    const previousSource = imported.replaceSource
+      ? undefined
+      : stateManifestSourceRef.current;
+    const source: ManifestSource = {
+      ...previousSource,
+      ...imported.source,
+      warnings: [
+        ...new Set([
+          ...(previousSource?.warnings ?? []),
+          ...(imported.source.warnings ?? [])
+        ])
+      ]
+    };
+    if (imported.source.kubernetes) {
+      source.kubernetes = {
+        ...imported.source.kubernetes,
+        bindings: imported.source.kubernetes.bindings.map((binding) => ({
+          ...binding,
+          nodeKey: Object.values(nextGraph.nodes).find(
+            (node) =>
+              node.type === "SERVICE" &&
+              node.canvasConfig.node_name === binding.serviceName
+          )?.key
+        }))
+      };
+    }
+    stateManifestSourceRef.current = source;
+    setManifestSource(source);
 
     setNodes(nextGraph.nodes);
     setConnections(nextGraph.connections as CanvasConnection[]);
@@ -512,8 +549,8 @@ export default function Project(props: IProjectProps) {
   );
 
   const codeGraphData = useMemo(
-    () => ({ connections, networks, nodes }),
-    [connections, networks, nodes]
+    () => ({ connections, networks, nodes, manifestSource }),
+    [connections, networks, nodes, manifestSource]
   );
 
   const saveBeforeExport = async () => {
@@ -700,6 +737,7 @@ export default function Project(props: IProjectProps) {
                 <CodeBox
                   graphData={codeGraphData}
                   onCodeUpdate={onCodeUpdate}
+                  canEdit={canEdit}
                 />
               </CodePanel>
             </div>

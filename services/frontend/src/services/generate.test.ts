@@ -40,6 +40,40 @@ test("serializes a modern Compose document without a legacy version key", () => 
   expect(document.volumes.assets.name).toBe("assets");
 });
 
+test("existing volume names resolve to external claims and tmpfs remains memory-backed", () => {
+  const data = {
+    services: {
+      app: {
+        image: "busybox",
+        volumes: ["data:/data", { type: "tmpfs", target: "/tmp" }]
+      }
+    },
+    networks: {},
+    volumes: { data: { external: true, name: "existing-claim" } }
+  };
+  const result = generateManifest(
+    { data: data as any },
+    manifestTypes.KUBERNETES
+  );
+  expect(result.error).toBeUndefined();
+  const docs = YAML.parseAllDocuments(result.code).map((document) =>
+    document.toJSON()
+  );
+  expect(
+    docs.some((document) => document.kind === "PersistentVolumeClaim")
+  ).toBe(false);
+  const volumes = docs[0].spec.template.spec.volumes;
+  expect(
+    volumes.some(
+      (volume: any) =>
+        volume.persistentVolumeClaim?.claimName === "existing-claim"
+    )
+  ).toBe(true);
+  expect(
+    volumes.some((volume: any) => volume.emptyDir?.medium === "Memory")
+  ).toBe(true);
+});
+
 test("keeps references in Compose and blocks unresolved variables in Kubernetes", () => {
   const data = {
     services: {

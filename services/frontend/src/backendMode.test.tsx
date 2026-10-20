@@ -179,6 +179,30 @@ test.each(["/projects/new", "/projects/saved-project"])(
   }
 );
 
+test("Kubernetes paste updates the project graph, produces Compose, and retains native resources when switching back", async () => {
+  renderApp("/projects/new");
+  const editor = await screen.findByRole("textbox", { name: "Manifest" });
+  await waitFor(() =>
+    expect((editor as HTMLTextAreaElement).value).toContain("services:")
+  );
+  const text =
+    "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: imported-app\nspec:\n  selector:\n    matchLabels: {app: imported-app}\n  template:\n    metadata:\n      labels: {app: imported-app}\n    spec:\n      containers:\n        - name: app\n          image: nginx:alpine\n---\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: settings\ndata:\n  mode: demo\n";
+  fireEvent.change(editor, { target: { value: text } });
+  await waitFor(() =>
+    expect(screen.getByTestId("canvas")).toHaveTextContent("imported-app")
+  );
+  fireEvent.click(screen.getByRole("radio", { name: "Compose" }));
+  await waitFor(() =>
+    expect((editor as HTMLTextAreaElement).value).toContain("services:")
+  );
+  expect((editor as HTMLTextAreaElement).value).toContain("nginx:alpine");
+  fireEvent.click(screen.getByRole("radio", { name: "Kubernetes" }));
+  await waitFor(() =>
+    expect((editor as HTMLTextAreaElement).value).toContain("kind: ConfigMap")
+  );
+  expect((editor as HTMLTextAreaElement).value).toContain("mode: demo");
+});
+
 test("rejects direct backend requests while disabled", async () => {
   const calls = [
     logIn("user", "password"),
@@ -245,4 +269,36 @@ test("restores account links, project saving, and backend requests when enabled"
     uuid: "new-project"
   });
   expect(axios).toHaveBeenCalledOnce();
+});
+
+test("sign-in drafts retain imported native resources and graph bindings when reopened", async () => {
+  config.backendEnabled = true;
+  const first = renderApp("/projects/new");
+  const editor = await screen.findByRole("textbox", { name: "Manifest" });
+  const text =
+    "apiVersion: v1\nkind: Pod\nmetadata:\n  name: imported-draft\nspec:\n  serviceAccountName: application\n  containers:\n    - name: app\n      image: nginx:alpine\n";
+  fireEvent.change(editor, { target: { value: text } });
+  await waitFor(() =>
+    expect(screen.getByTestId("canvas")).toHaveTextContent("imported-draft")
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Log in to save" }));
+  const saved = JSON.parse(sessionStorage.getItem("ctk-project-draft")!);
+  const source = saved.data.canvas.manifestSource.kubernetes;
+  expect(source.documents[0].spec.serviceAccountName).toBe("application");
+  expect(
+    saved.data.canvas.nodes[source.bindings[0].nodeKey].canvasConfig.node_name
+  ).toBe("imported-draft");
+  first.unmount();
+  renderApp("/projects/new");
+  await waitFor(() =>
+    expect(screen.getByTestId("canvas")).toHaveTextContent("imported-draft")
+  );
+  fireEvent.click(screen.getByRole("radio", { name: "Kubernetes" }));
+  await waitFor(() =>
+    expect(
+      (screen.getByRole("textbox", { name: "Manifest" }) as HTMLTextAreaElement)
+        .value
+    ).toContain("serviceAccountName: application")
+  );
+  expect(sessionStorage.getItem("ctk-project-draft")).toBeNull();
 });

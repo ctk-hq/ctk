@@ -289,7 +289,7 @@ export const validationSchema = yup.object({
   ),
   ports: yup.array(
     yup.object({
-      hostPort: (yup.string().required("Host port is required") as any).port(
+      hostPort: (yup.string() as any).port(
         "Host port should be an integer in the range 0-65535"
       ),
       containerPort: (yup.string() as any).port(
@@ -297,7 +297,10 @@ export const validationSchema = yup.object({
       ),
       protocol: yup
         .string()
-        .oneOf(["tcp", "udp"], "Protocol should be tcp or udp")
+        .oneOf(
+          ["", "tcp", "udp", "sctp"],
+          "Protocol should be tcp, udp, or sctp"
+        )
     })
   ),
   environmentVariables: yup.array(
@@ -307,7 +310,10 @@ export const validationSchema = yup.object({
   ),
   volumes: yup.array(
     yup.object({
-      name: yup.string().required("Name is required"),
+      name: yup.string().when("containerPath", {
+        is: (value: string) => !value,
+        then: (schema) => schema.required("Name or container path is required")
+      }),
       containerPath: yup.string(),
       accessMode: yup.string()
     })
@@ -384,9 +390,17 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     working_dir
   } = serviceConfig;
 
-  const volumes0: string[] = checkArray(volumes ?? [], "volumes");
-  const ports0: string[] = checkArray(ports ?? [], "ports");
-  const [imageName, imageTag] = (image ?? ":").split(":");
+  const volumes0: any[] = checkArray(volumes ?? [], "volumes");
+  const ports0: any[] = checkArray(ports ?? [], "ports");
+  const imageReference = image ?? "";
+  const tagSeparator = imageReference.lastIndexOf(":");
+  const hasTag =
+    !imageReference.includes("@") &&
+    tagSeparator > imageReference.lastIndexOf("/");
+  const imageName = hasTag
+    ? imageReference.slice(0, tagSeparator)
+    : imageReference;
+  const imageTag = hasTag ? imageReference.slice(tagSeparator + 1) : "";
 
   return {
     capAdd: [...(cap_add ?? initialValues.capAdd)],
@@ -555,6 +569,14 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
       extractObjectOrArray("=", "key", "value", environment) ??
       initialValues.environmentVariables,
     volumes: volumes0.map((volume) => {
+      if (typeof volume !== "string")
+        return {
+          name: volume.source ?? "",
+          containerPath: volume.target ?? "",
+          accessMode: volume.read_only ? "ro" : ""
+        };
+      if (!volume.includes(":"))
+        return { name: "", containerPath: volume, accessMode: "" };
       const [name, containerPath, accessMode] = volume.split(":");
       return {
         name,
@@ -562,16 +584,30 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
         accessMode
       };
     }),
-    networks: (networks as string[]) ?? (initialValues.networks as string[]),
+    networks: Array.isArray(networks)
+      ? networks
+      : networks
+        ? Object.keys(networks)
+        : initialValues.networks,
     ports: ports0.map((port) => {
+      if (typeof port !== "string") {
+        if (typeof port === "number")
+          return { hostPort: "", containerPort: String(port), protocol: "" };
+        return {
+          hostPort: port.published === undefined ? "" : String(port.published),
+          containerPort: String(port.target ?? ""),
+          protocol: port.protocol ?? ""
+        };
+      }
       const slashIndex = port.lastIndexOf("/");
       const protocol = slashIndex >= 0 ? port.substring(slashIndex + 1) : "";
-      const [hostPort, containerPort] =
-        slashIndex >= 0
-          ? port.substring(0, slashIndex).split(":")
-          : port.split(":");
+      const parts = (
+        slashIndex >= 0 ? port.substring(0, slashIndex) : port
+      ).split(":");
+      const containerPort = parts.at(-1) ?? "";
+      const hostPort = parts.length > 1 ? (parts.at(-2) ?? "") : "";
 
-      if (!["", "tcp", "udp"].includes(protocol)) {
+      if (!["", "tcp", "udp", "sctp"].includes(protocol)) {
         throw new Error(
           `Invalid protocol "${protocol}" found while deserializing.`
         );
@@ -635,13 +671,14 @@ export const getFinalValues = (
     workingDir
   } = values;
 
-  return {
+  const result: IServiceNodeItem = {
     key: previous?.key ?? "service",
     type: "SERVICE",
     position: previous?.position ?? { left: 0, top: 0 },
     inputs: previous?.inputs ?? ["op_source"],
     outputs: previous?.outputs ?? [],
     canvasConfig: {
+      ...previous?.canvasConfig,
       node_name: values.serviceName
     },
     serviceConfig: {
@@ -732,8 +769,10 @@ export const getFinalValues = (
       volumes: pruneArray(
         volumes.map(
           (volume) =>
-            volume.name +
-            (volume.containerPath ? `:${volume.containerPath}` : "") +
+            (volume.name
+              ? volume.name +
+                (volume.containerPath ? `:${volume.containerPath}` : "")
+              : volume.containerPath) +
             (volume.accessMode ? `:${volume.accessMode}` : "")
         )
       ),
@@ -741,9 +780,10 @@ export const getFinalValues = (
       ports: pruneArray(
         ports.map(
           (port) =>
-            port.hostPort +
-            (port.containerPort ? `:${port.containerPort}` : "") +
-            (port.protocol ? `/${port.protocol}` : "")
+            (port.hostPort
+              ? port.hostPort +
+                (port.containerPort ? `:${port.containerPort}` : "")
+              : port.containerPort) + (port.protocol ? `/${port.protocol}` : "")
         )
       ),
       profiles: pruneArray(profiles),
@@ -752,4 +792,41 @@ export const getFinalValues = (
       working_dir: pruneString(workingDir)
     }
   };
+  if (previous) {
+    const baseline = getFinalValues(getInitialValues(previous)).serviceConfig;
+    const edited = result.serviceConfig as Record<string, unknown>;
+    const original = previous.serviceConfig as Record<string, unknown>;
+    // Preserve raw syntax and fields the form does not edit. A changed field,
+    // including an explicit deletion, still replaces its original value.
+    result.serviceConfig = { ...original, ...edited };
+    for (const key of Object.keys(edited)) {
+      if (
+        JSON.stringify(edited[key]) ===
+        JSON.stringify((baseline as Record<string, unknown>)[key])
+      ) {
+        if (Object.hasOwn(original, key))
+          (result.serviceConfig as Record<string, unknown>)[key] =
+            original[key];
+        else delete (result.serviceConfig as Record<string, unknown>)[key];
+      }
+    }
+    // Older CTK projects used strings here; retain the existing migration.
+    const originalPreferences =
+      previous.serviceConfig.deploy?.placement?.preferences;
+    if (
+      Array.isArray(originalPreferences) &&
+      originalPreferences.some(
+        (preference: unknown) => typeof preference === "string"
+      )
+    ) {
+      result.serviceConfig.deploy = {
+        ...result.serviceConfig.deploy,
+        placement: {
+          ...result.serviceConfig.deploy?.placement,
+          preferences: baseline.deploy?.placement?.preferences
+        }
+      };
+    }
+  }
+  return result;
 };

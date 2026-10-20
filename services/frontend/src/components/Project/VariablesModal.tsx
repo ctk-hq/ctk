@@ -10,7 +10,7 @@ import type { ProjectVariable } from "../../types";
 import {
   downloadText,
   generateEnvExample,
-  referencedVariables,
+  projectReferencedVariables,
   variableNamePattern
 } from "../../utils/variables";
 import PrivateValues from "./PrivateValues";
@@ -40,7 +40,7 @@ export default function VariablesModal({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [exporting, setExporting] = useState(false);
-  const references = referencedVariables(graph);
+  const references = projectReferencedVariables(graph);
   const undeclared = references.filter(
     (reference) => !variables.some((variable) => variable.name === reference)
   );

@@ -3,6 +3,7 @@ import { manifestTypes } from "../../../../constants";
 import { generateManifest } from "../../../../services/generate";
 import type { ContainerCommand, IServiceNodeItem } from "../../../../types";
 import { generatePayload } from "../../../../utils/generators";
+import { composeToCanvasGraph } from "../../../../utils/compose";
 import {
   getFinalValues,
   getInitialValues,
@@ -32,6 +33,52 @@ function composeDocument(node: IServiceNodeItem) {
   expect(result.error).toBeUndefined();
   return YAML.parse(result.code);
 }
+
+test("an unrelated form edit preserves imported long syntax, native settings, and registry image references", () => {
+  const config = {
+    image: "registry.example.com:5000/team/app:1.2",
+    user: "1000:1000",
+    read_only: true,
+    healthcheck: { test: ["CMD", "true"] },
+    secrets: ["credentials"],
+    configs: ["settings"],
+    ports: [{ target: 80, published: "8080", host_ip: "127.0.0.1" }],
+    volumes: [
+      {
+        type: "volume",
+        source: "data",
+        target: "/data",
+        read_only: true,
+        volume: { nocopy: true }
+      }
+    ],
+    networks: { internal: { aliases: ["app"] } }
+  };
+  const graph = composeToCanvasGraph({ services: { app: config } });
+  const node = Object.values(graph.nodes)[0] as IServiceNodeItem;
+  const values = getInitialValues(node);
+  expect(values.imageName).toBe("registry.example.com:5000/team/app");
+  expect(values.imageTag).toBe("1.2");
+  expect(values.volumes[0].containerPath).toBe("/data");
+  expect(values.ports[0].containerPort).toBe("80");
+  values.workingDir = "/srv/app";
+  const saved = getFinalValues(values, node);
+  expect(JSON.parse(JSON.stringify(saved.serviceConfig))).toEqual({
+    ...config,
+    working_dir: "/srv/app"
+  });
+});
+
+test("an explicit form deletion removes only its selected field", () => {
+  const node = getFinalValues(serviceForm());
+  node.serviceConfig.working_dir = "/srv";
+  node.serviceConfig.read_only = true;
+  const values = getInitialValues(node);
+  values.workingDir = "";
+  const saved = getFinalValues(values, node);
+  expect(composeDocument(saved).services.web.working_dir).toBeUndefined();
+  expect(saved.serviceConfig.read_only).toBe(true);
+});
 
 test("saves, reopens, and exports capability lists to Compose and Kubernetes", async () => {
   const values = serviceForm();
