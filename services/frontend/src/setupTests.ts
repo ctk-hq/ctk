@@ -15,3 +15,17 @@ Object.defineProperty(globalThis, "localStorage", {
     setItem: (key: string, value: string) => values.set(key, String(value))
   }
 });
+
+// Radix measures checkbox controls with ResizeObserver; jsdom has no layout.
+if (!globalThis.ResizeObserver)
+  globalThis.ResizeObserver = class {
+    observe() {
+      /* jsdom has no layout to observe. */
+    }
+    unobserve() {
+      /* No observer resources are allocated. */
+    }
+    disconnect() {
+      /* No observer resources are allocated. */
+    }
+  } as typeof ResizeObserver;

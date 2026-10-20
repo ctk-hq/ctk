@@ -37,7 +37,16 @@ export default function FormModal({
   );
   const handleCreate = useCallback(
     async (values: any, formik: any) => {
-      await onCreate(getFinalValues(values, selectedNode), values, formik);
+      try {
+        await onCreate(getFinalValues(values, selectedNode), values, formik);
+        formik.setStatus(undefined);
+      } catch (error) {
+        formik.setStatus(
+          error instanceof Error
+            ? error.message
+            : "Unable to save these settings."
+        );
+      }
     },
     [getFinalValues, onCreate, selectedNode]
   );
@@ -80,6 +89,11 @@ export default function FormModal({
                 ))}
               </div>
             </Tabs>
+            {formik.status && (
+              <p role="alert" className="px-6 pb-4 text-sm text-destructive">
+                {formik.status}
+              </p>
+            )}
             <DialogFooter>
               <Button variant="outline" onClick={onHide}>
                 Cancel

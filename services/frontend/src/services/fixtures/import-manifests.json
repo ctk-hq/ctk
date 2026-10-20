@@ -1,0 +1,561 @@
+[
+  {
+    "name": "compose-top-level-and-long-syntax",
+    "manifest": {
+      "name": "demo",
+      "x-team": {
+        "owner": "example"
+      },
+      "services": {
+        "web": {
+          "image": "registry.example.com:5000/team/web:1.2",
+          "build": "./web",
+          "ports": [
+            {
+              "target": 80,
+              "published": "8080",
+              "host_ip": "127.0.0.1"
+            }
+          ],
+          "env_file": [
+            {
+              "path": "./app.env",
+              "required": false
+            }
+          ],
+          "depends_on": {
+            "db": {
+              "condition": "service_healthy",
+              "restart": true
+            }
+          },
+          "volumes": ["assets:/data:ro"],
+          "networks": {
+            "private": {
+              "aliases": ["api"]
+            }
+          }
+        },
+        "db": {
+          "image": "postgres"
+        }
+      },
+      "volumes": {
+        "assets": {
+          "external": true,
+          "name": "shared-assets"
+        }
+      },
+      "networks": {
+        "private": {
+          "internal": true
+        }
+      },
+      "configs": {
+        "settings": {
+          "file": "./settings.conf"
+        }
+      },
+      "secrets": {
+        "password": {
+          "external": true
+        }
+      }
+    },
+    "services": {
+      "web": {
+        "image": "registry.example.com:5000/team/web:1.2",
+        "build": "./web",
+        "ports": [
+          {
+            "target": 80,
+            "published": "8080",
+            "host_ip": "127.0.0.1"
+          }
+        ],
+        "env_file": [
+          {
+            "path": "./app.env",
+            "required": false
+          }
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "restart": true
+          }
+        },
+        "volumes": ["assets:/data:ro"],
+        "networks": {
+          "private": {
+            "aliases": ["api"]
+          }
+        }
+      },
+      "db": {
+        "image": "postgres"
+      }
+    },
+    "volumes": {
+      "assets": {
+        "external": true,
+        "name": "shared-assets"
+      }
+    },
+    "compose": {
+      "name": "demo",
+      "x-team": {
+        "owner": "example"
+      },
+      "configs": {
+        "settings": {
+          "file": "./settings.conf"
+        }
+      },
+      "secrets": {
+        "password": {
+          "external": true
+        }
+      }
+    }
+  },
+  {
+    "name": "native-list-sidecars-claims-and-dollars",
+    "manifest": {
+      "apiVersion": "v1",
+      "kind": "List",
+      "items": [
+        {
+          "apiVersion": "v1",
+          "kind": "PersistentVolumeClaim",
+          "metadata": {
+            "name": "assets",
+            "namespace": "demo"
+          },
+          "spec": {
+            "accessModes": ["ReadWriteMany"],
+            "resources": {
+              "requests": {
+                "storage": "7Gi"
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "v1",
+          "kind": "Pod",
+          "metadata": {
+            "name": "web",
+            "namespace": "demo"
+          },
+          "spec": {
+            "initContainers": [
+              {
+                "name": "init",
+                "image": "busybox"
+              }
+            ],
+            "containers": [
+              {
+                "name": "app",
+                "image": "nginx",
+                "args": ["echo $HOME ${VALUE}"],
+                "env": [
+                  {
+                    "name": "VALUE",
+                    "value": "$literal"
+                  },
+                  {
+                    "name": "TOKEN",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "credentials",
+                        "key": "token"
+                      }
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "containerPort": 80
+                  }
+                ],
+                "securityContext": {
+                  "runAsUser": 1000,
+                  "capabilities": {
+                    "add": ["NET_ADMIN"]
+                  }
+                },
+                "resources": {
+                  "requests": {
+                    "cpu": "250m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "1",
+                    "memory": "256Mi"
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "assets",
+                    "mountPath": "/data",
+                    "readOnly": true
+                  }
+                ]
+              },
+              {
+                "name": "sidecar",
+                "image": "busybox"
+              }
+            ],
+            "volumes": [
+              {
+                "name": "assets",
+                "persistentVolumeClaim": {
+                  "claimName": "assets"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "example.io/v1",
+          "kind": "Widget",
+          "metadata": {
+            "name": "custom"
+          },
+          "spec": {
+            "preserved": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "web-app": {
+        "image": "nginx",
+        "command": ["echo $$HOME $${VALUE}"],
+        "environment": {
+          "VALUE": "$$literal"
+        },
+        "expose": ["80"],
+        "user": "1000",
+        "cap_add": ["NET_ADMIN"],
+        "deploy": {
+          "resources": {
+            "limits": {
+              "cpus": "1",
+              "memory": "268435456"
+            },
+            "reservations": {
+              "cpus": "0.25",
+              "memory": "134217728"
+            }
+          }
+        },
+        "volumes": [
+          {
+            "type": "volume",
+            "source": "assets",
+            "target": "/data",
+            "read_only": true
+          }
+        ]
+      },
+      "web-sidecar": {
+        "image": "busybox"
+      }
+    },
+    "volumes": {
+      "assets": {
+        "name": "assets",
+        "external": true
+      }
+    },
+    "native": [
+      {
+        "apiVersion": "v1",
+        "kind": "PersistentVolumeClaim",
+        "metadata": {
+          "name": "assets",
+          "namespace": "demo"
+        },
+        "spec": {
+          "accessModes": ["ReadWriteMany"],
+          "resources": {
+            "requests": {
+              "storage": "7Gi"
+            }
+          }
+        }
+      },
+      {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "metadata": {
+          "name": "web",
+          "namespace": "demo"
+        },
+        "spec": {
+          "initContainers": [
+            {
+              "name": "init",
+              "image": "busybox"
+            }
+          ],
+          "containers": [
+            {
+              "name": "app",
+              "image": "nginx",
+              "args": ["echo $HOME ${VALUE}"],
+              "env": [
+                {
+                  "name": "VALUE",
+                  "value": "$literal"
+                },
+                {
+                  "name": "TOKEN",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "credentials",
+                      "key": "token"
+                    }
+                  }
+                }
+              ],
+              "ports": [
+                {
+                  "containerPort": 80
+                }
+              ],
+              "securityContext": {
+                "runAsUser": 1000,
+                "capabilities": {
+                  "add": ["NET_ADMIN"]
+                }
+              },
+              "resources": {
+                "requests": {
+                  "cpu": "250m",
+                  "memory": "128Mi"
+                },
+                "limits": {
+                  "cpu": "1",
+                  "memory": "256Mi"
+                }
+              },
+              "volumeMounts": [
+                {
+                  "name": "assets",
+                  "mountPath": "/data",
+                  "readOnly": true
+                }
+              ]
+            },
+            {
+              "name": "sidecar",
+              "image": "busybox"
+            }
+          ],
+          "volumes": [
+            {
+              "name": "assets",
+              "persistentVolumeClaim": {
+                "claimName": "assets"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "apiVersion": "example.io/v1",
+        "kind": "Widget",
+        "metadata": {
+          "name": "custom"
+        },
+        "spec": {
+          "preserved": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "cronjob-and-resource-units",
+    "manifest": {
+      "apiVersion": "batch/v1",
+      "kind": "CronJob",
+      "metadata": {
+        "name": "cleanup"
+      },
+      "spec": {
+        "schedule": "0 * * * *",
+        "jobTemplate": {
+          "spec": {
+            "template": {
+              "spec": {
+                "restartPolicy": "Never",
+                "containers": [
+                  {
+                    "name": "job",
+                    "image": "busybox",
+                    "resources": {
+                      "limits": {
+                        "cpu": "125m",
+                        "memory": "1Mi"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "services": {
+      "cleanup": {
+        "image": "busybox",
+        "deploy": {
+          "resources": {
+            "limits": {
+              "cpus": "0.125",
+              "memory": "1048576"
+            }
+          }
+        }
+      }
+    },
+    "volumes": {},
+    "native": [
+      {
+        "apiVersion": "batch/v1",
+        "kind": "CronJob",
+        "metadata": {
+          "name": "cleanup"
+        },
+        "spec": {
+          "schedule": "0 * * * *",
+          "jobTemplate": {
+            "spec": {
+              "template": {
+                "spec": {
+                  "restartPolicy": "Never",
+                  "containers": [
+                    {
+                      "name": "job",
+                      "image": "busybox",
+                      "resources": {
+                        "limits": {
+                          "cpu": "125m",
+                          "memory": "1Mi"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "legacy-compose",
+    "manifest": {
+      "web": {
+        "image": "nginx"
+      },
+      "x-note": "kept"
+    },
+    "services": {
+      "web": {
+        "image": "nginx"
+      }
+    },
+    "volumes": {},
+    "compose": {
+      "x-note": "kept"
+    }
+  },
+  {
+    "name": "yaml-merge-override-and-null-volume",
+    "text": "x-defaults: &defaults\n  image: nginx:alpine\n  labels:\n    keep: yes\nservices:\n  web:\n    <<: *defaults\n    image: nginx:stable\n    command: [sh, -c, \"echo $$HOME\"]\nvolumes:\n  data:\n",
+    "language": "yaml",
+    "manifest": {},
+    "services": {
+      "web": {
+        "image": "nginx:stable",
+        "labels": {
+          "keep": "yes"
+        },
+        "command": ["sh", "-c", "echo $$HOME"]
+      }
+    },
+    "volumes": {
+      "data": {}
+    },
+    "compose": {
+      "x-defaults": {
+        "image": "nginx:alpine",
+        "labels": {
+          "keep": "yes"
+        }
+      }
+    }
+  },
+  {
+    "name": "yaml-multidoc-and-whole-core-millicpu",
+    "text": "{\"apiVersion\": \"v1\", \"kind\": \"ConfigMap\", \"metadata\": {\"name\": \"settings\"}, \"data\": {\"mode\": \"demo\"}}\n---\n{\"apiVersion\": \"v1\", \"kind\": \"Pod\", \"metadata\": {\"name\": \"worker\"}, \"spec\": {\"restartPolicy\": \"Never\", \"containers\": [{\"name\": \"app\", \"image\": \"busybox\", \"resources\": {\"limits\": {\"cpu\": \"10000m\", \"memory\": \"1Mi\"}}}]}}",
+    "language": "yaml",
+    "manifest": {},
+    "services": {
+      "worker": {
+        "image": "busybox",
+        "deploy": {
+          "resources": {
+            "limits": {
+              "cpus": "10",
+              "memory": "1048576"
+            }
+          }
+        }
+      }
+    },
+    "volumes": {},
+    "native": [
+      {
+        "apiVersion": "v1",
+        "kind": "ConfigMap",
+        "metadata": {
+          "name": "settings"
+        },
+        "data": {
+          "mode": "demo"
+        }
+      },
+      {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "metadata": {
+          "name": "worker"
+        },
+        "spec": {
+          "restartPolicy": "Never",
+          "containers": [
+            {
+              "name": "app",
+              "image": "busybox",
+              "resources": {
+                "limits": {
+                  "cpu": "10000m",
+                  "memory": "1Mi"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

@@ -4,13 +4,19 @@ import { manifestTypes } from "../constants";
 import { IGeneratePayload } from "../types";
 import { composeToCanvasGraph } from "../utils/compose";
 import { generatePayload } from "../utils/generators";
-import {
-  generateDockerCompose,
-  generateKubernetes,
-  generateManifest
-} from "./generate";
+import { generateDockerCompose, generateManifest } from "./generate";
 
 const payload: IGeneratePayload = {
+  kubernetesStorage: { assets: { size: "5Gi", accessMode: "ReadWriteMany" } },
+  manifestSource: {
+    exclusions: [
+      {
+        target: "KUBERNETES",
+        sourcePath: "/networks/frontend/driver",
+        fingerprint: JSON.stringify("bridge")
+      }
+    ]
+  },
   data: {
     services: {
       web: {
@@ -109,7 +115,7 @@ test("ignores legacy version metadata when generating Compose", () => {
 
 test("converts services, ports, environment, and volumes to Kubernetes", () => {
   const documents = YAML.parseAllDocuments(
-    generateKubernetes(payload.data)
+    generateManifest(payload, manifestTypes.KUBERNETES).code
   ).map((document) => document.toJSON());
   const deployment = documents.find(
     (document) => document.kind === "Deployment"
@@ -155,6 +161,12 @@ const repeatedSources = {
 
 function generateFromCompose(input: unknown) {
   const payload = generatePayload(composeToCanvasGraph(input));
+  payload.kubernetesStorage = Object.fromEntries(
+    Object.keys(payload.data.volumes).map((name) => [
+      name,
+      { size: "5Gi", accessMode: "ReadWriteMany" }
+    ])
+  );
   const result = generateManifest(payload, manifestTypes.KUBERNETES);
   expect(result.error).toBeUndefined();
   const documents = YAML.parseAllDocuments(result.code).map((document) =>
@@ -206,7 +218,7 @@ test.each([
       { type: "bind", source: "/data/assets", target: "/two" }
     ],
     source: {
-      hostPath: { path: "/data/assets", type: "DirectoryOrCreate" }
+      hostPath: { path: "/data/assets" }
     }
   }
 ])(
@@ -260,42 +272,38 @@ test.each([
   }
 );
 
-test("keeps a bind source and a named volume with the same source text separate", () => {
-  const { pod } = generateFromCompose({
-    services: {
-      web: {
-        image: "nginx:alpine",
-        volumes: [
-          "assets:/one",
-          { type: "bind", source: "assets", target: "/two" }
-        ]
+test("blocks relative binds instead of inventing a node path", () => {
+  const payload = generatePayload(
+    composeToCanvasGraph({
+      services: {
+        web: {
+          image: "nginx",
+          volumes: [{ type: "bind", source: "assets", target: "/two" }]
+        }
       }
-    },
-    volumes: { assets: {} }
-  });
-
-  expect(pod.volumes).toHaveLength(2);
-  expect(pod.volumes[0].name).not.toBe(pod.volumes[1].name);
-  expect(pod.volumes[0].persistentVolumeClaim).toEqual({ claimName: "assets" });
-  expect(pod.volumes[1].hostPath).toEqual({
-    path: "/workspace/assets",
-    type: "DirectoryOrCreate"
-  });
+    })
+  );
+  const result = generateManifest(payload, manifestTypes.KUBERNETES);
+  expect(result.blocked).toBe(true);
+  expect(
+    result.diagnostics.some((item) => item.code === "HOST_PATH_REQUIRED")
+  ).toBe(true);
+  expect(result.code).toBe("");
 });
 
-test("keeps anonymous volumes separate when their target names normalize identically", () => {
-  const { pod } = generateFromCompose({
-    services: {
-      web: { image: "nginx:alpine", volumes: ["/a_b", "/a-b"] }
-    }
-  });
-  expect(pod.volumes).toHaveLength(2);
-  expect(pod.volumes[0].name).not.toBe(pod.volumes[1].name);
-  expect(pod.volumes.every((volume: any) => volume.emptyDir)).toBe(true);
-  expect(pod.containers[0].volumeMounts).toEqual([
-    { name: pod.volumes[0].name, mountPath: "/a_b" },
-    { name: pod.volumes[1].name, mountPath: "/a-b" }
-  ]);
+test("requires an explicit storage lifetime instead of converting anonymous volumes to emptyDir", () => {
+  const payload = generatePayload(
+    composeToCanvasGraph({
+      services: { web: { image: "nginx", volumes: ["/a_b", "/a-b"] } }
+    })
+  );
+  const result = generateManifest(payload, manifestTypes.KUBERNETES);
+  expect(
+    result.diagnostics.filter(
+      (item) => item.code === "STORAGE_LIFETIME_REQUIRED"
+    )
+  ).toHaveLength(2);
+  expect(result.blocked).toBe(true);
 });
 
 test("deduplicates container ports by target and protocol across published and exposed ports", () => {

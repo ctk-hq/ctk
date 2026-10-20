@@ -23,7 +23,8 @@ import {
   getClientNodeItem,
   flattenLibraries,
   ensure,
-  getClientNodesAndConnections
+  getClientNodesAndConnections,
+  toaster
 } from "../../utils";
 import { Canvas } from "../Canvas";
 import {
@@ -48,6 +49,7 @@ import Header from "./Header";
 import VariablesModal from "./VariablesModal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { composeToCanvasGraph } from "../../utils/compose";
+import { preserveComposeSettings } from "../../utils/manifest-reconciliation";
 import type { ManifestImport } from "../../utils/manifests";
 import { BACKEND_ENABLED } from "../../constants";
 
@@ -410,6 +412,11 @@ export default function Project(props: IProjectProps) {
   ]);
 
   const onCodeUpdate = useCallback((imported: ManifestImport): void => {
+    imported = preserveComposeSettings(
+      imported,
+      stateNodesRef.current || {},
+      stateNetworksRef.current || {}
+    );
     const nextGraph = composeToCanvasGraph(
       imported.data,
       (stateNodesRef.current as Dictionary<
@@ -490,6 +497,43 @@ export default function Project(props: IProjectProps) {
   };
 
   const onUpdateNetwork = (values: any) => {
+    const before = networks[values.key]?.canvasConfig.node_name;
+    const after = values.canvasConfig.node_name;
+    if (
+      Object.values(networks).some(
+        (entry) =>
+          entry.key !== values.key && entry.canvasConfig.node_name === after
+      )
+    )
+      throw new Error(`A network named "${after}" already exists.`);
+    if (before && after && before !== after) {
+      const nextNodes = Object.fromEntries(
+        Object.entries(stateNodesRef.current || {}).map(([key, node]) => {
+          if (node.type !== "SERVICE") return [key, node];
+          const service = node as IServiceNodeItem;
+          const membership = service.serviceConfig.networks;
+          const next = Array.isArray(membership)
+            ? membership.map((name) => (name === before ? after : name))
+            : membership
+              ? Object.fromEntries(
+                  Object.entries(membership).map(([name, value]) => [
+                    name === before ? after : name,
+                    value
+                  ])
+                )
+              : undefined;
+          return [
+            key,
+            {
+              ...service,
+              serviceConfig: { ...service.serviceConfig, networks: next }
+            }
+          ];
+        })
+      );
+      stateNodesRef.current = nextNodes;
+      setNodes(nextNodes);
+    }
     setNetworks({ ...networks, [values.key]: values });
   };
 
@@ -537,6 +581,15 @@ export default function Project(props: IProjectProps) {
   const onConnectionAttached = useCallback(
     (connection: CanvasConnection) => {
       commitGraphState(attachCanvasConnection(currentGraphState(), connection));
+      const source = stateNodesRef.current?.[connection[0]];
+      const target = stateNodesRef.current?.[connection[1]];
+      if (source?.type === "VOLUME" && target?.type === "SERVICE") {
+        setServiceToEdit(target as IServiceNodeItem);
+        toaster(
+          "Set the volume's container path in the Data tab before exporting.",
+          "info"
+        );
+      }
     },
     [commitGraphState, currentGraphState]
   );
@@ -738,6 +791,32 @@ export default function Project(props: IProjectProps) {
                   graphData={codeGraphData}
                   onCodeUpdate={onCodeUpdate}
                   canEdit={canEdit}
+                  onExclusionsChange={(exclusions) => {
+                    const next = {
+                      ...stateManifestSourceRef.current,
+                      exclusions
+                    };
+                    stateManifestSourceRef.current = next;
+                    setManifestSource(next);
+                  }}
+                  onDiagnosticNavigate={(sourcePath) => {
+                    const [, section, encoded] = sourcePath.split("/");
+                    const name = encoded
+                      ?.replaceAll("~1", "/")
+                      .replaceAll("~0", "~");
+                    const node = Object.values(
+                      stateNodesRef.current || {}
+                    ).find(
+                      (item) =>
+                        item.canvasConfig.node_name === name &&
+                        item.type ===
+                          (section === "services" ? "SERVICE" : "VOLUME")
+                    );
+                    if (node?.type === "SERVICE")
+                      setServiceToEdit(node as IServiceNodeItem);
+                    if (node?.type === "VOLUME")
+                      setVolumeToEdit(node as IVolumeNodeItem);
+                  }}
                 />
               </CodePanel>
             </div>

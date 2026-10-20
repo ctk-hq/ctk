@@ -1,6 +1,8 @@
 import { manifestTypes } from "../constants";
 import type { IGeneratePayload, KubernetesBinding } from "../types";
 import type { ManifestImport } from "./manifests";
+import { pointer } from "../services/manifest-validation";
+import { mountParts } from "./container-values";
 
 type RecordValue = Record<string, any>;
 const record = (value: unknown): RecordValue =>
@@ -247,7 +249,7 @@ export function importKubernetes(input: RecordValue[]): ManifestImport {
         );
       const security = record(container.securityContext);
       if (security.runAsUser !== undefined)
-        config.user = String(security.runAsUser);
+        config.user = `${security.runAsUser}${security.runAsGroup !== undefined ? `:${security.runAsGroup}` : ""}`;
       if (security.privileged !== undefined)
         config.privileged = security.privileged;
       if (security.readOnlyRootFilesystem !== undefined)
@@ -350,7 +352,8 @@ export function updateImportedKubernetes(
   project: Projection
 ): { documents: RecordValue[]; remaining: IGeneratePayload["data"] } {
   const source = payload.manifestSource!.kubernetes!;
-  const importedVolumes = importKubernetes(source.documents).data.volumes;
+  const importedVolumes =
+    source.volumeConfigs ?? importKubernetes(source.documents).data.volumes;
   for (const [name, definition] of Object.entries(importedVolumes)) {
     if (!equal(definition, payload.data.volumes[name]))
       throw new Error(
@@ -361,16 +364,56 @@ export function updateImportedKubernetes(
   const remaining = {
     ...payload.data,
     services: { ...payload.data.services },
-    volumes: {}
+    volumes: { ...payload.data.volumes }
   };
   const removed = new Set<number>();
+  const workloadChanges = new Map<string, unknown>();
+  const setWorkloadField = (
+    documentIndex: number,
+    object: RecordValue,
+    field: string,
+    value: unknown
+  ) => {
+    const key = `${documentIndex}/${field}`;
+    if (workloadChanges.has(key) && !equal(workloadChanges.get(key), value))
+      throw new Error(
+        `${documents[documentIndex].kind}/${documents[documentIndex].metadata.name}: containers in one workload have conflicting ${field} settings. Set the same workload value or edit the native Kubernetes manifest.`
+      );
+    workloadChanges.set(key, value);
+    if (value === undefined) delete object[field];
+    else object[field] = clone(value);
+  };
   const getName = (binding: KubernetesBinding) =>
     binding.nodeKey && payload.nodeNames
       ? payload.nodeNames[binding.nodeKey]
       : binding.serviceName;
+  const workloadIntent = new Map<string, string>();
+  for (const binding of source.bindings) {
+    const current = payload.data.services[getName(binding)] as
+      RecordValue | undefined;
+    if (!current) continue;
+    for (const [field, value] of [
+      [
+        "replicas",
+        current.deploy?.replicas === undefined
+          ? undefined
+          : Number(current.deploy.replicas)
+      ],
+      ["hostNetwork", current.network_mode],
+      ["nameservers", current.dns]
+    ] as const) {
+      const key = `${binding.documentIndex}/${field}`;
+      const fingerprint = JSON.stringify(value) ?? "undefined";
+      if (workloadIntent.has(key) && workloadIntent.get(key) !== fingerprint)
+        throw new Error(
+          `${documents[binding.documentIndex].kind}/${documents[binding.documentIndex].metadata.name}: containers in one workload have conflicting ${field} settings. Set the same workload value on each container or edit the native Kubernetes manifest.`
+        );
+      workloadIntent.set(key, fingerprint);
+    }
+  }
   for (const binding of source.bindings) {
     const name = getName(binding);
-    const current: RecordValue | undefined = name
+    let current: RecordValue | undefined = name
       ? payload.data.services[name]
       : undefined;
     const resource = documents[binding.documentIndex];
@@ -378,6 +421,32 @@ export function updateImportedKubernetes(
     if (!current) continue;
     delete remaining.services[name];
     const before = binding.config as RecordValue;
+    current = clone(current);
+    // A deliberate omission suppresses only the matching source value. Native
+    // settings remain authoritative and are never erased by an excluded edit.
+    const prefix = `/services/${pointer(name)}/`;
+    for (const exclusion of payload.manifestSource?.exclusions ?? []) {
+      if (
+        exclusion.target !== "KUBERNETES" ||
+        !exclusion.sourcePath.startsWith(prefix)
+      )
+        continue;
+      const keys = exclusion.sourcePath
+        .slice(prefix.length)
+        .split("/")
+        .map((key) => key.replaceAll("~1", "/").replaceAll("~0", "~"));
+      let object = current,
+        baseline = before;
+      for (const key of keys.slice(0, -1)) {
+        object = object?.[key];
+        baseline = baseline?.[key];
+      }
+      const key = keys.at(-1)!;
+      if (object && JSON.stringify(object[key]) === exclusion.fingerprint) {
+        if (baseline?.[key] === undefined) delete object[key];
+        else object[key] = clone(baseline[key]);
+      }
+    }
     if (equal(before, current)) continue;
     const container = pod.containers[binding.containerIndex];
     const projected = project(name, current).deployment.spec.template.spec;
@@ -396,6 +465,17 @@ export function updateImportedKubernetes(
         replace(container, field, native[field]);
     }
     if (
+      !equal(before.user, current.user) &&
+      /^\d+:\d+$/.test(String(current.user ?? ""))
+    ) {
+      container.securityContext ??= {};
+      replace(
+        container.securityContext,
+        "runAsGroup",
+        native.securityContext?.runAsGroup
+      );
+    }
+    if (
       !equal(
         [before.command, before.entrypoint],
         [current.command, current.entrypoint]
@@ -406,13 +486,16 @@ export function updateImportedKubernetes(
     }
     if (!equal(before.environment, current.environment)) {
       const literal = list(native.env);
-      const names = new Set(literal.map((entry) => entry.name));
-      container.env = [
-        ...list(container.env).filter(
-          (entry) => entry.valueFrom && !names.has(entry.name)
-        ),
-        ...literal
-      ];
+      const pending = new Map(literal.map((entry) => [entry.name, entry]));
+      const ordered: RecordValue[] = [];
+      for (const entry of list(container.env)) {
+        const replacement = pending.get(entry.name);
+        if (replacement) {
+          ordered.push(replacement);
+          pending.delete(entry.name);
+        } else if (entry.valueFrom) ordered.push(entry);
+      }
+      container.env = [...ordered, ...pending.values()];
     }
     if (
       !equal([before.ports, before.expose], [current.ports, current.expose])
@@ -545,18 +628,33 @@ export function updateImportedKubernetes(
         (!Number.isInteger(replicas) || replicas < 0)
       )
         throw new Error(`${name}: replicas must be a non-negative integer.`);
-      replace(resource.spec, "replicas", replicas);
+      setWorkloadField(
+        binding.documentIndex,
+        resource.spec,
+        "replicas",
+        replicas
+      );
     }
     if (!equal(before.network_mode, current.network_mode))
-      replace(pod, "hostNetwork", projected.hostNetwork);
+      setWorkloadField(
+        binding.documentIndex,
+        pod,
+        "hostNetwork",
+        projected.hostNetwork
+      );
     if (!equal(before.dns, current.dns)) {
       pod.dnsConfig ??= {};
-      replace(pod.dnsConfig, "nameservers", projected.dnsConfig?.nameservers);
+      setWorkloadField(
+        binding.documentIndex,
+        pod.dnsConfig,
+        "nameservers",
+        projected.dnsConfig?.nameservers
+      );
     }
     if (!equal(before.volumes, current.volumes)) {
       const mappedPaths = new Set(
         list(composeDollars(before.volumes, "unescape")).map(
-          (mount) => mount.target
+          (mount) => mountParts(mount).containerPath
         )
       );
       const preserved = list(container.volumeMounts).filter(
@@ -578,7 +676,35 @@ export function updateImportedKubernetes(
           name: names.get(mount.name)
         }))
       ];
-      pod.volumes = [...list(pod.volumes), ...added];
+      const referenced = new Set(
+        [...list(pod.containers), ...list(pod.initContainers)].flatMap(
+          (entry) => list(entry.volumeMounts).map((mount) => mount.name)
+        )
+      );
+      const replacedNames = new Set(
+        list(composeDollars(before.volumes, "unescape")).flatMap((mount) =>
+          list(pod.volumes)
+            .filter((volume) =>
+              list(
+                source.documents[binding.documentIndex] &&
+                  podTemplate(source.documents[binding.documentIndex])?.spec
+                    ?.containers?.[binding.containerIndex]?.volumeMounts
+              ).some(
+                (original) =>
+                  original.mountPath === mountParts(mount).containerPath &&
+                  original.name === volume.name
+              )
+            )
+            .map((volume) => volume.name)
+        )
+      );
+      pod.volumes = [
+        ...list(pod.volumes).filter(
+          (volume) =>
+            !replacedNames.has(volume.name) || referenced.has(volume.name)
+        ),
+        ...added
+      ];
     }
     const supported = new Set([
       "image",

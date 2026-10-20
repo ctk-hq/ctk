@@ -13,6 +13,7 @@ import Records, { IRecordsProps } from "./Records";
 
 export interface IFieldType {
   name: string;
+  label?: string;
   placeholder?: string;
   required?: boolean;
   type: "text" | "toggle" | "records";
@@ -76,14 +77,14 @@ const Record: FunctionComponent<IRecordProps> = (
               <>
                 {field.type === "text" && (
                   <TextField
+                    label={field.label}
                     id={field.name}
                     name={field.name}
                     placeholder={
-                      field.placeholder && !(field as any).label
+                      field.placeholder && !field.label
                         ? field.placeholder + (field.required ? "*" : "")
                         : ""
                     }
-                    label={(field as any).label}
                     required={field.required}
                   />
                 )}

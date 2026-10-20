@@ -62,7 +62,7 @@ const getDependsOnServiceNames = (dependsOn: unknown): string[] => {
 
 const getVolumeMountSourceName = (mount: unknown): string | null => {
   if (typeof mount === "string") {
-    const source = mount.split(":", 1)[0].trim();
+    const source = mount.includes(":") ? mount.split(":", 1)[0].trim() : "";
 
     if (!source) {
       return null;
@@ -242,13 +242,7 @@ export const composeToCanvasGraph = (
 
   Object.entries(composeVolumes).forEach(([volumeName, rawConfig]) => {
     const existingNode = existingVolumeNodesByName[volumeName];
-    const nextVolumeConfig = {
-      ...toRecord(rawConfig),
-      name:
-        (toRecord(rawConfig).name as string | undefined) ??
-        existingNode?.volumeConfig.name ??
-        volumeName
-    };
+    const nextVolumeConfig = { ...toRecord(rawConfig) };
     const node = {
       key: existingNode?.key ?? attachUUID("volume"),
       type: "VOLUME",
@@ -261,6 +255,7 @@ export const composeToCanvasGraph = (
         node_icon:
           existingNode?.canvasConfig.node_icon ?? iconByNodeType.volume ?? ""
       },
+      kubernetes: existingNode?.kubernetes,
       volumeConfig: nextVolumeConfig
     } as IVolumeNodeItem;
 

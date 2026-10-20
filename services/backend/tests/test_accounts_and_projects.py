@@ -161,3 +161,51 @@ def test_rds_passwords_are_not_interpreted_as_url_syntax(monkeypatch):
     url = _default_database_url()
     assert url.password == "a:b@c/d?e#f%g"
     assert url.query["sslmode"] == "require"
+
+
+@pytest.mark.parametrize(
+    "path", ["/generate/", "/generate/docker-compose", "/generate/kubernetes"]
+)
+def test_legacy_generation_is_explicitly_retired(client, path):
+    response = client.post(
+        path, json={"data": {"services": {"web": {"image": "nginx"}}}}
+    )
+    assert response.status_code == 410
+    assert response.json()["code"] == ""
+    assert response.json()["diagnostics"][0]["code"] == "GENERATION_API_RETIRED"
+    assert response.json()["diagnostics"][0]["blocksExport"] is True
+
+
+def test_url_import_preserves_native_source_through_save_reload(client, monkeypatch):
+    import json
+    from pathlib import Path
+    from types import SimpleNamespace
+    import app as app_module
+
+    fixtures = json.loads(
+        (
+            Path(__file__).resolve().parents[2]
+            / "frontend/src/services/fixtures/import-manifests.json"
+        ).read_text()
+    )
+    account = register(client)
+    for fixture in fixtures:
+        monkeypatch.setattr(
+            app_module.requests,
+            "get",
+            lambda *args, **kwargs: SimpleNamespace(
+                text=fixture.get("text", json.dumps(fixture["manifest"])),
+                raise_for_status=lambda: None,
+            ),
+        )
+        response = client.post(
+            "/projects/import/",
+            json={"url": "https://example.com/manifest.yaml", "visibility": 0},
+            headers=headers(account),
+        )
+        assert response.status_code == 201, response.text
+        project = response.json()
+        stored = json.loads(project["data"])
+        assert "manifestSource" in stored["canvas"]
+        reloaded = client.get(f'/projects/{project["uuid"]}/', headers=headers(account))
+        assert json.loads(reloaded.json()["data"]) == stored

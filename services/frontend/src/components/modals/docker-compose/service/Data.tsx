@@ -9,13 +9,16 @@ const Volumes = () => {
         fields={(index: number) => [
           {
             name: `volumes[${index}].name`,
-            placeholder: "Name",
-            required: true,
+            label: "Source volume or host path",
+            placeholder: "Volume name or host path",
+            required: false,
             type: "text"
           },
           {
             name: `volumes[${index}].containerPath`,
             placeholder: "Container path",
+            label: "Container path",
+            required: true,
             type: "text"
           },
           {

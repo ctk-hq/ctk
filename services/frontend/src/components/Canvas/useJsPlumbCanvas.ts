@@ -20,6 +20,7 @@ import {
   newInstance
 } from "@jsplumb/browser-ui";
 
+import { toaster } from "../../utils";
 import { IServiceNodePosition } from "../../types";
 import { CanvasConnection } from "./graphState";
 import {
@@ -219,10 +220,20 @@ export const useJsPlumbCanvas = ({
       (params: ConnectionEstablishedParams<Element>) => {
         ensureConnectionPresentation(instance, params.connection);
         if (!synchronizingRef.current) {
-          callbacksRef.current.onConnectionAttached([
-            params.sourceId,
-            params.targetId
-          ]);
+          try {
+            callbacksRef.current.onConnectionAttached([
+              params.sourceId,
+              params.targetId
+            ]);
+          } catch (error) {
+            instance.deleteConnection(params.connection);
+            toaster(
+              error instanceof Error
+                ? error.message
+                : "Unable to connect these nodes.",
+              "error"
+            );
+          }
         }
       }
     );

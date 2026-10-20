@@ -4,7 +4,7 @@ import YAML from "yaml";
 import CodeBox from "./CodeBox";
 import { composeToCanvasGraph } from "../../utils/compose";
 import type { ManifestImport } from "../../utils/manifests";
-import type { ManifestSource } from "../../types";
+import type { ManifestSource, IServiceNodeItem } from "../../types";
 
 vi.mock("../CodeEditor", () => ({
   default: ({
@@ -46,7 +46,42 @@ function Harness({ canEdit = true }: { canEdit?: boolean }) {
           .map((node) => node.canvasConfig.node_name)
           .join(",")}
       </output>
-      <CodeBox graphData={graph} onCodeUpdate={update} canEdit={canEdit} />
+      {canEdit && (
+        <button
+          onClick={() =>
+            setGraph((current) => ({
+              ...current,
+              nodes: Object.fromEntries(
+                Object.entries(current.nodes).map(([key, node]) => [
+                  key,
+                  node.type === "SERVICE"
+                    ? {
+                        ...node,
+                        serviceConfig: {
+                          ...(node as IServiceNodeItem).serviceConfig,
+                          image: "busybox"
+                        }
+                      }
+                    : node
+                ])
+              )
+            }))
+          }
+        >
+          Change graph image
+        </button>
+      )}
+      <CodeBox
+        graphData={graph}
+        onCodeUpdate={update}
+        canEdit={canEdit}
+        onExclusionsChange={(exclusions) =>
+          setGraph((current) => ({
+            ...current,
+            manifestSource: { ...current.manifestSource, exclusions }
+          }))
+        }
+      />
     </>
   );
 }
@@ -71,7 +106,10 @@ const editor = () =>
   screen.getByRole("textbox", {
     name: "Manifest editor"
   }) as HTMLTextAreaElement;
-const settle = async (ms = 700) => act(() => vi.advanceTimersByTimeAsync(ms));
+const settle = async (ms = 700) => {
+  await act(() => vi.advanceTimersByTimeAsync(ms));
+  await act(() => vi.advanceTimersByTimeAsync(300));
+};
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -180,4 +218,106 @@ test("public readers have a read-only preview and no file import control", async
     screen.queryByRole("button", { name: "Import manifest file" })
   ).not.toBeInTheDocument();
   expect(screen.getByText("Manifest preview · read only")).toBeInTheDocument();
+});
+
+test("schema-invalid drafts block copy/download, retain source, and recover after correction", async () => {
+  render(<Harness />);
+  await settle();
+  fireEvent.change(editor(), {
+    target: {
+      value: "services:\n  web:\n    image: nginx\n    unknown_setting: true\n"
+    }
+  });
+  await settle();
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "Download manifest" })
+  ).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Download source" })).toBeEnabled();
+  expect(editor().value).toContain("unknown_setting");
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "Export checks need attention"
+  );
+  expect(screen.getByText(/Schema validation failed/)).toBeInTheDocument();
+  fireEvent.change(editor(), {
+    target: { value: "services:\n  web:\n    image: nginx\n" }
+  });
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeDisabled();
+  await settle();
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeEnabled();
+});
+
+test("unsupported conversion requires a deliberate omission and changing it invalidates the omission", async () => {
+  render(<Harness />);
+  await settle();
+  fireEvent.change(editor(), {
+    target: {
+      value: "services:\n  web:\n    image: nginx\n    env_file: ./app.env\n"
+    }
+  });
+  await settle();
+  fireEvent.click(screen.getByRole("radio", { name: "Kubernetes" }));
+  await settle();
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeDisabled();
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "Exclude from Kubernetes export"
+    })
+  );
+  await settle();
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("radio", { name: "Compose" }));
+  await settle();
+  expect(editor().value).toContain("./app.env");
+  fireEvent.change(editor(), {
+    target: {
+      value:
+        "services:\n  web:\n    image: nginx\n    env_file: ./changed.env\n"
+    }
+  });
+  await settle();
+  fireEvent.click(screen.getByRole("radio", { name: "Kubernetes" }));
+  await settle();
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeDisabled();
+});
+
+test("target and language switches disable export until the displayed revision is validated", async () => {
+  render(<Harness />);
+  await settle();
+  fireEvent.change(editor(), {
+    target: { value: "services:\n  web:\n    image: nginx\n" }
+  });
+  await settle();
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("radio", { name: "Kubernetes" }));
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "Download manifest" })
+  ).toBeDisabled();
+  await settle();
+  expect(editor().value).toContain("kind: Deployment");
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("radio", { name: "JSON" }));
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeDisabled();
+  await settle();
+  expect(JSON.parse(editor().value).kind).toBe("Deployment");
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeEnabled();
+});
+
+test("a form/graph update immediately disables export of the old preview", async () => {
+  render(<Harness />);
+  await settle();
+  fireEvent.change(editor(), {
+    target: { value: "services:\n  web:\n    image: nginx\n" }
+  });
+  await settle();
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("button", { name: "Change graph image" }));
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "Download manifest" })
+  ).toBeDisabled();
+  await settle();
+  expect(editor().value).toContain("busybox");
+  expect(screen.getByRole("button", { name: "Copy manifest" })).toBeEnabled();
 });

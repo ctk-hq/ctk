@@ -315,6 +315,14 @@ export interface IVolumeNodeItem extends INodeItem {
   outputs: string[];
   canvasConfig: ICanvasConfig;
   volumeConfig: Partial<IVolumeTopLevel>;
+  kubernetes?: KubernetesStorage;
+}
+
+export interface KubernetesStorage {
+  size: string;
+  storageClass?: string;
+  accessMode:
+    "ReadWriteOnce" | "ReadWriteMany" | "ReadOnlyMany" | "ReadWriteOncePod";
 }
 
 export interface INetworkNodeItem extends INodeItem {
@@ -358,6 +366,8 @@ export interface PrivateVariable {
 export interface IGeneratePayload {
   manifestSource?: ManifestSource;
   nodeNames?: Record<string, string>;
+  kubernetesStorage?: Record<string, KubernetesStorage>;
+  graphErrors?: string[];
   data: {
     networks: Record<string, Partial<INetworkTopLevel>>;
     services: Record<string, Partial<IService>>;
@@ -374,10 +384,16 @@ export interface KubernetesBinding {
 }
 
 export interface ManifestSource {
+  exclusions?: {
+    target: "DOCKER_COMPOSE" | "KUBERNETES";
+    sourcePath: string;
+    fingerprint: string;
+  }[];
   compose?: Record<string, unknown>;
   kubernetes?: {
     documents: Record<string, any>[];
     bindings: KubernetesBinding[];
+    volumeConfigs?: IGeneratePayload["data"]["volumes"];
   };
   warnings?: string[];
 }
@@ -429,6 +445,7 @@ export interface IEditServiceForm {
         value: string;
       }[];
       preferences: {
+        _sourceIndex?: number;
         key: string;
         value: string;
       }[];
@@ -485,9 +502,10 @@ export interface IEditServiceForm {
   networks: string[];
   profiles: string[];
   ports: {
+    _sourceIndex?: number;
     hostPort: string;
     containerPort: string;
-    protocol: "tcp" | "udp";
+    protocol: "" | "tcp" | "udp" | "sctp";
   }[];
   environmentVariables: {
     key: string;
@@ -495,6 +513,7 @@ export interface IEditServiceForm {
   }[];
   restart: string;
   volumes: {
+    _sourceIndex?: number;
     name: string;
     containerPath: string;
     accessMode: string;
@@ -516,6 +535,10 @@ export interface IEditServiceFormDependsOn {
 export interface IEditVolumeForm {
   entryName: string;
   volumeName: string;
+  external: boolean;
+  storageSize: string;
+  storageClass: string;
+  accessMode: "" | KubernetesStorage["accessMode"];
   labels: {
     key: string;
     value: string;
@@ -527,6 +550,7 @@ export interface IEditNetworkForm {
   networkName: string;
   driver: string;
   configurations: {
+    _sourceIndex?: number;
     subnet: string;
     ipRange: string;
     gateway: string;

@@ -15,6 +15,7 @@ import type { ManifestSource } from "../../types";
 import { generatePayload } from "../../utils/generators";
 import { parseManifest, type ManifestImport } from "../../utils/manifests";
 import { generateManifest } from "../../services/generate";
+import type { ManifestDiagnostic } from "../../services/manifest-validation";
 import { toaster } from "../../utils";
 import CodeEditor from "../CodeEditor";
 import { Button } from "../ui/button";
@@ -32,6 +33,10 @@ interface ICodeBoxProps {
   };
   onCodeUpdate: (imported: ManifestImport) => void;
   canEdit?: boolean;
+  onExclusionsChange?: (
+    exclusions: NonNullable<ManifestSource["exclusions"]>
+  ) => void;
+  onDiagnosticNavigate?: (sourcePath: string) => void;
 }
 
 type ManifestType = (typeof manifestTypes)[keyof typeof manifestTypes];
@@ -40,7 +45,9 @@ type Language = "yaml" | "json";
 const CodeBox = ({
   graphData,
   onCodeUpdate,
-  canEdit = true
+  canEdit = true,
+  onExclusionsChange,
+  onDiagnosticNavigate
 }: ICodeBoxProps) => {
   const skipGeneration = useRef<{
     manifest: ManifestType;
@@ -56,6 +63,17 @@ const CodeBox = ({
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
+  const [blocked, setBlocked] = useState(true);
+  const [diagnostics, setDiagnostics] = useState<ManifestDiagnostic[]>([]);
+  const [validatedRevision, setValidatedRevision] = useState<{
+    graph: ICodeBoxProps["graphData"];
+    manifest: ManifestType;
+    language: Language;
+  } | null>(null);
+  const codeContext = useRef<{ manifest: ManifestType; language: Language }>({
+    manifest: manifestTypes.DOCKER_COMPOSE,
+    language: "yaml"
+  });
   const [manifest, setManifest] = useState<ManifestType>(
     manifestTypes.DOCKER_COMPOSE
   );
@@ -65,6 +83,10 @@ const CodeBox = ({
       if (!canEdit) return false;
       try {
         const imported = parseManifest(text, sourceLanguage);
+        codeContext.current = {
+          manifest: imported.type,
+          language: sourceLanguage
+        };
         skipGeneration.current = {
           manifest: imported.type,
           language: sourceLanguage
@@ -79,6 +101,8 @@ const CodeBox = ({
         );
         return true;
       } catch (cause) {
+        setBlocked(true);
+        setDiagnostics([]);
         setError(
           `${(cause as Error).message} The graph still shows the last valid manifest.`
         );
@@ -94,14 +118,19 @@ const CodeBox = ({
   useEffect(() => {
     const skip = skipGeneration.current;
     skipGeneration.current = null;
-    if (skip?.manifest === manifest && skip.language === language) return;
+    const preserveText =
+      skip?.manifest === manifest && skip.language === language;
     if (pendingDraft.current) return;
     const timer = window.setTimeout(() => {
       // Edits may arrive after this timer was scheduled.
       if (pendingDraft.current) return;
       const result = generateManifest(generatePayload(graphData), manifest);
       setError(result.error ?? "");
-      let nextCode = result.code;
+      setBlocked(result.blocked);
+      setDiagnostics(result.diagnostics);
+      setValidatedRevision({ graph: graphData, manifest, language });
+      if (preserveText) return;
+      let nextCode = result.rawCode || result.code;
       if (language === "json" && nextCode) {
         const docs = YAML.parseAllDocuments(nextCode).map((document) =>
           document.toJSON()
@@ -109,6 +138,7 @@ const CodeBox = ({
         nextCode = JSON.stringify(docs.length === 1 ? docs[0] : docs, null, 2);
       }
       setCode(nextCode);
+      codeContext.current = { manifest, language };
     }, 250);
     return () => window.clearTimeout(timer);
   }, [graphData, manifest, language]);
@@ -143,6 +173,7 @@ const CodeBox = ({
       setCode(text);
       skipGeneration.current = { manifest, language: sourceLanguage };
       setLanguage(sourceLanguage);
+      codeContext.current = { manifest, language: sourceLanguage };
       applyCode(text, sourceLanguage, true);
     } catch {
       setError(
@@ -151,7 +182,14 @@ const CodeBox = ({
     }
   };
 
+  const revisionCurrent =
+    validatedRevision?.graph === graphData &&
+    validatedRevision.manifest === manifest &&
+    validatedRevision.language === language;
+  const exportReady =
+    !blocked && !error && !pendingDraft.current && revisionCurrent;
   const copy = async () => {
+    if (!exportReady) return;
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
@@ -166,16 +204,19 @@ const CodeBox = ({
     return () => window.clearTimeout(timer);
   }, [copied]);
 
-  const download = () => {
+  const download = (raw = false) => {
+    if (!raw && !exportReady) return;
+    const context = raw ? codeContext.current : { manifest, language };
     const fileName =
-      manifest === manifestTypes.KUBERNETES ? "kubernetes" : "compose";
+      context.manifest === manifestTypes.KUBERNETES ? "kubernetes" : "compose";
     const blob = new Blob([code], {
-      type: language === "json" ? "application/json" : "application/yaml"
+      type:
+        context.language === "json" ? "application/json" : "application/yaml"
     });
     const objectUrl = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = objectUrl;
-    anchor.download = `${fileName}.${language}`;
+    anchor.download = `${fileName}${raw ? ".source" : ""}.${context.language}`;
     anchor.click();
     URL.revokeObjectURL(objectUrl);
   };
@@ -236,7 +277,7 @@ const CodeBox = ({
             variant="ghost"
             className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={copy}
-            disabled={!code}
+            disabled={!code || !exportReady}
             aria-label="Copy manifest"
             title="Copy manifest"
           >
@@ -247,24 +288,123 @@ const CodeBox = ({
             size="icon"
             variant="ghost"
             className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
-            onClick={download}
-            disabled={!code}
+            onClick={() => download()}
+            disabled={!code || !exportReady}
             aria-label="Download manifest"
             title="Download manifest"
           >
             <Download />
           </Button>
+          {(blocked || Boolean(error)) && code && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => download(true)}
+              title="Download source without validation"
+            >
+              Download source
+            </Button>
+          )}
         </div>
       </div>
-      {(error || statusText || warnings.length > 0) && (
+      {(error ||
+        statusText ||
+        warnings.length > 0 ||
+        diagnostics.length > 0) && (
         <div className="shrink-0 space-y-1 border-b px-3 py-2 text-xs text-muted-foreground">
           {error ? (
             <p role="alert" className="break-words text-destructive">
-              {error}
+              {diagnostics.length
+                ? "Export checks need attention. Review the affected settings below; your source remains available for editing."
+                : error}
             </p>
           ) : statusText ? (
             <p role="status">{statusText}</p>
           ) : null}
+          {diagnostics.length > 0 && (
+            <details open={blocked}>
+              <summary className="cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-ring">
+                Export checks ({diagnostics.length})
+              </summary>
+              <ul className="mt-2 max-h-48 space-y-3 overflow-y-auto pr-2">
+                {diagnostics.map((item, index) => (
+                  <li
+                    key={`${item.code}-${item.sourcePath}-${index}`}
+                    className="break-words"
+                  >
+                    <span className="font-medium">
+                      {item.severity === "error"
+                        ? "Error"
+                        : item.severity === "warning"
+                          ? "Warning"
+                          : "Info"}
+                      :{" "}
+                      {onDiagnosticNavigate &&
+                      canEdit &&
+                      /^\/(services|volumes)\//.test(item.sourcePath) ? (
+                        <button
+                          type="button"
+                          className="rounded-sm underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
+                          onClick={() => onDiagnosticNavigate(item.sourcePath)}
+                        >
+                          {item.sourcePath}
+                        </button>
+                      ) : (
+                        item.sourcePath
+                      )}
+                    </span>
+                    <p>
+                      {item.reason} {item.action}
+                    </p>
+                    {item.canExclude &&
+                      item.blocksExport &&
+                      canEdit &&
+                      revisionCurrent &&
+                      onExclusionsChange && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="mt-1 h-auto max-w-full whitespace-normal text-left"
+                          onClick={() => {
+                            setBlocked(true);
+                            onExclusionsChange([
+                              ...(
+                                graphData.manifestSource?.exclusions ?? []
+                              ).filter(
+                                (entry) =>
+                                  !(
+                                    entry.target === manifest &&
+                                    entry.sourcePath === item.sourcePath
+                                  )
+                              ),
+                              {
+                                target: manifest,
+                                sourcePath: item.sourcePath,
+                                fingerprint: item.fingerprint!
+                              }
+                            ]);
+                          }}
+                        >
+                          Exclude from{" "}
+                          {manifest === manifestTypes.KUBERNETES
+                            ? "Kubernetes"
+                            : "Compose"}{" "}
+                          export
+                        </Button>
+                      )}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {(blocked || Boolean(error)) && code && (
+            <p>
+              Source is editable and can be saved. Copy and manifest download
+              require passing export checks; Download source is unvalidated.
+            </p>
+          )}
           {warnings.length > 0 && (
             <details>
               <summary className="cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-ring">
@@ -288,6 +428,8 @@ const CodeBox = ({
           if (!canEdit || value === code) return;
           fileRequest.current++;
           pendingDraft.current = { text: value, language };
+          codeContext.current = { manifest, language };
+          setBlocked(true);
           setCode(value);
           setStatus("Updating graph…");
           debouncedImport(value, language);

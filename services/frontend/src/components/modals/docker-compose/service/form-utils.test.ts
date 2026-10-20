@@ -82,6 +82,7 @@ test("an explicit form deletion removes only its selected field", () => {
 
 test("saves, reopens, and exports capability lists to Compose and Kubernetes", async () => {
   const values = serviceForm();
+  values.deploy = structuredClone(getInitialValues().deploy);
   values.capAdd = [" net_admin ", "CAP_SYS_TIME", "NET_ADMIN"];
   values.capDrop = ["cap_net_raw"];
   await expect(validationSchema.validate(values)).resolves.toBeDefined();
@@ -170,7 +171,7 @@ test("reopens canonical Compose Deploy settings and preserves them when saved ag
   const reopened = getInitialValues(node);
 
   expect(reopened.deploy.restartPolicy.maxAttempts).toBe("3");
-  expect(reopened.deploy.placement.preferences).toEqual([
+  expect(reopened.deploy.placement.preferences).toMatchObject([
     { key: "spread", value: "node.labels.zone" }
   ]);
   expect(composeDocument(getFinalValues(reopened, node))).toEqual(
@@ -193,7 +194,7 @@ test("converts legacy saved string preferences to canonical preference objects",
 
   const reopened = getInitialValues(legacyNode);
 
-  expect(reopened.deploy.placement.preferences).toEqual([
+  expect(reopened.deploy.placement.preferences).toMatchObject([
     { key: "spread", value: "node.labels.zone" }
   ]);
   expect(
@@ -229,9 +230,11 @@ test("preserves zero restart attempts and ordered preferences with repeated stra
     { spread: "node.labels.zone" },
     { spread: "node.labels.rack" }
   ]);
-  expect(getInitialValues(node).deploy.placement.preferences).toEqual(
-    values.deploy.placement.preferences
-  );
+  expect(
+    getInitialValues(node).deploy.placement.preferences.map(
+      ({ key, value }) => ({ key, value })
+    )
+  ).toEqual(values.deploy.placement.preferences);
 });
 
 test.each<{
@@ -276,6 +279,7 @@ test.each<{
   "preserves command/entrypoint types through form edits and both manifest generators: $command / $entrypoint",
   async ({ command, entrypoint, executable, args }) => {
     const values = serviceForm();
+    values.deploy = structuredClone(getInitialValues().deploy);
     values.command = command;
     values.entrypoint = entrypoint;
     await expect(validationSchema.validate(values)).resolves.toBeDefined();

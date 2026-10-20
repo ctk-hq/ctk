@@ -1,4 +1,5 @@
 import { IServiceNodeItem, IVolumeNodeItem } from "../../types";
+import { mountParts } from "../../utils/container-values";
 import { CanvasNodeMap } from "./plumbing/synchronizeNodes";
 
 export type CanvasConnection = [string, string];
@@ -30,7 +31,7 @@ const volumeNodeName = (node: IVolumeNodeItem | undefined): string =>
 
 const volumeMountSource = (mount: unknown): string | null => {
   if (typeof mount === "string") {
-    const source = mount.split(":", 1)[0].trim();
+    const source = mountParts(mount).name.trim();
     return source || null;
   }
 
@@ -71,6 +72,8 @@ export const attachCanvasConnection = (
   }
 
   const [sourceId, targetId] = connection;
+  if (sourceId === targetId)
+    throw new Error("A service cannot depend on itself.");
   const sourceNode = state.nodes[sourceId];
   const targetNode = state.nodes[targetId];
   const nodes = { ...state.nodes };
@@ -80,13 +83,30 @@ export const attachCanvasConnection = (
     const targetName = targetNode.canvasConfig.node_name;
     const currentDependsOn = sourceService.serviceConfig.depends_on;
 
+    const reaches = (
+      start: string,
+      destination: string,
+      seen = new Set<string>()
+    ): boolean => {
+      if (start === destination) return true;
+      if (seen.has(start)) return false;
+      seen.add(start);
+      return state.connections
+        .filter(
+          ([source]) =>
+            source === start && state.nodes[source]?.type === "SERVICE"
+        )
+        .some(([, target]) => reaches(target, destination, seen));
+    };
+    if (reaches(targetId, sourceId))
+      throw new Error("This connection would create a dependency cycle.");
     if (targetName && !dependsOnNames(currentDependsOn).includes(targetName)) {
       const nextDependsOn = Array.isArray(currentDependsOn)
         ? [...currentDependsOn, targetName]
         : currentDependsOn && currentDependsOn.constructor === Object
           ? {
               ...currentDependsOn,
-              [targetName]: { condition: "service_healthy" as const }
+              [targetName]: { condition: "service_started" as const }
             }
           : [targetName];
 
@@ -112,7 +132,10 @@ export const attachCanvasConnection = (
         ...targetService,
         serviceConfig: {
           ...targetService.serviceConfig,
-          volumes: [...currentVolumes, sourceName]
+          volumes: [
+            ...currentVolumes,
+            { type: "volume", source: sourceName, target: "" }
+          ] as any
         }
       };
     }
@@ -212,10 +235,76 @@ export const replaceCanvasNode = (
   state: CanvasGraphState,
   node: IServiceNodeItem | IVolumeNodeItem
 ): CanvasGraphState => {
+  const previous = state.nodes[node.key];
+  const oldName = previous?.canvasConfig.node_name;
+  const newName = node.canvasConfig.node_name;
+  if (
+    Object.values(state.nodes).some(
+      (entry) =>
+        entry.key !== node.key &&
+        entry.type === node.type &&
+        entry.canvasConfig.node_name === newName
+    )
+  )
+    throw new Error(
+      `A ${node.type.toLowerCase()} named "${newName}" already exists.`
+    );
   const nodes = { ...state.nodes, [node.key]: node };
+  if (oldName && newName && oldName !== newName) {
+    for (const [key, entry] of Object.entries(nodes)) {
+      if (entry.type !== "SERVICE") continue;
+      const service = entry as IServiceNodeItem;
+      const config = { ...service.serviceConfig };
+      if (node.type === "SERVICE") {
+        if (Array.isArray(config.depends_on))
+          config.depends_on = config.depends_on.map((name) =>
+            name === oldName ? newName : name
+          );
+        else if (config.depends_on && Object.hasOwn(config.depends_on, oldName))
+          config.depends_on = Object.fromEntries(
+            Object.entries(config.depends_on).map(([name, value]) => [
+              name === oldName ? newName : name,
+              value
+            ])
+          );
+        for (const field of ["network_mode", "ipc", "pid"] as const)
+          if (config[field] === `service:${oldName}`)
+            (config as any)[field] = `service:${newName}`;
+        if (Array.isArray(config.links))
+          config.links = config.links.map((link) =>
+            link === oldName || link.startsWith(`${oldName}:`)
+              ? newName + link.slice(oldName.length)
+              : link
+          );
+        if (Array.isArray(config.volumes_from))
+          config.volumes_from = config.volumes_from.map((mount) =>
+            mount === oldName || mount.startsWith(`${oldName}:`)
+              ? newName + mount.slice(oldName.length)
+              : mount
+          );
+        if (
+          config.extends &&
+          !config.extends.file &&
+          config.extends.service === oldName
+        )
+          config.extends = { ...config.extends, service: newName };
+      }
+      if (node.type === "VOLUME" && Array.isArray(config.volumes))
+        config.volumes = config.volumes.map((mount: any) => {
+          if (typeof mount === "string")
+            return mountParts(mount).name === oldName
+              ? newName + mount.slice(oldName.length)
+              : mount;
+          return mount.source === oldName
+            ? { ...mount, source: newName }
+            : mount;
+        }) as any;
+      nodes[key] = { ...service, serviceConfig: config };
+    }
+  }
   if (node.type !== "SERVICE") return { ...state, nodes };
 
-  const service = node as IServiceNodeItem;
+  const service = nodes[node.key] as IServiceNodeItem;
   const connections = state.connections.filter(
     ([sourceId, targetId]) =>
       sourceId !== node.key &&

@@ -62,25 +62,6 @@ const General = () => {
             label: "Entrypoint"
           },
           {
-            id: "row6",
-            type: "grid-row",
-            fields: [
-              {
-                id: "row6-column1",
-                type: "grid-column",
-                spans: [2, 3],
-                fields: [
-                  {
-                    id: "envFile",
-                    type: "text",
-                    name: "envFile",
-                    label: "Env file"
-                  }
-                ]
-              }
-            ]
-          },
-          {
             id: "row7",
             type: "grid-row",
             fields: [

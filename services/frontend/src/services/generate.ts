@@ -1,10 +1,25 @@
 import YAML from "yaml";
 
 import { manifestTypes } from "../constants";
-import { IGeneratePayload } from "../types";
+import { IGeneratePayload, KubernetesStorage } from "../types";
 import { kubernetesCommands } from "../utils/commands";
 import { referencedVariables } from "../utils/variables";
 import { composeDollars, updateImportedKubernetes } from "../utils/kubernetes";
+import {
+  cpuQuantity,
+  memoryBytes,
+  mountParts,
+  kubernetesIdentity as kubernetesName
+} from "../utils/container-values";
+import {
+  conversionDiagnostics,
+  nativeComposeDiagnostics,
+  diagnostic,
+  pointer,
+  validateCompose,
+  validateKubernetes,
+  type ManifestDiagnostic
+} from "./manifest-validation";
 
 type ManifestType = (typeof manifestTypes)[keyof typeof manifestTypes];
 type ComposeData = IGeneratePayload["data"];
@@ -13,6 +28,9 @@ type UnknownRecord = Record<string, any>;
 export interface GenerateResult {
   code: string;
   error?: string;
+  rawCode?: string;
+  diagnostics: ManifestDiagnostic[];
+  blocked: boolean;
 }
 
 const isRecord = (value: unknown): value is UnknownRecord =>
@@ -44,17 +62,6 @@ export const generateDockerCompose = (
   }
 
   return stringifyYamlDocument(document);
-};
-
-const kubernetesName = (value: string, fallback = "app"): string => {
-  const normalized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9.-]+/g, "-")
-    .replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, "")
-    .slice(0, 63)
-    .replace(/[^a-z0-9]+$/g, "");
-
-  return normalized || fallback;
 };
 
 const portName = (port: number, protocol: string, index: number): string => {
@@ -127,7 +134,7 @@ interface ParsedPort {
 }
 
 const parsePortNumber = (value: unknown): number | null => {
-  const match = String(value ?? "").match(/^\d+/);
+  const match = String(value ?? "").match(/^\d+$/);
   if (!match) {
     return null;
   }
@@ -197,56 +204,6 @@ const getPorts = (service: UnknownRecord): ParsedPort[] => {
   return [...deduplicated.values()];
 };
 
-const durationSeconds = (value: unknown): number | undefined => {
-  if (typeof value === "number") {
-    return Math.max(1, Math.ceil(value));
-  }
-
-  if (typeof value !== "string") {
-    return undefined;
-  }
-
-  const match = value.trim().match(/^(\d+(?:\.\d+)?)(ms|s|m|h)?$/);
-  if (!match) {
-    return undefined;
-  }
-
-  const amount = Number(match[1]);
-  const multipliers: Record<string, number> = {
-    ms: 0.001,
-    s: 1,
-    m: 60,
-    h: 3600
-  };
-
-  return Math.max(1, Math.ceil(amount * (multipliers[match[2] || "s"] ?? 1)));
-};
-
-const toHealthProbe = (value: unknown): UnknownRecord | undefined => {
-  const healthcheck = asRecord(value);
-  const test = toStringArray(healthcheck.test);
-
-  if (test.length === 0 || test[0] === "NONE") {
-    return undefined;
-  }
-
-  const command =
-    test[0] === "CMD-SHELL"
-      ? ["/bin/sh", "-c", test.slice(1).join(" ")]
-      : test[0] === "CMD"
-        ? test.slice(1)
-        : test;
-
-  return compactRecord({
-    exec: { command },
-    periodSeconds: durationSeconds(healthcheck.interval),
-    timeoutSeconds: durationSeconds(healthcheck.timeout),
-    failureThreshold:
-      typeof healthcheck.retries === "number" ? healthcheck.retries : undefined,
-    initialDelaySeconds: durationSeconds(healthcheck.start_period)
-  });
-};
-
 const imagePullPolicy = (pullPolicy: unknown): string | undefined => {
   switch (String(pullPolicy ?? "").toLowerCase()) {
     case "always":
@@ -270,17 +227,15 @@ const toResources = (value: unknown): UnknownRecord | undefined => {
     limits:
       Object.keys(limits).length > 0
         ? compactRecord({
-            cpu: limits.cpus ? String(limits.cpus) : undefined,
-            memory: limits.memory ? String(limits.memory) : undefined
+            cpu: cpuQuantity(limits.cpus),
+            memory: memoryBytes(limits.memory)
           })
         : undefined,
     requests:
       Object.keys(reservations).length > 0
         ? compactRecord({
-            cpu: reservations.cpus ? String(reservations.cpus) : undefined,
-            memory: reservations.memory
-              ? String(reservations.memory)
-              : undefined
+            cpu: cpuQuantity(reservations.cpus),
+            memory: memoryBytes(reservations.memory)
           })
         : undefined
   });
@@ -301,6 +256,9 @@ const toSecurityContext = (
     privileged: service.privileged === true ? true : undefined,
     readOnlyRootFilesystem: service.read_only === true ? true : undefined,
     runAsUser: Number.isInteger(numericUser) ? numericUser : undefined,
+    runAsGroup: /^\d+:\d+$/.test(String(service.user ?? ""))
+      ? Number(String(service.user).split(":")[1])
+      : undefined,
     capabilities:
       capAdd.length > 0 || capDrop.length > 0
         ? compactRecord({
@@ -324,11 +282,9 @@ const hostPathFor = (source: string): string => {
     return source;
   }
 
-  const relativePath = source
-    .replace(/^~\/?/, "home/")
-    .replace(/^\.\/?/, "")
-    .replace(/[^a-zA-Z0-9._/-]+/g, "-");
-  return `/workspace/${relativePath || "bind-mount"}`;
+  throw new Error(
+    "A bind mount requires an absolute Kubernetes node path. Configure the path in native Kubernetes source."
+  );
 };
 
 interface VolumeConversion {
@@ -358,14 +314,10 @@ const convertServiceVolumes = (
     let readOnly = false;
 
     if (typeof value === "string") {
-      const segments = value.split(":");
-      if (segments.length === 1) {
-        target = segments[0];
-      } else {
-        source = segments[0];
-        target = segments[1];
-        readOnly = segments.slice(2).includes("ro");
-      }
+      const mount = mountParts(value);
+      source = mount.name;
+      target = mount.containerPath;
+      readOnly = mount.accessMode.split(",").includes("ro");
     } else if (isRecord(value)) {
       source = String(value.source ?? "");
       target = String(value.target ?? "");
@@ -386,23 +338,31 @@ const convertServiceVolumes = (
     ) {
       sourceKey = JSON.stringify(["bind", source]);
       volumeSource = {
-        hostPath: { path: hostPathFor(source), type: "DirectoryOrCreate" }
+        hostPath: { path: hostPathFor(source) }
       };
     } else if (source && type !== "tmpfs") {
       const physicalName = definitions[source]?.name;
-      const claimName = kubernetesName(
+      const claimName =
         typeof physicalName === "string" && physicalName
           ? physicalName
-          : source,
-        `claim-${index}`
-      );
+          : kubernetesName(source, `claim-${index}`);
       claims.add(claimName);
       sourceKey = JSON.stringify(["volume", source]);
       volumeSource = { persistentVolumeClaim: { claimName } };
     } else {
       // Each anonymous mount gets its own storage, even when names collide.
       sourceKey = JSON.stringify(["anonymous", index]);
-      volumeSource = { emptyDir: type === "tmpfs" ? { medium: "Memory" } : {} };
+      volumeSource = {
+        emptyDir:
+          type === "tmpfs"
+            ? compactRecord({
+                medium: "Memory",
+                sizeLimit: isRecord(value)
+                  ? memoryBytes(value.tmpfs?.size)
+                  : undefined
+              })
+            : {}
+      };
     }
 
     let volumeName = volumeNamesBySource.get(sourceKey);
@@ -437,7 +397,10 @@ const convertServiceVolumes = (
   return { mounts, volumes, claims };
 };
 
-const persistentVolumeClaim = (name: string): UnknownRecord => ({
+const persistentVolumeClaim = (
+  name: string,
+  settings: KubernetesStorage
+): UnknownRecord => ({
   apiVersion: "v1",
   kind: "PersistentVolumeClaim",
   metadata: {
@@ -445,8 +408,11 @@ const persistentVolumeClaim = (name: string): UnknownRecord => ({
     labels: { "app.kubernetes.io/managed-by": "container-toolkit" }
   },
   spec: {
-    accessModes: ["ReadWriteOnce"],
-    resources: { requests: { storage: "1Gi" } }
+    accessModes: [settings.accessMode],
+    ...(settings.storageClass !== undefined
+      ? { storageClassName: settings.storageClass }
+      : {}),
+    resources: { requests: { storage: settings.size } }
   }
 });
 
@@ -465,7 +431,7 @@ const deploymentForService = (
     "app.kubernetes.io/name": name,
     "app.kubernetes.io/managed-by": "container-toolkit"
   };
-  const metadataLabels = { ...appLabels, ...toLabels(service.labels) };
+  const metadataLabels = { ...toLabels(service.labels), ...appLabels };
   const ports = getPorts(service);
   const containerPorts = [
     ...new Map(
@@ -487,7 +453,7 @@ const deploymentForService = (
     image:
       typeof service.image === "string" && service.image.trim()
         ? service.image
-        : `${name}:latest`,
+        : undefined,
     imagePullPolicy: imagePullPolicy(service.pull_policy),
     ...commands,
     workingDir:
@@ -510,7 +476,6 @@ const deploymentForService = (
       convertedVolumes.mounts.length > 0 ? convertedVolumes.mounts : undefined,
     resources: toResources(deploy.resources),
     securityContext: toSecurityContext(service),
-    livenessProbe: toHealthProbe(service.healthcheck),
     stdin: service.stdin_open === true ? true : undefined,
     tty: service.tty === true ? true : undefined
   });
@@ -524,6 +489,8 @@ const deploymentForService = (
         ? convertedVolumes.volumes
         : undefined,
     hostNetwork: service.network_mode === "host" ? true : undefined,
+    dnsPolicy:
+      service.network_mode === "host" ? "ClusterFirstWithHostNet" : undefined,
     dnsConfig:
       toStringArray(service.dns).length > 0
         ? { nameservers: toStringArray(service.dns) }
@@ -569,7 +536,10 @@ const deploymentForService = (
   };
 };
 
-export const generateKubernetes = (input: ComposeData): string => {
+const renderKubernetes = (
+  input: ComposeData,
+  storage: IGeneratePayload["kubernetesStorage"] = {}
+): string => {
   const data = composeDollars(input, "unescape");
   if (referencedVariables(input).length) {
     throw new Error(
@@ -582,9 +552,10 @@ export const generateKubernetes = (input: ComposeData): string => {
 
   Object.entries(data.volumes).forEach(([volumeName, volumeValue]) => {
     const config = asRecord(volumeValue);
-    const claimName = kubernetesName(
-      typeof config.name === "string" && config.name ? config.name : volumeName
-    );
+    const claimName =
+      typeof config.name === "string" && config.name
+        ? config.name
+        : kubernetesName(volumeName);
 
     if (config.external === true) {
       externalClaims.add(claimName);
@@ -607,9 +578,17 @@ export const generateKubernetes = (input: ComposeData): string => {
     });
   });
 
-  [...declaredClaims]
-    .sort()
-    .forEach((claim) => documents.push(persistentVolumeClaim(claim)));
+  [...declaredClaims].sort().forEach((claim) => {
+    const logical = Object.keys(data.volumes).find(
+      (key) => (data.volumes[key].name || kubernetesName(key)) === claim
+    );
+    const settings = logical ? storage[logical] : undefined;
+    if (!settings?.size || !settings.accessMode)
+      throw new Error(
+        `Volume "${logical ?? claim}": choose Kubernetes storage size and access mode in the volume form before exporting.`
+      );
+    documents.push(persistentVolumeClaim(claim, settings));
+  });
 
   convertedServices.forEach(({ deployment, service }) => {
     documents.push(deployment);
@@ -625,12 +604,109 @@ export const generateKubernetes = (input: ComposeData): string => {
   return documents.map(stringifyYamlDocument).join("\n");
 };
 
+export const generateKubernetes = (
+  input: ComposeData,
+  storage?: IGeneratePayload["kubernetesStorage"]
+): string => {
+  const result = generateManifest(
+    { data: input, kubernetesStorage: storage },
+    manifestTypes.KUBERNETES
+  );
+  if (result.error) throw new Error(result.error);
+  return result.code;
+};
+
 export const generateManifest = (
   payload: IGeneratePayload,
   manifest: ManifestType
 ): GenerateResult => {
+  const diagnostics: ManifestDiagnostic[] = (payload.graphErrors ?? []).map(
+    (reason) =>
+      diagnostic(
+        "GRAPH_INVALID",
+        "/",
+        manifest,
+        reason,
+        "Choose unique graph names and repair connections."
+      )
+  );
+  let code = "";
   try {
+    const compose = YAML.parse(
+      generateDockerCompose(payload.data, payload.manifestSource?.compose)
+    );
+    diagnostics.push(
+      ...validateCompose(compose).map((item) => ({ ...item, target: manifest }))
+    );
     if (manifest === manifestTypes.KUBERNETES) {
+      diagnostics.push(...conversionDiagnostics(payload));
+      const claimIntents = new Map<
+        string,
+        { external: boolean; settings: unknown }
+      >();
+      for (const [logical, config] of Object.entries(payload.data.volumes)) {
+        const name = config.name || kubernetesName(logical);
+        const intent = {
+          external: config.external === true,
+          settings: payload.kubernetesStorage?.[logical]
+        };
+        const previous = claimIntents.get(name);
+        if (previous && JSON.stringify(previous) !== JSON.stringify(intent))
+          diagnostics.push(
+            diagnostic(
+              "CLAIM_IDENTITY_CONFLICT",
+              `/volumes/${pointer(logical)}`,
+              manifest,
+              "Two volume definitions resolve to the same claim with conflicting ownership or storage requirements.",
+              "Use distinct physical claim names or matching storage definitions."
+            )
+          );
+        claimIntents.set(name, intent);
+        if (
+          !config.external &&
+          (!payload.kubernetesStorage?.[logical]?.size ||
+            !payload.kubernetesStorage?.[logical]?.accessMode)
+        )
+          diagnostics.push(
+            diagnostic(
+              "STORAGE_CONFIG_REQUIRED",
+              `/volumes/${pointer(logical)}`,
+              manifest,
+              "A new claim needs an explicit storage size and access mode.",
+              "Open this volume's form and choose Kubernetes storage settings."
+            )
+          );
+      }
+      for (const [name, service] of Object.entries(payload.data.services)) {
+        const labels = toLabels(service.labels);
+        const identity = kubernetesName(name);
+        for (const [key, value] of Object.entries({
+          "app.kubernetes.io/name": identity,
+          "app.kubernetes.io/managed-by": "container-toolkit"
+        })) {
+          if (labels[key] !== undefined && labels[key] !== value)
+            diagnostics.push(
+              diagnostic(
+                "SELECTOR_LABEL_RESERVED",
+                `/services/${pointer(name)}/labels/${pointer(key)}`,
+                manifest,
+                "This label conflicts with a generated identity label.",
+                "Remove the reserved label override."
+              )
+            );
+        }
+        if (identity !== name)
+          diagnostics.push(
+            diagnostic(
+              "NAME_NORMALIZED",
+              `/services/${pointer(name)}`,
+              manifest,
+              `The Kubernetes identity is ${identity}.`,
+              "Use this generated identity when referring to the workload.",
+              "info"
+            )
+          );
+      }
       if (payload.manifestSource?.kubernetes) {
         const { documents, remaining } = updateImportedKubernetes(
           payload,
@@ -643,7 +719,7 @@ export const generateManifest = (
         );
         if (Object.keys(remaining.services).length) {
           const generated = YAML.parseAllDocuments(
-            generateKubernetes(remaining)
+            renderKubernetes(remaining, payload.kubernetesStorage)
           ).map((document) => document.toJSON());
           for (const resource of generated) {
             const existing = documents.find(
@@ -661,19 +737,53 @@ export const generateManifest = (
             documents.push(resource);
           }
         }
-        return { code: documents.map(stringifyYamlDocument).join("\n") };
+        diagnostics.push(...validateKubernetes(documents));
+        code = documents.map(stringifyYamlDocument).join("\n");
+      } else {
+        code = renderKubernetes(payload.data, payload.kubernetesStorage);
+        if (!code.startsWith("#"))
+          diagnostics.push(
+            ...validateKubernetes(
+              YAML.parseAllDocuments(code).map((document) => document.toJSON())
+            )
+          );
       }
-      return { code: generateKubernetes(payload.data) };
+    } else {
+      diagnostics.push(...nativeComposeDiagnostics(payload));
+      code = generateDockerCompose(
+        payload.data,
+        payload.manifestSource?.compose
+      );
     }
-
-    return {
-      code: generateDockerCompose(payload.data, payload.manifestSource?.compose)
-    };
   } catch (error) {
-    return {
-      code: "",
-      error:
-        error instanceof Error ? error.message : "Unable to generate manifest"
-    };
+    diagnostics.push(
+      diagnostic(
+        "GENERATION_FAILED",
+        "/",
+        manifest,
+        error instanceof Error ? error.message : "Unable to generate manifest.",
+        "Correct the reported configuration before exporting."
+      )
+    );
   }
+  const blocked = diagnostics.some((item) => item.blocksExport);
+  return {
+    code: blocked ? "" : code,
+    rawCode: code,
+    diagnostics,
+    blocked,
+    ...(blocked
+      ? {
+          error: [
+            ...new Set(
+              diagnostics
+                .filter((item) => item.blocksExport)
+                .map(
+                  (item) => `${item.sourcePath}: ${item.reason} ${item.action}`
+                )
+            )
+          ].join("\n")
+        }
+      : {})
+  };
 };

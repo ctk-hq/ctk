@@ -145,7 +145,7 @@ test("multi-document Kubernetes import creates services, volumes and volume edge
     }
   });
   const compose = YAML.parse(
-    generateManifest(payload, manifestTypes.DOCKER_COMPOSE).code
+    generateManifest(payload, manifestTypes.DOCKER_COMPOSE).rawCode!
   );
   expect(compose.services.web.environment).toEqual({ MODE: "demo" });
   expect(compose.services.web.ports).toBeUndefined();
@@ -312,9 +312,15 @@ test("unknown resources are retained and diagnosed without inventing a Compose s
   const imported = parseManifest(JSON.stringify(resource), "json");
   expect(imported.data.services).toEqual({});
   expect(imported.source.warnings?.join(" ")).toContain("no graph node");
+  const generated = generateManifest(
+    { data: imported.data, manifestSource: imported.source },
+    manifestTypes.KUBERNETES
+  );
+  expect(generated.blocked).toBe(true);
   expect(
-    kubernetes({ data: imported.data, manifestSource: imported.source })
-  ).toEqual([resource]);
+    generated.diagnostics.some((item) => item.code === "API_SCHEMA_UNKNOWN")
+  ).toBe(true);
+  expect(YAML.parse(generated.rawCode!)).toEqual(resource);
 });
 
 test("native literal dollars stay literal in Compose and after subsequent graph edits", () => {

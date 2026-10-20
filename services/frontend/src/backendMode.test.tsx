@@ -170,7 +170,11 @@ test.each(["/projects/new", "/projects/saved-project"])(
     await waitFor(() =>
       expect(screen.getByTestId("canvas")).toHaveTextContent(/web/i)
     );
-    expect(screen.getByRole("button", { name: "Copy manifest" })).toBeEnabled();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Copy manifest" })
+      ).toBeEnabled()
+    );
     expect(
       screen.getByRole("button", { name: "Download manifest" })
     ).toBeEnabled();

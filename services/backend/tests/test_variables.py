@@ -505,7 +505,8 @@ def test_rejects_invalid_values_and_does_not_generate_unresolved_kubernetes(clie
         },
     )
     assert response.json()["code"] == ""
-    assert "cannot resolve Compose variables" in response.json()["error"]
+    assert response.status_code == 410
+    assert response.json()["diagnostics"][0]["code"] == "GENERATION_API_RETIRED"
 
 
 @pytest.mark.skipif(not shutil.which("docker"), reason="Docker Compose CLI unavailable")

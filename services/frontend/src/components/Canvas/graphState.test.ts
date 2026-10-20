@@ -55,7 +55,7 @@ test("attaching and detaching connections keeps Compose fields in sync", () => {
   ).toEqual(["db"]);
   expect(
     (attached.nodes.api as IServiceNodeItem).serviceConfig.volumes
-  ).toEqual(["data"]);
+  ).toEqual([{ type: "volume", source: "data", target: "" }]);
 
   const detached = detachCanvasConnection(attached, ["api", "db"]);
   expect(detached.connections).toEqual([["data", "api"]]);

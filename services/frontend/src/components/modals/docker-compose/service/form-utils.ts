@@ -16,6 +16,13 @@ import {
   packArrayAsObject,
   packArrayAsStrings
 } from "../../../../utils/forms";
+import { preserveFormChanges } from "../../../../utils/form-preservation";
+import {
+  imageParts,
+  portParts,
+  mountParts,
+  absoluteContainerPath
+} from "../../../../utils/container-values";
 import General from "./General";
 import Environment from "./Environment";
 import Data from "./Data";
@@ -127,21 +134,34 @@ const initialValues: IEditServiceForm = {
   workingDir: ""
 };
 
-yup.addMethod<yup.StringSchema>(yup.string, "port", function (message) {
-  return this.test("test-port", message, function (value):
-    boolean | yup.ValidationError {
-    const { path, createError } = this;
+yup.addMethod<yup.StringSchema>(
+  yup.string,
+  "port",
+  function (message, allowZero = false) {
+    return this.test("test-port", message, function (value):
+      boolean | yup.ValidationError {
+      const { path, createError } = this;
 
-    if (value) {
-      const result = parseInt(value, 10);
-      if (isNaN(result) || result < 0 || result > 65535) {
-        return createError({ path, message });
+      if (value) {
+        const numbers = value.split("-").map(Number);
+        if (
+          !/^\d+(?:-\d+)?$/.test(value) ||
+          numbers.some(
+            (number) =>
+              !Number.isInteger(number) ||
+              number < (allowZero ? 0 : 1) ||
+              number > 65535
+          ) ||
+          (numbers.length === 2 && numbers[0] > numbers[1])
+        ) {
+          return createError({ path, message });
+        }
       }
-    }
 
-    return true;
-  });
-});
+      return true;
+    });
+  }
+);
 
 const normalizeCapability = (value: string): string =>
   value.trim().toUpperCase().replace(/^CAP_/, "");
@@ -171,6 +191,29 @@ const commandSchema = yup
       return this.createError({ message: (error as Error).message });
     }
   });
+
+const optionalNumber = (value: string) =>
+  value === undefined ||
+  value === null ||
+  (typeof value === "string" && !value.trim())
+    ? undefined
+    : Number(value);
+const uniqueNames = (rows: any[] | undefined) =>
+  !rows || new Set(rows.map((row) => row.key)).size === rows.length;
+
+const optionalInteger = (label: string) =>
+  yup
+    .number()
+    .transform((value, raw) =>
+      raw === "" ||
+      raw === undefined ||
+      (typeof raw === "string" && !raw.trim())
+        ? undefined
+        : value
+    )
+    .typeError(`${label} must be a whole number`)
+    .integer(`${label} must be a whole number`)
+    .min(0, `${label} must be zero or greater`);
 
 export const validationSchema = yup.object({
   capAdd: yup.array(capabilitySchema),
@@ -215,7 +258,7 @@ export const validationSchema = yup.object({
   deploy: yup.object({
     mode: yup.string().oneOf(["", "global", "replicated"]),
     endpointMode: yup.string().oneOf(["", "vip", "dnsrr"]),
-    replicas: yup.string(),
+    replicas: optionalInteger("Replicas"),
     placement: yup.object({
       constraints: yup.array(
         yup.object({
@@ -234,7 +277,7 @@ export const validationSchema = yup.object({
       limits: yup.object({
         cpus: yup.string(),
         memory: yup.string(),
-        pids: yup.number().typeError("PIDs should be an integer")
+        pids: optionalInteger("PIDs").min(-1)
       }),
       reservations: yup.object({
         cpus: yup.string(),
@@ -244,11 +287,11 @@ export const validationSchema = yup.object({
     restartPolicy: yup.object({
       condition: yup.string().oneOf(["", "none", "on-failure", "any"]),
       delay: yup.string(),
-      maxAttempts: yup.number().typeError("max attempts should be an integer"),
+      maxAttempts: optionalInteger("Max attempts"),
       window: yup.string()
     }),
     rollbackConfig: yup.object({
-      parallelism: yup.number().typeError("parallelism should be an integer"),
+      parallelism: optionalInteger("Parallelism"),
       delay: yup.string(),
       failureAction: yup.string().oneOf(["", "continue", "pause"]),
       monitor: yup.string(),
@@ -256,7 +299,7 @@ export const validationSchema = yup.object({
       order: yup.string().oneOf(["", "stop-first", "start-first"])
     }),
     updateConfig: yup.object({
-      parallelism: yup.number().typeError("parallelism should be an integer"),
+      parallelism: optionalInteger("Parallelism"),
       delay: yup.string(),
       failureAction: yup.string().oneOf(["", "continue", "pause"]),
       monitor: yup.string(),
@@ -277,7 +320,20 @@ export const validationSchema = yup.object({
   imageName: yup
     .string()
     .max(256, "Image name should be 256 characters or less"),
-  imageTag: yup.string().max(256, "Image tag should be 256 characters or less"),
+  imageTag: yup
+    .string()
+    .max(128)
+    .matches(/^[\w][\w.-]*$/, {
+      message: "Use a valid image tag",
+      excludeEmptyString: true
+    })
+    .test(
+      "digest",
+      "Edit the full digest reference in Image name; leave Image tag empty",
+      function (value) {
+        return !value || !this.parent.imageName?.includes("@");
+      }
+    ),
   containerName: yup
     .string()
     .max(256, "Container name should be 256 characters or less"),
@@ -290,10 +346,11 @@ export const validationSchema = yup.object({
   ports: yup.array(
     yup.object({
       hostPort: (yup.string() as any).port(
-        "Host port should be an integer in the range 0-65535"
+        "Host port must be 0-65535 or an ordered port range",
+        true
       ),
       containerPort: (yup.string() as any).port(
-        "Container port should be an integer in the range 0-65535"
+        "Container port should be an integer in the range 1-65535"
       ),
       protocol: yup
         .string()
@@ -303,18 +360,23 @@ export const validationSchema = yup.object({
         )
     })
   ),
-  environmentVariables: yup.array(
-    yup.object({
-      key: yup.string().required("Key is required")
-    })
-  ),
+  environmentVariables: yup
+    .array(yup.object({ key: yup.string().required("Key is required") }))
+    .test("unique", "Environment variable names must be unique", uniqueNames),
   volumes: yup.array(
     yup.object({
       name: yup.string().when("containerPath", {
         is: (value: string) => !value,
         then: (schema) => schema.required("Name or container path is required")
       }),
-      containerPath: yup.string(),
+      containerPath: yup
+        .string()
+        .required("Container path is required")
+        .test(
+          "absolute",
+          "Use an absolute container path",
+          (value) => !value || absoluteContainerPath(value)
+        ),
       accessMode: yup.string()
     })
   ),
@@ -362,9 +424,7 @@ const extractDependsOn = (object: string[] | any) => {
 
 export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   if (!node) {
-    return {
-      ...initialValues
-    };
+    return structuredClone(initialValues);
   }
 
   const { canvasConfig, serviceConfig } = node;
@@ -372,7 +432,7 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const {
     cap_add,
     cap_drop,
-    build,
+    build: rawBuild,
     command,
     deploy,
     depends_on,
@@ -390,19 +450,12 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     working_dir
   } = serviceConfig;
 
+  const build = typeof rawBuild === "string" ? { context: rawBuild } : rawBuild;
   const volumes0: any[] = checkArray(volumes ?? [], "volumes");
   const ports0: any[] = checkArray(ports ?? [], "ports");
-  const imageReference = image ?? "";
-  const tagSeparator = imageReference.lastIndexOf(":");
-  const hasTag =
-    !imageReference.includes("@") &&
-    tagSeparator > imageReference.lastIndexOf("/");
-  const imageName = hasTag
-    ? imageReference.slice(0, tagSeparator)
-    : imageReference;
-  const imageTag = hasTag ? imageReference.slice(tagSeparator + 1) : "";
+  const { name: imageName, tag: imageTag } = imageParts(image ?? "");
 
-  return {
+  return structuredClone({
     capAdd: [...(cap_add ?? initialValues.capAdd)],
     capDrop: [...(cap_drop ?? initialValues.capDrop)],
     build: build
@@ -418,8 +471,12 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
           cacheFrom: build.cache_from ?? initialValues.build.cacheFrom,
           cacheTo: build.cache_to ?? initialValues.build.cacheTo,
           extraHosts:
-            extractArray(":", "hostName", "ipAddress", build.extra_hosts) ??
-            initialValues.build.extraHosts,
+            extractObjectOrArray(
+              ":",
+              "hostName",
+              "ipAddress",
+              build.extra_hosts
+            ) ?? initialValues.build.extraHosts,
           isolation: build.isolation ?? initialValues.build.isolation,
           labels:
             extractObjectOrArray("=", "key", "value", build.labels) ??
@@ -448,15 +505,21 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
                   ) ?? initialValues.deploy.placement.constraints,
                 preferences:
                   (Array.isArray(deploy.placement.preferences)
-                    ? deploy.placement.preferences.flatMap((preference) =>
-                        extractObjectOrArray(
-                          "=",
-                          "key",
-                          "value",
-                          typeof preference === "string"
-                            ? [preference]
-                            : preference
-                        )
+                    ? deploy.placement.preferences.flatMap(
+                        (preference, index) =>
+                          extractObjectOrArray(
+                            "=",
+                            "key",
+                            "value",
+                            typeof preference === "string"
+                              ? [preference]
+                              : preference
+                          )
+                            .filter((entry: any) => entry.key === "spread")
+                            .map((entry: any) => ({
+                              ...entry,
+                              _sourceIndex: index
+                            }))
                       )
                     : extractObjectOrArray(
                         "=",
@@ -560,7 +623,11 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
       : initialValues.deploy,
     dependsOn: extractDependsOn(depends_on) ?? initialValues.dependsOn,
     entrypoint: commandFormValue(entrypoint),
-    envFile: (env_file as string) ?? (initialValues.envFile as string),
+    envFile: Array.isArray(env_file)
+      ? env_file
+          .map((entry: any) => (typeof entry === "string" ? entry : entry.path))
+          .join("\n")
+      : (env_file ?? initialValues.envFile),
     imageName,
     imageTag,
     serviceName: node_name,
@@ -568,59 +635,25 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
     environmentVariables:
       extractObjectOrArray("=", "key", "value", environment) ??
       initialValues.environmentVariables,
-    volumes: volumes0.map((volume) => {
-      if (typeof volume !== "string")
-        return {
-          name: volume.source ?? "",
-          containerPath: volume.target ?? "",
-          accessMode: volume.read_only ? "ro" : ""
-        };
-      if (!volume.includes(":"))
-        return { name: "", containerPath: volume, accessMode: "" };
-      const [name, containerPath, accessMode] = volume.split(":");
-      return {
-        name,
-        containerPath,
-        accessMode
-      };
-    }),
+    volumes: volumes0.map((value, index) => ({
+      ...mountParts(value),
+      _sourceIndex: index
+    })),
     networks: Array.isArray(networks)
       ? networks
       : networks
         ? Object.keys(networks)
         : initialValues.networks,
-    ports: ports0.map((port) => {
-      if (typeof port !== "string") {
-        if (typeof port === "number")
-          return { hostPort: "", containerPort: String(port), protocol: "" };
-        return {
-          hostPort: port.published === undefined ? "" : String(port.published),
-          containerPort: String(port.target ?? ""),
-          protocol: port.protocol ?? ""
-        };
-      }
-      const slashIndex = port.lastIndexOf("/");
-      const protocol = slashIndex >= 0 ? port.substring(slashIndex + 1) : "";
-      const parts = (
-        slashIndex >= 0 ? port.substring(0, slashIndex) : port
-      ).split(":");
-      const containerPort = parts.at(-1) ?? "";
-      const hostPort = parts.length > 1 ? (parts.at(-2) ?? "") : "";
-
-      if (!["", "tcp", "udp", "sctp"].includes(protocol)) {
-        throw new Error(
-          `Invalid protocol "${protocol}" found while deserializing.`
-        );
-      }
-
-      return { hostPort, containerPort, protocol } as any;
-    }),
+    ports: ports0.map((value, index) => ({
+      ...portParts(value),
+      _sourceIndex: index
+    })) as IEditServiceForm["ports"],
     profiles: profiles ?? initialValues.profiles,
     restart: (restart as string) ?? (initialValues.restart as string),
     labels:
       extractObjectOrArray("=", "key", "value", labels) ?? initialValues.labels,
     workingDir: (working_dir as string) ?? (initialValues.workingDir as string)
-  };
+  });
 };
 
 const getFinalDependsOn = (dependsOn: IEditServiceFormDependsOn[]) => {
@@ -706,7 +739,7 @@ export const getFinalValues = (
       command: command === null ? undefined : commandFormValue(command),
       deploy: pruneObject({
         mode: pruneString(deploy.mode),
-        replicas: pruneString(deploy.replicas),
+        replicas: pruneNumber(optionalNumber(deploy.replicas)),
         endpoint_mode: pruneString(deploy.endpointMode),
         placement: pruneObject({
           constraints: packArrayAsStrings(
@@ -725,8 +758,7 @@ export const getFinalValues = (
           limits: pruneObject({
             cpus: pruneString(deploy.resources.limits.cpus),
             memory: pruneString(deploy.resources.limits.memory),
-            // NOTE: Could be a potential bug.
-            pids: pruneNumber(parseInt(deploy.resources.limits.pids))
+            pids: pruneNumber(optionalNumber(deploy.resources.limits.pids))
           }),
           reservations: pruneObject({
             cpus: pruneString(deploy.resources.reservations.cpus),
@@ -736,11 +768,15 @@ export const getFinalValues = (
         restart_policy: pruneObject({
           condition: pruneString(deploy.restartPolicy.condition),
           delay: pruneString(deploy.restartPolicy.delay),
-          max_attempts: pruneNumber(parseInt(deploy.restartPolicy.maxAttempts)),
+          max_attempts: pruneNumber(
+            optionalNumber(deploy.restartPolicy.maxAttempts)
+          ),
           window: pruneString(deploy.restartPolicy.window)
         }),
         rollback_config: pruneObject({
-          parallelism: pruneNumber(parseInt(deploy.rollbackConfig.parallelism)),
+          parallelism: pruneNumber(
+            optionalNumber(deploy.rollbackConfig.parallelism)
+          ),
           delay: pruneString(deploy.rollbackConfig.delay),
           failure_action: pruneString(deploy.rollbackConfig.failureAction),
           monitor: pruneString(deploy.rollbackConfig.monitor),
@@ -748,7 +784,9 @@ export const getFinalValues = (
           order: pruneString(deploy.rollbackConfig.order)
         }),
         update_config: pruneObject({
-          parallelism: pruneNumber(parseInt(deploy.updateConfig.parallelism)),
+          parallelism: pruneNumber(
+            optionalNumber(deploy.updateConfig.parallelism)
+          ),
           delay: pruneString(deploy.updateConfig.delay),
           failure_action: pruneString(deploy.updateConfig.failureAction),
           monitor: pruneString(deploy.updateConfig.monitor),
@@ -760,7 +798,9 @@ export const getFinalValues = (
       depends_on: getFinalDependsOn(dependsOn),
       entrypoint:
         entrypoint === null ? undefined : commandFormValue(entrypoint),
-      env_file: pruneString(envFile),
+      env_file: envFile.includes("\n")
+        ? pruneArray(envFile.split("\n").filter((path) => path.trim()))
+        : pruneString(envFile),
       image: pruneString(
         `${values.imageName}${values.imageTag ? `:${values.imageTag}` : ""}`
       ),
@@ -794,21 +834,123 @@ export const getFinalValues = (
   };
   if (previous) {
     const baseline = getFinalValues(getInitialValues(previous)).serviceConfig;
-    const edited = result.serviceConfig as Record<string, unknown>;
-    const original = previous.serviceConfig as Record<string, unknown>;
-    // Preserve raw syntax and fields the form does not edit. A changed field,
-    // including an explicit deletion, still replaces its original value.
-    result.serviceConfig = { ...original, ...edited };
-    for (const key of Object.keys(edited)) {
-      if (
-        JSON.stringify(edited[key]) ===
-        JSON.stringify((baseline as Record<string, unknown>)[key])
-      ) {
-        if (Object.hasOwn(original, key))
-          (result.serviceConfig as Record<string, unknown>)[key] =
-            original[key];
-        else delete (result.serviceConfig as Record<string, unknown>)[key];
-      }
+    const edited = result.serviceConfig as Record<string, any>;
+    const original = previous.serviceConfig as Record<string, any>;
+    result.serviceConfig =
+      preserveFormChanges(original, baseline, edited) ?? {};
+    // Update represented cells without dropping long-syntax options or list/map entries.
+    for (const key of ["ports", "volumes"] as const) {
+      const rows = values[key];
+      const beforeRows = getInitialValues(previous)[key];
+      if (JSON.stringify(rows) === JSON.stringify(beforeRows)) continue;
+      const raw = Array.isArray(original[key]) ? original[key] : [];
+      (result.serviceConfig as any)[key] = rows.length
+        ? rows.map((row: any, index) => {
+            const old =
+              row._sourceIndex === undefined
+                ? undefined
+                : raw[row._sourceIndex];
+            const before =
+              row._sourceIndex === undefined
+                ? undefined
+                : beforeRows[row._sourceIndex];
+            if (JSON.stringify(row) === JSON.stringify(before)) return old;
+            if (old && typeof old === "object") {
+              if (key === "ports") {
+                const next = {
+                  ...old,
+                  target: /^\d+$/.test(row.containerPort)
+                    ? Number(row.containerPort)
+                    : row.containerPort
+                };
+                if (row.hostPort) next.published = String(row.hostPort);
+                else delete next.published;
+                if (row.protocol) next.protocol = row.protocol;
+                else delete next.protocol;
+                return next;
+              }
+              const next = { ...old, target: row.containerPath };
+              if (row.name) next.source = row.name;
+              else delete next.source;
+              if (row.accessMode === "ro") next.read_only = true;
+              else delete next.read_only;
+              return next;
+            }
+            if (key === "ports" && typeof old === "string") {
+              const expression = old.split("/")[0];
+              const parts = expression.split(":");
+              if (parts.length > 2)
+                return `${parts.slice(0, -2).join(":")}:${row.hostPort}:${row.containerPort}${row.protocol ? `/${row.protocol}` : ""}`;
+            }
+            return edited[key]?.[index];
+          })
+        : undefined;
+    }
+    if (
+      original.networks &&
+      !Array.isArray(original.networks) &&
+      JSON.stringify(values.networks) !==
+        JSON.stringify(getInitialValues(previous).networks)
+    ) {
+      result.serviceConfig.networks = values.networks.length
+        ? Object.fromEntries(
+            values.networks.map((name) => [
+              name,
+              original.networks[name] ?? null
+            ])
+          )
+        : undefined;
+    }
+    if (
+      Array.isArray(original.env_file) &&
+      values.envFile !== getInitialValues(previous).envFile
+    ) {
+      const files = values.envFile.split("\n").filter((path) => path.trim());
+      result.serviceConfig.env_file = files.length
+        ? files.map(
+            (path) =>
+              original.env_file.find(
+                (entry: any) =>
+                  (typeof entry === "string" ? entry : entry.path) === path
+              ) ?? path
+          )
+        : undefined;
+    }
+    if (
+      original.depends_on &&
+      !Array.isArray(original.depends_on) &&
+      JSON.stringify(values.dependsOn) !==
+        JSON.stringify(getInitialValues(previous).dependsOn)
+    ) {
+      result.serviceConfig.depends_on = values.dependsOn.length
+        ? Object.fromEntries(
+            values.dependsOn.map((entry) => [
+              entry.serviceName,
+              {
+                ...original.depends_on[entry.serviceName],
+                condition: entry.condition
+              }
+            ])
+          )
+        : undefined;
+    }
+    const rawPreferences = original.deploy?.placement?.preferences;
+    if (
+      Array.isArray(rawPreferences) &&
+      rawPreferences.every((entry: any) => typeof entry === "object") &&
+      JSON.stringify(values.deploy.placement.preferences) !==
+        JSON.stringify(getInitialValues(previous).deploy.placement.preferences)
+    ) {
+      const rows = values.deploy.placement.preferences;
+      if (result.serviceConfig.deploy?.placement)
+        result.serviceConfig.deploy.placement.preferences = rows.length
+          ? rows.map((row) => ({
+              ...(row._sourceIndex === undefined
+                ? {}
+                : rawPreferences[row._sourceIndex]),
+              [row.key]: row.value
+            }))
+          : undefined;
     }
     // Older CTK projects used strings here; retain the existing migration.
     const originalPreferences =
@@ -823,7 +965,7 @@ export const getFinalValues = (
         ...result.serviceConfig.deploy,
         placement: {
           ...result.serviceConfig.deploy?.placement,
-          preferences: baseline.deploy?.placement?.preferences
+          preferences: edited.deploy?.placement?.preferences
         }
       };
     }

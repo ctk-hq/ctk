@@ -20,8 +20,17 @@ export default function NetworkForm({
     <Formik
       initialValues={initialValues}
       enableReinitialize
-      onSubmit={async (values) => {
-        await onSubmit(values);
+      onSubmit={async (values, helpers) => {
+        try {
+          await onSubmit(values);
+          helpers.setStatus(undefined);
+        } catch (error) {
+          helpers.setStatus(
+            error instanceof Error
+              ? error.message
+              : "Unable to save this network."
+          );
+        }
       }}
       validationSchema={validationSchema}
     >
@@ -57,6 +66,11 @@ export default function NetworkForm({
               </TabsContent>
             </div>
           </Tabs>
+          {formik.status && (
+            <p role="alert" className="px-6 pb-4 text-sm text-destructive">
+              {formik.status}
+            </p>
+          )}
           <DialogFooter>
             <Button type="submit" disabled={formik.isSubmitting}>
               {network ? "Save" : "Create"}

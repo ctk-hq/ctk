@@ -5,7 +5,12 @@ import {
   INetworkNodeItem,
   IPAMConfig
 } from "../../../../types";
-import { pruneArray, pruneObject } from "../../../../utils/forms";
+import { preserveFormChanges } from "../../../../utils/form-preservation";
+import {
+  extractObjectOrArray,
+  pruneArray,
+  pruneObject
+} from "../../../../utils/forms";
 
 export const validationSchema = yup.object({
   entryName: yup
@@ -75,9 +80,7 @@ export const initialValues: IEditNetworkForm = {
 
 export const getInitialValues = (node?: INetworkNodeItem): IEditNetworkForm => {
   if (!node) {
-    return {
-      ...initialValues
-    };
+    return structuredClone(initialValues);
   }
 
   const { canvasConfig, networkConfig } = node;
@@ -90,7 +93,8 @@ export const getInitialValues = (node?: INetworkNodeItem): IEditNetworkForm => {
     networkName: name,
     driver: ipam?.driver ?? "",
     configurations:
-      ipam?.config?.map((item) => ({
+      ipam?.config?.map((item, index) => ({
+        _sourceIndex: index,
         subnet: item.subnet ?? "",
         ipRange: item.ip_range ?? "",
         gateway: item.gateway ?? "",
@@ -107,12 +111,7 @@ export const getInitialValues = (node?: INetworkNodeItem): IEditNetworkForm => {
         value: ipam?.options?.[key].toString() ?? ""
       };
     }),
-    labels: labels
-      ? Object.entries(labels as any).map(([key, value]: any) => ({
-          key,
-          value
-        }))
-      : []
+    labels: extractObjectOrArray("=", "key", "value", labels) ?? []
   };
 };
 
@@ -122,13 +121,10 @@ export const getFinalValues = (
 ): INetworkNodeItem => {
   const { labels, driver, configurations, options } = values;
 
-  return {
+  const result: INetworkNodeItem = {
     key: previous?.key ?? "network",
     type: "NETWORK",
-    position: {
-      left: 0,
-      top: 0
-    },
+    position: previous?.position ?? { left: 0, top: 0 },
     inputs: previous?.inputs ?? [],
     outputs: previous?.outputs ?? [],
     canvasConfig: {
@@ -184,4 +180,36 @@ export const getFinalValues = (
       ) as Record<string, string>
     }
   };
+  if (previous) {
+    result.networkConfig =
+      preserveFormChanges(
+        previous.networkConfig,
+        getFinalValues(getInitialValues(previous)).networkConfig,
+        result.networkConfig
+      ) ?? {};
+    const oldRows = getInitialValues(previous).configurations;
+    if (
+      JSON.stringify(oldRows) !== JSON.stringify(configurations) &&
+      result.networkConfig.ipam
+    ) {
+      const canonical = getFinalValues(values).networkConfig.ipam?.config ?? [];
+      const baseline =
+        getFinalValues(getInitialValues(previous)).networkConfig.ipam?.config ??
+        [];
+      result.networkConfig.ipam.config = configurations.length
+        ? configurations.map((row, index) =>
+            preserveFormChanges(
+              row._sourceIndex === undefined
+                ? undefined
+                : previous.networkConfig.ipam?.config?.[row._sourceIndex],
+              row._sourceIndex === undefined
+                ? undefined
+                : baseline[row._sourceIndex],
+              canonical[index]
+            )
+          )
+        : undefined;
+    }
+  }
+  return result;
 };
