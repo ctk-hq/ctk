@@ -149,7 +149,9 @@ def _read_dir(path: str) -> list[str]:
 def generate_kubernetes_manifest(payload: dict[str, Any]) -> dict[str, str]:
     response = {"code": "", "error": ""}
     if referenced_names(payload):
-        response["error"] = "Kubernetes export cannot resolve Compose variables. Use concrete non-secret configuration or native Secret/ConfigMap references before exporting."
+        response["error"] = (
+            "Kubernetes export cannot resolve Compose variables. Use concrete non-secret configuration or native Secret/ConfigMap references before exporting."
+        )
         return response
     workdir = Path(f"/tmp/{_get_random_string(8)}")
     workdir.mkdir(exist_ok=True)

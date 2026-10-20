@@ -51,6 +51,8 @@ export const tabs = [
 ];
 
 const initialValues: IEditServiceForm = {
+  capAdd: [],
+  capDrop: [],
   build: {
     context: "",
     dockerfile: "",
@@ -141,6 +143,18 @@ yup.addMethod<yup.StringSchema>(yup.string, "port", function (message) {
   });
 });
 
+const normalizeCapability = (value: string): string =>
+  value.trim().toUpperCase().replace(/^CAP_/, "");
+
+const capabilitySchema = yup
+  .string()
+  .transform(normalizeCapability)
+  .matches(/^[A-Z][A-Z0-9_]*$/, {
+    message: "Use a capability name such as NET_ADMIN",
+    excludeEmptyString: true
+  })
+  .required("Capability name is required");
+
 const commandSchema = yup
   .mixed()
   .nullable()
@@ -159,6 +173,8 @@ const commandSchema = yup
   });
 
 export const validationSchema = yup.object({
+  capAdd: yup.array(capabilitySchema),
+  capDrop: yup.array(capabilitySchema),
   command: commandSchema,
   entrypoint: commandSchema,
   build: yup.object({
@@ -348,6 +364,8 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const { canvasConfig, serviceConfig } = node;
   const { node_name = "" } = canvasConfig;
   const {
+    cap_add,
+    cap_drop,
     build,
     command,
     deploy,
@@ -371,6 +389,8 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
   const [imageName, imageTag] = (image ?? ":").split(":");
 
   return {
+    capAdd: [...(cap_add ?? initialValues.capAdd)],
+    capDrop: [...(cap_drop ?? initialValues.capDrop)],
     build: build
       ? {
           context: build.context,
@@ -597,6 +617,8 @@ export const getFinalValues = (
   previous?: IServiceNodeItem
 ): IServiceNodeItem => {
   const {
+    capAdd,
+    capDrop,
     build,
     command,
     deploy,
@@ -623,6 +645,8 @@ export const getFinalValues = (
       node_name: values.serviceName
     },
     serviceConfig: {
+      cap_add: pruneArray([...new Set(capAdd.map(normalizeCapability))]),
+      cap_drop: pruneArray([...new Set(capDrop.map(normalizeCapability))]),
       build: pruneObject({
         context: pruneString(build.context),
         dockerfile: pruneString(build.dockerfile),

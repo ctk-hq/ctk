@@ -33,6 +33,70 @@ function composeDocument(node: IServiceNodeItem) {
   return YAML.parse(result.code);
 }
 
+test("saves, reopens, and exports capability lists to Compose and Kubernetes", async () => {
+  const values = serviceForm();
+  values.capAdd = [" net_admin ", "CAP_SYS_TIME", "NET_ADMIN"];
+  values.capDrop = ["cap_net_raw"];
+  await expect(validationSchema.validate(values)).resolves.toBeDefined();
+
+  const node = getFinalValues(values);
+  const reopened = getInitialValues(node);
+  expect(reopened.capAdd).toEqual(["NET_ADMIN", "SYS_TIME"]);
+  expect(reopened.capDrop).toEqual(["NET_RAW"]);
+
+  const saved = getFinalValues(reopened, node);
+  const compose = composeDocument(saved).services.web;
+  expect(compose.cap_add).toEqual(["NET_ADMIN", "SYS_TIME"]);
+  expect(compose.cap_drop).toEqual(["NET_RAW"]);
+
+  const result = generateManifest(
+    generatePayload({ nodes: { web: saved }, networks: {} }),
+    manifestTypes.KUBERNETES
+  );
+  expect(result.error).toBeUndefined();
+  const deployment = YAML.parseAllDocuments(result.code)
+    .map((doc) => doc.toJSON())
+    .find((doc) => doc.kind === "Deployment");
+  expect(
+    deployment.spec.template.spec.containers[0].securityContext.capabilities
+  ).toEqual({ add: ["NET_ADMIN", "SYS_TIME"], drop: ["NET_RAW"] });
+});
+
+test("omits unset capability lists and removes them when cleared in the editor", () => {
+  const node = getFinalValues(serviceForm());
+  expect(getInitialValues(node).capAdd).toEqual([]);
+  expect(getInitialValues(node).capDrop).toEqual([]);
+  expect(composeDocument(node).services.web).not.toHaveProperty("cap_add");
+  expect(composeDocument(node).services.web).not.toHaveProperty("cap_drop");
+
+  node.serviceConfig.cap_add = ["NET_ADMIN"];
+  node.serviceConfig.cap_drop = ["ALL"];
+  const reopened = getInitialValues(node);
+  expect(reopened.capAdd).toEqual(["NET_ADMIN"]);
+  expect(reopened.capDrop).toEqual(["ALL"]);
+  reopened.capAdd = [];
+  reopened.capDrop = [];
+
+  const compose = composeDocument(getFinalValues(reopened, node)).services.web;
+  expect(compose).not.toHaveProperty("cap_add");
+  expect(compose).not.toHaveProperty("cap_drop");
+});
+
+test.each(["capAdd", "capDrop"] as const)(
+  "rejects blank or malformed names in %s while accepting ALL",
+  async (field) => {
+    const values = serviceForm();
+    for (const name of ["", "   ", "CAP_", "NET ADMIN", "NET-ADMIN"]) {
+      values[field] = [name];
+      await expect(validationSchema.validate(values)).rejects.toMatchObject({
+        path: `${field}[0]`
+      });
+    }
+    values[field] = ["ALL"];
+    await expect(validationSchema.validate(values)).resolves.toBeDefined();
+  }
+);
+
 test("serializes validated Deploy form settings through the graph into Compose YAML", async () => {
   const values = serviceForm();
   await expect(validationSchema.validate(values)).resolves.toBeDefined();

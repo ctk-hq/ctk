@@ -236,6 +236,38 @@ const General = () => {
             newValue: ""
           },
           {
+            id: "capAdd",
+            type: "records",
+            title: "Additional capabilities",
+            name: "capAdd",
+            fields: (index: number): TFinalFormField[] => [
+              {
+                id: `capAdd[${index}]`,
+                type: "text",
+                name: `capAdd[${index}]`,
+                placeholder: "e.g. NET_ADMIN",
+                required: true
+              }
+            ],
+            newValue: ""
+          },
+          {
+            id: "capDrop",
+            type: "records",
+            title: "Dropped capabilities",
+            name: "capDrop",
+            fields: (index: number): TFinalFormField[] => [
+              {
+                id: `capDrop[${index}]`,
+                type: "text",
+                name: `capDrop[${index}]`,
+                placeholder: "e.g. NET_RAW",
+                required: true
+              }
+            ],
+            newValue: ""
+          },
+          {
             id: "labels",
             type: "records",
             title: "Labels",

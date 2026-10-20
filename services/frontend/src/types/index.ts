@@ -363,6 +363,8 @@ export interface IGeneratePayload {
 }
 
 export interface IEditServiceForm {
+  capAdd: string[];
+  capDrop: string[];
   build: {
     context: string;
     dockerfile: string;
