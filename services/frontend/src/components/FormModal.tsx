@@ -64,7 +64,7 @@ export default function FormModal({
             noValidate
             onSubmit={(event) => {
               event.preventDefault();
-              reportErrorsAndSubmit(formik)();
+              void reportErrorsAndSubmit(formik)();
             }}
           >
             <Tabs

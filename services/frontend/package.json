@@ -43,7 +43,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "format": "prettier --config .prettierrc \"src/**/*.{ts,tsx,css,json,md}\" --write"
+    "format": "prettier --config .prettierrc \"src/**/*.{ts,tsx,css,json,md}\" --write",
+    "test:kubernetes": "vitest run --config vitest.runtime.config.ts"
   },
   "overrides": {
     "dompurify": "^3.4.14"

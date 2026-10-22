@@ -15,6 +15,7 @@ import { useParams } from "react-router-dom";
 export interface IRecordsProps {
   collapsible?: boolean;
   defaultOpen?: boolean;
+  layout?: "row" | "grid";
   title: string;
   name: string;
   fields: (index: number) => IFieldType[];
@@ -31,6 +32,7 @@ const Records: FunctionComponent<IRecordsProps> = (
   const {
     collapsible = true,
     defaultOpen = false,
+    layout = "row",
     title,
     name,
     fields,
@@ -103,7 +105,16 @@ const Records: FunctionComponent<IRecordsProps> = (
                   label={title || name}
                   fields={fields(index)}
                   onRemove={handleRemove}
-                  renderLayout={renderLayout}
+                  renderLayout={
+                    renderLayout ??
+                    (layout === "grid"
+                      ? (elements) => (
+                          <div className="grid w-full min-w-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
+                            {elements}
+                          </div>
+                        )
+                      : undefined)
+                  }
                   renderField={renderField}
                   renderRemove={renderRemove}
                 />

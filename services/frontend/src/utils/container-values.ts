@@ -11,6 +11,7 @@ export function imageParts(reference: string): { name: string; tag: string } {
 export function portParts(value: any) {
   if (isObject(value))
     return {
+      hostIP: String(value.host_ip ?? ""),
       hostPort: value.published === undefined ? "" : String(value.published),
       containerPort: String(value.target ?? ""),
       protocol: String(value.protocol ?? "")
@@ -18,6 +19,13 @@ export function portParts(value: any) {
   const [expression, protocol = ""] = String(value).split("/");
   const parts = expression.split(":");
   return {
+    hostIP:
+      parts.length > 2
+        ? parts
+            .slice(0, -2)
+            .join(":")
+            .replace(/^\[|\]$/g, "")
+        : "",
     hostPort: parts.length > 1 ? parts.at(-2)! : "",
     containerPort: parts.at(-1)!,
     protocol

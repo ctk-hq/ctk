@@ -133,7 +133,7 @@ export function preserveComposeSettings(
                 target: Number(number),
                 protocol
               }
-            : `${parts.hostPort ? `${parts.hostPort}:` : ""}${number}${protocol !== "tcp" ? `/${protocol}` : ""}`;
+            : `${parts.hostIP ? `${parts.hostIP.includes(":") ? `[${parts.hostIP}]` : parts.hostIP}:` : ""}${parts.hostPort ? `${parts.hostPort}:` : ""}${number}${protocol !== "tcp" ? `/${protocol}` : ""}`;
         }) as any;
       }
       // Keep original mount syntax when the mapped source/target intent is unchanged.

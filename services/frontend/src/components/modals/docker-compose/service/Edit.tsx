@@ -8,10 +8,10 @@ import type {
 import {
   getInitialValues,
   getFinalValues,
-  validationSchema,
-  tabs
+  validationSchema
 } from "./form-utils";
 import { toaster } from "../../../../utils";
+import { tabs } from "./tabs";
 import FormModal from "../../../FormModal";
 
 export interface IModalServiceProps {

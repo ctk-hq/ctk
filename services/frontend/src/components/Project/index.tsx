@@ -49,6 +49,7 @@ import Header from "./Header";
 import VariablesModal from "./VariablesModal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { composeToCanvasGraph } from "../../utils/compose";
+import { hydrateServiceNetworking } from "../../utils/kubernetes-services";
 import { preserveComposeSettings } from "../../utils/manifest-reconciliation";
 import type { ManifestImport } from "../../utils/manifests";
 import { BACKEND_ENABLED } from "../../constants";
@@ -164,7 +165,12 @@ export default function Project(props: IProjectProps) {
       nodesAsList,
       nodeLibraries
     );
-    setNodes(clientNodeItems);
+    setNodes(
+      hydrateServiceNetworking(
+        clientNodeItems,
+        canvasData.canvas.manifestSource
+      )
+    );
     setConnections(canvasData.canvas.connections as CanvasConnection[]);
     setNetworks(canvasData.canvas.networks);
     setCanvasPosition(canvasData.canvas.position);
@@ -179,7 +185,9 @@ export default function Project(props: IProjectProps) {
       const canvas = payload.data.canvas;
       setManifestSource(canvas.manifestSource);
       setVariables(payload.data.variables ?? []);
-      setNodes(canvas.nodes || {});
+      setNodes(
+        hydrateServiceNetworking(canvas.nodes || {}, canvas.manifestSource)
+      );
       setConnections(canvas.connections || []);
       setNetworks(canvas.networks || {});
       setCanvasPosition(canvas.position);
@@ -422,7 +430,9 @@ export default function Project(props: IProjectProps) {
       (stateNodesRef.current as Dictionary<
         IServiceNodeItem | IVolumeNodeItem
       >) || {},
-      (stateNetworksRef.current as Record<string, INetworkNodeItem>) || {}
+      (stateNetworksRef.current as Record<string, INetworkNodeItem>) || {},
+      imported.source,
+      !imported.replaceSource
     );
 
     stateNodesRef.current = nextGraph.nodes;

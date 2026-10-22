@@ -6,7 +6,13 @@ import {
   iconByNodeType,
   attachUUID
 } from "./index";
-import { INetworkNodeItem, IServiceNodeItem, IVolumeNodeItem } from "../types";
+import {
+  INetworkNodeItem,
+  IServiceNodeItem,
+  IVolumeNodeItem,
+  ManifestSource
+} from "../types";
+import { importedNetworking } from "./kubernetes-services";
 import { nodeLibraries } from "./data/libraries";
 
 type ComposeRecord = Record<string, unknown>;
@@ -191,7 +197,9 @@ const getExistingNetworksByName = (
 export const composeToCanvasGraph = (
   composeInput: unknown,
   existingNodes: ComposeNodes = {},
-  existingNetworks: Record<string, INetworkNodeItem> = {}
+  existingNetworks: Record<string, INetworkNodeItem> = {},
+  source?: ManifestSource,
+  preserveNetworking = true
 ): IComposeGraphResult => {
   const composeData = toRecord(composeInput);
   const composeServices = composeData.services
@@ -230,6 +238,14 @@ export const composeToCanvasGraph = (
       },
       serviceConfig: toRecord(rawConfig)
     } as IServiceNodeItem;
+    const binding = source?.kubernetes?.bindings.find(
+      (entry) => entry.serviceName === serviceName
+    );
+    node.kubernetes = binding
+      ? importedNetworking(binding)
+      : preserveNetworking
+        ? existingNode?.kubernetes
+        : undefined;
 
     const clientNode = getClientNodeItem(
       node as IServiceNodeItem,

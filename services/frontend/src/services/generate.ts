@@ -1,4 +1,9 @@
 import YAML from "yaml";
+import type { KubernetesServiceConfig } from "../types/service-exposure";
+import {
+  containerPorts as getContainerPorts,
+  servicePorts
+} from "../utils/service-ports";
 
 import { manifestTypes } from "../constants";
 import { IGeneratePayload, KubernetesStorage } from "../types";
@@ -64,14 +69,6 @@ export const generateDockerCompose = (
   return stringifyYamlDocument(document);
 };
 
-const portName = (port: number, protocol: string, index: number): string => {
-  const ending = `-${index}`;
-  const prefix = `port-${port}-${protocol || "tcp"}`
-    .slice(0, 15 - ending.length)
-    .replace(/-+$/, "");
-  return `${prefix}${ending}`;
-};
-
 const toStringArray = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value.map(String);
@@ -125,83 +122,6 @@ const toEnvironment = (
     name,
     value: entry === null || entry === undefined ? "" : String(entry)
   }));
-};
-
-interface ParsedPort {
-  target: number;
-  published: number;
-  protocol: "TCP" | "UDP" | "SCTP";
-}
-
-const parsePortNumber = (value: unknown): number | null => {
-  const match = String(value ?? "").match(/^\d+$/);
-  if (!match) {
-    return null;
-  }
-
-  const port = Number(match[0]);
-  return port >= 1 && port <= 65535 ? port : null;
-};
-
-const normalizeProtocol = (value: unknown): ParsedPort["protocol"] => {
-  const protocol = String(value ?? "tcp").toUpperCase();
-  return protocol === "UDP" || protocol === "SCTP" ? protocol : "TCP";
-};
-
-const parsePort = (value: unknown): ParsedPort | null => {
-  if (isRecord(value)) {
-    const target = parsePortNumber(value.target);
-    if (!target) {
-      return null;
-    }
-
-    return {
-      target,
-      published: parsePortNumber(value.published) ?? target,
-      protocol: normalizeProtocol(value.protocol)
-    };
-  }
-
-  if (typeof value !== "string" && typeof value !== "number") {
-    return null;
-  }
-
-  const [portExpression, protocol] = String(value).split("/");
-  const segments = portExpression.split(":");
-  const target = parsePortNumber(segments.at(-1));
-
-  if (!target) {
-    return null;
-  }
-
-  return {
-    target,
-    published:
-      segments.length > 1
-        ? (parsePortNumber(segments.at(-2)) ?? target)
-        : target,
-    protocol: normalizeProtocol(protocol)
-  };
-};
-
-const getPorts = (service: UnknownRecord): ParsedPort[] => {
-  const values = [
-    ...(Array.isArray(service.ports) ? service.ports : []),
-    ...toStringArray(service.expose)
-  ];
-  const deduplicated = new Map<string, ParsedPort>();
-
-  values.forEach((value) => {
-    const parsed = parsePort(value);
-    if (parsed) {
-      deduplicated.set(
-        `${parsed.published}:${parsed.target}:${parsed.protocol}`,
-        parsed
-      );
-    }
-  });
-
-  return [...deduplicated.values()];
 };
 
 const imagePullPolicy = (pullPolicy: unknown): string | undefined => {
@@ -419,7 +339,8 @@ const persistentVolumeClaim = (
 const deploymentForService = (
   serviceName: string,
   serviceValue: unknown,
-  volumes: ComposeData["volumes"] = {}
+  volumes: ComposeData["volumes"] = {},
+  exposure?: KubernetesServiceConfig
 ): {
   deployment: UnknownRecord;
   service?: UnknownRecord;
@@ -432,12 +353,8 @@ const deploymentForService = (
     "app.kubernetes.io/managed-by": "container-toolkit"
   };
   const metadataLabels = { ...toLabels(service.labels), ...appLabels };
-  const ports = getPorts(service);
-  const containerPorts = [
-    ...new Map(
-      ports.map((port) => [`${port.target}:${port.protocol}`, port])
-    ).values()
-  ];
+  const ports = servicePorts(service, exposure);
+  const containerPorts = getContainerPorts(service, exposure);
   const convertedVolumes = convertServiceVolumes(service, volumes);
   const deploy = asRecord(service.deploy);
   let commands: ReturnType<typeof kubernetesCommands>;
@@ -464,14 +381,7 @@ const deploymentForService = (
       toEnvironment(service.environment).length > 0
         ? toEnvironment(service.environment)
         : undefined,
-    ports:
-      containerPorts.length > 0
-        ? containerPorts.map((port) => ({
-            name: portName(port.target, port.protocol.toLowerCase(), 0),
-            containerPort: port.target,
-            protocol: port.protocol
-          }))
-        : undefined,
+    ports: containerPorts.length > 0 ? containerPorts : undefined,
     volumeMounts:
       convertedVolumes.mounts.length > 0 ? convertedVolumes.mounts : undefined,
     resources: toResources(deploy.resources),
@@ -519,13 +429,9 @@ const deploymentForService = (
     kind: "Service",
     metadata: { name, labels: metadataLabels },
     spec: {
+      ...(exposure ? { type: exposure.type } : {}),
       selector: appLabels,
-      ports: ports.map((port, index) => ({
-        name: portName(port.target, port.protocol.toLowerCase(), index),
-        port: port.published,
-        targetPort: port.target,
-        protocol: port.protocol
-      }))
+      ports
     }
   };
 
@@ -538,7 +444,8 @@ const deploymentForService = (
 
 const renderKubernetes = (
   input: ComposeData,
-  storage: IGeneratePayload["kubernetesStorage"] = {}
+  storage: IGeneratePayload["kubernetesStorage"] = {},
+  exposures: IGeneratePayload["kubernetesServices"] = {}
 ): string => {
   const data = composeDollars(input, "unescape");
   if (referencedVariables(input).length) {
@@ -567,7 +474,12 @@ const renderKubernetes = (
 
   const convertedServices = Object.entries(data.services).map(
     ([serviceName, service]) =>
-      deploymentForService(serviceName, service, data.volumes)
+      deploymentForService(
+        serviceName,
+        service,
+        data.volumes,
+        exposures[serviceName]
+      )
   );
 
   convertedServices.forEach(({ claims }) => {
@@ -719,7 +631,11 @@ export const generateManifest = (
         );
         if (Object.keys(remaining.services).length) {
           const generated = YAML.parseAllDocuments(
-            renderKubernetes(remaining, payload.kubernetesStorage)
+            renderKubernetes(
+              remaining,
+              payload.kubernetesStorage,
+              payload.kubernetesServices
+            )
           ).map((document) => document.toJSON());
           for (const resource of generated) {
             const existing = documents.find(
@@ -740,7 +656,11 @@ export const generateManifest = (
         diagnostics.push(...validateKubernetes(documents));
         code = documents.map(stringifyYamlDocument).join("\n");
       } else {
-        code = renderKubernetes(payload.data, payload.kubernetesStorage);
+        code = renderKubernetes(
+          payload.data,
+          payload.kubernetesStorage,
+          payload.kubernetesServices
+        );
         if (!code.startsWith("#"))
           diagnostics.push(
             ...validateKubernetes(

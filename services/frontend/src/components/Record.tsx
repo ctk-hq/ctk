@@ -16,6 +16,7 @@ export interface IFieldType {
   label?: string;
   placeholder?: string;
   required?: boolean;
+  help?: string;
   type: "text" | "toggle" | "records";
   options?:
     | {
@@ -80,6 +81,7 @@ const Record: FunctionComponent<IRecordProps> = (
                     label={field.label}
                     id={field.name}
                     name={field.name}
+                    help={field.help}
                     placeholder={
                       field.placeholder && !field.label
                         ? field.placeholder + (field.required ? "*" : "")
@@ -91,7 +93,8 @@ const Record: FunctionComponent<IRecordProps> = (
                 {field.type === "toggle" && (
                   <Toggle
                     name={field.name}
-                    label={field.placeholder || ""}
+                    label={field.label || field.placeholder || ""}
+                    help={field.help}
                     options={(field.options as any) || []}
                   />
                 )}

@@ -1,5 +1,11 @@
 import { FunctionComponent, ReactNode } from "react";
 import { NodeGroupType } from "./enums";
+import type {
+  KubernetesServiceBinding,
+  KubernetesServiceConfig,
+  ServiceExposureForm,
+  ServiceNetworking
+} from "./service-exposure";
 
 type KeyValPair = {
   [x: string]: string | number;
@@ -309,6 +315,7 @@ export interface IServiceNodeItem extends INodeItem {
   outputs: string[];
   canvasConfig: ICanvasConfig;
   serviceConfig: Partial<IService>;
+  kubernetes?: ServiceNetworking;
 }
 
 export interface IVolumeNodeItem extends INodeItem {
@@ -367,6 +374,7 @@ export interface IGeneratePayload {
   manifestSource?: ManifestSource;
   nodeNames?: Record<string, string>;
   kubernetesStorage?: Record<string, KubernetesStorage>;
+  kubernetesServices?: Record<string, KubernetesServiceConfig>;
   graphErrors?: string[];
   data: {
     networks: Record<string, Partial<INetworkTopLevel>>;
@@ -381,6 +389,8 @@ export interface KubernetesBinding {
   documentIndex: number;
   containerIndex: number;
   config: Partial<IService>;
+  service?: KubernetesServiceBinding;
+  serviceNotice?: string;
 }
 
 export interface ManifestSource {
@@ -503,10 +513,16 @@ export interface IEditServiceForm {
   profiles: string[];
   ports: {
     _sourceIndex?: number;
+    hostIP?: string;
     hostPort: string;
     containerPort: string;
     protocol: "" | "tcp" | "udp" | "sctp";
   }[];
+  exposedPorts: {
+    containerPort: string;
+    protocol: "" | "tcp" | "udp" | "sctp";
+  }[];
+  kubernetesService: ServiceExposureForm;
   environmentVariables: {
     key: string;
     value: string;
@@ -640,6 +656,7 @@ export interface IRecordsField<T extends IFormField> extends IValueField {
   type: "records";
   title: string;
   defaultOpen?: boolean;
+  layout?: "row" | "grid";
   fields: (index: number) => T[];
   newValue: any;
 }

@@ -118,49 +118,6 @@ const General = () => {
             ]
           },
           {
-            id: "ports",
-            type: "records",
-            name: "ports",
-            title: "Ports",
-            defaultOpen: true,
-            fields: (index: number): TFinalFormField[] => [
-              {
-                id: `ports[${index}].hostPort`,
-                type: "text",
-                name: `ports[${index}].hostPort`,
-                placeholder: "Host port",
-                required: true
-              },
-              {
-                id: `ports[${index}].containerPort`,
-                type: "text",
-                name: `ports[${index}].containerPort`,
-                placeholder: "Container port"
-              },
-              {
-                id: `ports[${index}].protocol`,
-                type: "toggle",
-                name: `ports[${index}].protocol`,
-                label: "Protocol",
-                options: [
-                  {
-                    value: "tcp",
-                    text: "TCP"
-                  },
-                  {
-                    value: "udp",
-                    text: "UDP"
-                  }
-                ]
-              }
-            ],
-            newValue: {
-              hostPort: "",
-              containerPort: "",
-              protocol: ""
-            }
-          },
-          {
             id: "dependsOn",
             type: "records",
             name: "dependsOn",
@@ -199,22 +156,6 @@ const General = () => {
               serviceName: "",
               condition: "service_started"
             }
-          },
-          {
-            id: "networks",
-            type: "records",
-            title: "Networks",
-            name: "networks",
-            fields: (index: number): TFinalFormField[] => [
-              {
-                id: `networks[${index}]`,
-                type: "text",
-                name: `networks[${index}]`,
-                placeholder: "Network name",
-                required: false
-              }
-            ],
-            newValue: ""
           },
           {
             id: "capAdd",

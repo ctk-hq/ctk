@@ -7,10 +7,10 @@ import {
 import {
   getFinalValues,
   getInitialValues,
-  tabs,
   validationSchema
 } from "./form-utils";
 import { toaster } from "../../../../utils";
+import { tabs } from "./tabs";
 import FormModal from "../../../FormModal";
 
 interface IModalServiceProps {

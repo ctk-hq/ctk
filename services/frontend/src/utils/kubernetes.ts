@@ -3,6 +3,10 @@ import type { IGeneratePayload, KubernetesBinding } from "../types";
 import type { ManifestImport } from "./manifests";
 import { pointer } from "../services/manifest-validation";
 import { mountParts } from "./container-values";
+import {
+  bindKubernetesServices,
+  updateKubernetesService
+} from "./kubernetes-services";
 
 type RecordValue = Record<string, any>;
 const record = (value: unknown): RecordValue =>
@@ -330,6 +334,7 @@ export function importKubernetes(input: RecordValue[]): ManifestImport {
       });
     });
   });
+  bindKubernetesServices(documents, bindings);
   if (documents.some((resource) => resource.kind === "Service"))
     warnings.add(
       "Kubernetes Services and routing stay in Kubernetes. Compose exposes container ports without publishing them to the host."
@@ -361,6 +366,25 @@ export function updateImportedKubernetes(
       );
   }
   const documents = clone(source.documents);
+  // Also hydrate bindings saved by projects created before the Service editor.
+  const serviceBindings = clone(source.bindings);
+  bindKubernetesServices(source.documents, serviceBindings);
+  const removedServices = new Set<number>();
+  for (const binding of serviceBindings) {
+    const name =
+      binding.nodeKey && payload.nodeNames
+        ? payload.nodeNames[binding.nodeKey]
+        : binding.serviceName;
+    if (
+      payload.data.services[name] &&
+      updateKubernetesService(
+        documents,
+        binding,
+        payload.kubernetesServices?.[name]
+      )
+    )
+      removedServices.add(binding.service!.documentIndex!);
+  }
   const remaining = {
     ...payload.data,
     services: { ...payload.data.services },
@@ -752,7 +776,9 @@ export function updateImportedKubernetes(
     if (!pod.containers.length) removed.add(index);
   }
   return {
-    documents: documents.filter((_, index) => !removed.has(index)),
+    documents: documents.filter(
+      (_, index) => !removed.has(index) && !removedServices.has(index)
+    ),
     remaining
   };
 }

@@ -234,18 +234,9 @@ const reportError = (prefix: string, error: any[] | string) => {
   }
 };
 
-/**
- * Formik is configured to validate fields automatically using Yup.
- * The problem is Formik does not call `onSubmit` function when errors
- * are present. Therefore, a work around was to call `formik.submitForm`
- * after showing errors to the user. The `reportErrorsAndSubmit` utility
- * function basically implements this.
- */
-export const reportErrorsAndSubmit = (formik: any) => () => {
-  const errors: [string, any][] = Object.entries(formik.errors);
-  if (errors.length > 0) {
-    reportError("", formik.errors);
-  } else {
-    formik.submitForm();
-  }
+/** Report current errors across tabs, then let Formik mark fields and submit. */
+export const reportErrorsAndSubmit = (formik: any) => async () => {
+  const errors = await formik.validateForm();
+  if (Object.keys(errors).length > 0) reportError("", errors);
+  await formik.submitForm();
 };

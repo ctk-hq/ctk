@@ -11,6 +11,12 @@ import {
   portParts
 } from "../utils/container-values";
 import { referencedVariables } from "../utils/variables";
+import { serviceExposureIssues } from "./service-exposure-validation";
+import { isIPAddress } from "../utils/ip-address";
+import {
+  selectsWorkload,
+  workloadTemplate
+} from "../utils/kubernetes-services";
 
 export type ManifestTarget = "DOCKER_COMPOSE" | "KUBERNETES";
 export interface ManifestDiagnostic {
@@ -216,7 +222,18 @@ export function validateCompose(
       ).entries()) {
         if (referencedVariables(value).length) continue;
         const parts = portParts(value);
+        if (parts.hostIP && !isIPAddress(parts.hostIP))
+          add(
+            "PORT_HOST_IP_INVALID",
+            `${path}/${key}/${index}`,
+            "The host binding needs a valid IPv4 or IPv6 address.",
+            "Correct the host IP address."
+          );
         if (
+          (key === "expose" && (parts.hostPort || parts.hostIP)) ||
+          (parts.hostIP.includes(":") &&
+            typeof value === "string" &&
+            !value.startsWith("[")) ||
           !portRange(parts.containerPort) ||
           (parts.hostPort && !portRange(parts.hostPort, true)) ||
           (parts.protocol &&
@@ -421,6 +438,32 @@ export function conversionDiagnostics(
     const service = original as Record<string, any>;
     const before = nativeBindings.get(name) as Record<string, any> | undefined;
     const path = `/services/${pointer(name)}`;
+    const exposure = payload.kubernetesServices?.[name];
+    if (exposure) {
+      for (const issue of serviceExposureIssues(exposure))
+        add(
+          issue.code,
+          `${path}/kubernetesService${issue.path}`,
+          issue.reason,
+          "Open Networking and correct the Kubernetes Service settings."
+        );
+      if (exposure.type === "LoadBalancer")
+        add(
+          "LOAD_BALANCER_PROVIDER",
+          `${path}/kubernetesService/type`,
+          "A LoadBalancer Service requires a cluster provider to provision an external address.",
+          "Check provider support and provisioning status after applying.",
+          "warning"
+        );
+      if (exposure.type === "NodePort")
+        add(
+          "NODE_PORT_ACCESS",
+          `${path}/kubernetesService/type`,
+          "NodePort access depends on reachable node addresses, the cluster port range and firewall rules.",
+          "Verify node access and any explicitly requested node ports.",
+          "info"
+        );
+    }
     // Untouched native projections are already represented by their preserved resources.
     const changed = (key: string) =>
       !before || JSON.stringify(before[key]) !== JSON.stringify(service[key]);
@@ -579,7 +622,8 @@ export function conversionDiagnostics(
             !/^\d+$/.test(parts.containerPort) ||
             Number(parts.containerPort) < 1 ||
             Number(parts.containerPort) > 65535 ||
-            (parts.hostPort &&
+            (!exposure &&
+              parts.hostPort &&
               (!/^\d+$/.test(parts.hostPort) ||
                 Number(parts.hostPort) < 1 ||
                 Number(parts.hostPort) > 65535))
@@ -600,27 +644,47 @@ export function conversionDiagnostics(
               "The port protocol is unsupported.",
               "Use TCP, UDP or SCTP."
             );
-          if (key === "ports" && parts.hostPort)
+          if (key === "ports" && parts.hostPort && !exposure)
             add(
               "PORT_CLUSTER_INTERNAL",
               `${path}/${key}/${index}`,
               "A published Compose port becomes a cluster-internal Service port; host binding and public exposure are not reproduced.",
-              "Configure a native Service/Ingress for external access.",
+              "Open Networking and choose an explicit Kubernetes Service type for external access.",
               "warning"
             );
           if (isObject(value)) {
             for (const [option, setting] of Object.entries(value))
-              if (!["target", "published", "protocol"].includes(option))
-                unsupported(
-                  setting,
-                  `${path}/${key}/${index}/${pointer(option)}`
-                );
-          } else if (typeof value === "string" && value.split(":").length > 2)
-            unsupported(
-              value,
-              `${path}/${key}/${index}/host_ip`,
-              "The Compose host IP binding is not represented in Kubernetes."
-            );
+              if (!["target", "published", "protocol"].includes(option)) {
+                if (exposure)
+                  add(
+                    "COMPOSE_BINDING_RETAINED",
+                    `${path}/${key}/${index}/${pointer(option)}`,
+                    "This Compose binding option remains in Compose; the explicit Kubernetes Service settings control Kubernetes exposure.",
+                    "Review the Kubernetes Service ports in Networking.",
+                    "warning"
+                  );
+                else
+                  unsupported(
+                    setting,
+                    `${path}/${key}/${index}/${pointer(option)}`
+                  );
+              }
+          } else if (typeof value === "string" && value.split(":").length > 2) {
+            if (exposure)
+              add(
+                "COMPOSE_BINDING_RETAINED",
+                `${path}/${key}/${index}/host_ip`,
+                "The Compose host IP remains in Compose; Kubernetes exposure uses the explicit Service settings.",
+                "Review the Kubernetes Service ports in Networking.",
+                "warning"
+              );
+            else
+              unsupported(
+                value,
+                `${path}/${key}/${index}/host_ip`,
+                "The Compose host IP binding is not represented in Kubernetes."
+              );
+          }
         }
     if (changed("volumes"))
       for (const [index, value] of (Array.isArray(service.volumes)
@@ -1078,6 +1142,7 @@ export function validateKubernetes(
   ) =>
     result.push(diagnostic(code, path, "KUBERNETES", reason, action, severity));
   const identities = new Set<string>();
+  const allocatedNodePorts = new Map<string, string>();
   for (const [index, resource] of documents.entries()) {
     const path = `/documents/${index}`,
       metadata = resource.metadata ?? {};
@@ -1440,44 +1505,78 @@ export function validateKubernetes(
         );
     }
     if (resource.kind === "Service") {
-      const keys = new Set<string>(),
-        portNames = new Set<string>();
-      for (const port of resource.spec?.ports ?? []) {
-        const key = `${port.port}/${port.protocol ?? "TCP"}`;
-        if (
-          !Number.isInteger(port.port) ||
-          port.port < 1 ||
-          port.port > 65535 ||
-          keys.has(key)
+      const spec = resource.spec ?? {};
+      const type = spec.type ?? "ClusterIP";
+      if (
+        !["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"].includes(
+          type
         )
+      )
+        add(
+          "SERVICE_TYPE_INVALID",
+          `${path}/spec/type`,
+          "This is not a Kubernetes Service type.",
+          "Choose ClusterIP, NodePort, LoadBalancer or ExternalName in the native manifest."
+        );
+      if (
+        type !== "ExternalName" &&
+        !(spec.clusterIP === "None" && !spec.ports?.length)
+      ) {
+        const settings = {
+          type,
+          ports: (spec.ports ?? []).map((port: any) => ({
+            ...port,
+            targetPort: port.targetPort ?? port.port,
+            protocol: port.protocol ?? "TCP"
+          }))
+        };
+        for (const issue of serviceExposureIssues(settings))
           add(
-            "SERVICE_PORT_INVALID",
-            `${path}/spec/ports`,
-            "Service ports must be distinct valid port/protocol pairs.",
-            "Correct the Service port mappings."
+            issue.code,
+            `${path}/spec${issue.path}`,
+            issue.reason,
+            "Correct the Service exposure settings."
           );
-        keys.add(key);
-        if (port.name && portNames.has(port.name))
-          add(
-            "PORT_NAME_INVALID",
-            `${path}/spec/ports`,
-            "Service port names are duplicated.",
-            "Choose unique Service port names."
-          );
-        if (port.name) portNames.add(port.name);
+      }
+      for (const [portIndex, port] of (spec.ports ?? []).entries()) {
+        if (port.nodePort) {
+          const key = `${port.nodePort}/${port.protocol ?? "TCP"}`;
+          if (allocatedNodePorts.has(key))
+            add(
+              "NODE_PORT_CONFLICT",
+              `${path}/spec/ports/${portIndex}/nodePort`,
+              "This node port/protocol is already requested by another Service in this export.",
+              "Choose a distinct node port or allow automatic allocation."
+            );
+          else allocatedNodePorts.set(key, path);
+        }
       }
       if (Object.keys(resource.spec?.selector ?? {}).length) {
         const selected = documents.filter(
           (document) =>
-            (document.metadata?.namespace || "default") ===
-              (metadata.namespace || "default") &&
-            Object.entries(resource.spec.selector).every(
-              ([key, value]) =>
-                (document.kind === "Pod"
-                  ? document.metadata?.labels
-                  : document.spec?.template?.metadata?.labels)?.[key] === value
-            )
+            workloadTemplate(document) && selectsWorkload(resource, document)
         );
+        for (const [portIndex, port] of (spec.ports ?? []).entries()) {
+          if (typeof port.targetPort !== "string") continue;
+          for (const workload of selected) {
+            const matches = (
+              workloadTemplate(workload)?.spec?.containers ?? []
+            ).some((container: any) =>
+              (container.ports ?? []).some(
+                (entry: any) =>
+                  entry.name === port.targetPort &&
+                  (entry.protocol ?? "TCP") === (port.protocol ?? "TCP")
+              )
+            );
+            if (!matches)
+              add(
+                "SERVICE_TARGET_MISSING",
+                `${path}/spec/ports/${portIndex}/targetPort`,
+                "A selected workload does not declare this named target with the same protocol.",
+                "Correct the target name or declare the corresponding container port."
+              );
+          }
+        }
         if (!selected.length)
           add(
             "SERVICE_NO_LOCAL_WORKLOAD",

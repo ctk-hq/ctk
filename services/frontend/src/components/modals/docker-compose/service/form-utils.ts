@@ -23,39 +23,13 @@ import {
   mountParts,
   absoluteContainerPath
 } from "../../../../utils/container-values";
-import General from "./General";
-import Environment from "./Environment";
-import Data from "./Data";
-import Build from "./Build";
-import Deploy from "./Deploy";
-
-export const tabs = [
-  {
-    value: "general",
-    title: "General",
-    component: General
-  },
-  {
-    value: "environment",
-    title: "Environment",
-    component: Environment
-  },
-  {
-    value: "data",
-    title: "Data",
-    component: Data
-  },
-  {
-    value: "build",
-    title: "Build",
-    component: Build
-  },
-  {
-    value: "deploy",
-    title: "Deploy",
-    component: Deploy
-  }
-];
+import {
+  composePortValue,
+  exposureConfig,
+  exposureForm,
+  exposureSchema
+} from "./networking-form";
+import { isIPAddress } from "../../../../utils/ip-address";
 
 const initialValues: IEditServiceForm = {
   capAdd: [],
@@ -127,6 +101,8 @@ const initialValues: IEditServiceForm = {
   networks: [],
   profiles: [],
   ports: [],
+  exposedPorts: [],
+  kubernetesService: exposureForm(),
   environmentVariables: [],
   volumes: [],
   restart: "",
@@ -345,13 +321,27 @@ export const validationSchema = yup.object({
   ),
   ports: yup.array(
     yup.object({
+      hostIP: yup
+        .string()
+        .test(
+          "ip",
+          "Use an IPv4 or IPv6 address",
+          (value) => !value || isIPAddress(value)
+        )
+        .test(
+          "published",
+          "Set a host port when binding an address",
+          function (value) {
+            return !value || !!this.parent.hostPort;
+          }
+        ),
       hostPort: (yup.string() as any).port(
         "Host port must be 0-65535 or an ordered port range",
         true
       ),
-      containerPort: (yup.string() as any).port(
-        "Container port should be an integer in the range 1-65535"
-      ),
+      containerPort: (yup.string() as any)
+        .port("Container port must be 1-65535 or an ordered range")
+        .required("Container port is required"),
       protocol: yup
         .string()
         .oneOf(
@@ -360,6 +350,15 @@ export const validationSchema = yup.object({
         )
     })
   ),
+  exposedPorts: yup.array(
+    yup.object({
+      containerPort: (yup.string() as any)
+        .port("Use ports from 1 to 65535 or an ordered range")
+        .required("Container port is required"),
+      protocol: yup.string().oneOf(["", "tcp", "udp", "sctp"])
+    })
+  ),
+  kubernetesService: exposureSchema,
   environmentVariables: yup
     .array(yup.object({ key: yup.string().required("Key is required") }))
     .test("unique", "Environment variable names must be unique", uniqueNames),
@@ -648,6 +647,14 @@ export const getInitialValues = (node?: IServiceNodeItem): IEditServiceForm => {
       ...portParts(value),
       _sourceIndex: index
     })) as IEditServiceForm["ports"],
+    exposedPorts: (serviceConfig.expose ?? []).map((value) => {
+      const port = portParts(value);
+      return {
+        containerPort: port.containerPort,
+        protocol: port.protocol as "tcp" | "udp" | "sctp" | ""
+      };
+    }),
+    kubernetesService: exposureForm(node),
     profiles: profiles ?? initialValues.profiles,
     restart: (restart as string) ?? (initialValues.restart as string),
     labels:
@@ -714,7 +721,17 @@ export const getFinalValues = (
       ...previous?.canvasConfig,
       node_name: values.serviceName
     },
+    kubernetes: {
+      ...previous?.kubernetes,
+      service: exposureConfig(values.kubernetesService)
+    },
     serviceConfig: {
+      expose: pruneArray(
+        values.exposedPorts.map(
+          (port) =>
+            `${port.containerPort}${port.protocol ? `/${port.protocol}` : ""}`
+        )
+      ),
       cap_add: pruneArray([...new Set(capAdd.map(normalizeCapability))]),
       cap_drop: pruneArray([...new Set(capDrop.map(normalizeCapability))]),
       build: pruneObject({
@@ -817,15 +834,7 @@ export const getFinalValues = (
         )
       ),
       networks: pruneArray(networks),
-      ports: pruneArray(
-        ports.map(
-          (port) =>
-            (port.hostPort
-              ? port.hostPort +
-                (port.containerPort ? `:${port.containerPort}` : "")
-              : port.containerPort) + (port.protocol ? `/${port.protocol}` : "")
-        )
-      ),
+      ports: pruneArray(ports.map((port) => composePortValue(port))),
       profiles: pruneArray(profiles),
       restart: pruneString(restart),
       labels: packArrayAsObject(labels, "key", "value"),
@@ -856,31 +865,13 @@ export const getFinalValues = (
                 : beforeRows[row._sourceIndex];
             if (JSON.stringify(row) === JSON.stringify(before)) return old;
             if (old && typeof old === "object") {
-              if (key === "ports") {
-                const next = {
-                  ...old,
-                  target: /^\d+$/.test(row.containerPort)
-                    ? Number(row.containerPort)
-                    : row.containerPort
-                };
-                if (row.hostPort) next.published = String(row.hostPort);
-                else delete next.published;
-                if (row.protocol) next.protocol = row.protocol;
-                else delete next.protocol;
-                return next;
-              }
+              if (key === "ports") return composePortValue(row, old);
               const next = { ...old, target: row.containerPath };
               if (row.name) next.source = row.name;
               else delete next.source;
               if (row.accessMode === "ro") next.read_only = true;
               else delete next.read_only;
               return next;
-            }
-            if (key === "ports" && typeof old === "string") {
-              const expression = old.split("/")[0];
-              const parts = expression.split(":");
-              if (parts.length > 2)
-                return `${parts.slice(0, -2).join(":")}:${row.hostPort}:${row.containerPort}${row.protocol ? `/${row.protocol}` : ""}`;
             }
             return edited[key]?.[index];
           })

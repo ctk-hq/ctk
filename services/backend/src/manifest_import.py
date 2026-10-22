@@ -8,6 +8,8 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
+from kubernetes_services import bind_kubernetes_services
+
 
 def _list(value):
     return value if isinstance(value, list) else []
@@ -215,6 +217,19 @@ def import_manifest(text: str) -> dict[str, Any]:
                     canvas["connections"].append(edge)
     for binding in source.get("kubernetes", {}).get("bindings", []):
         binding["nodeKey"] = service_ids[binding["serviceName"]]
+        canvas["nodes"][binding["nodeKey"]]["kubernetes"] = {
+            "native": True,
+            **(
+                {"service": copy.deepcopy(binding["service"]["config"])}
+                if "service" in binding
+                else {}
+            ),
+            **(
+                {"serviceNotice": binding["serviceNotice"]}
+                if "serviceNotice" in binding
+                else {}
+            ),
+        }
     return {"canvas": canvas}
 
 
@@ -471,6 +486,7 @@ def _kubernetes(input_documents):
                     "config": copy.deepcopy(config),
                 }
             )
+    bind_kubernetes_services(documents, bindings)
     if any(resource["kind"] == "Service" for resource in documents):
         warn(
             "Kubernetes Services and routing stay in Kubernetes. Compose exposes container ports without publishing them to the host."

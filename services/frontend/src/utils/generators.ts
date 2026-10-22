@@ -6,6 +6,7 @@ export const generatePayload = (payload: any): IGeneratePayload => {
   const base: IGeneratePayload = {
     graphErrors: [],
     kubernetesStorage: {},
+    kubernetesServices: {},
     manifestSource: payload.manifestSource,
     nodeNames: Object.fromEntries(
       Object.values(
@@ -39,6 +40,9 @@ export const generatePayload = (payload: any): IGeneratePayload => {
         );
       base.data.services[nodes[key].canvasConfig.node_name] =
         nodes[key].serviceConfig;
+      if (nodes[key].kubernetes?.service)
+        base.kubernetesServices![nodes[key].canvasConfig.node_name] =
+          nodes[key].kubernetes.service;
     }
 
     if (nodes[key].type === "VOLUME") {
